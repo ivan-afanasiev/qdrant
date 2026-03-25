@@ -16,12 +16,14 @@ setup-homebrew: ## Install Homebrew dependencies (protobuf)
 	brew install protobuf
 
 .PHONY: setup-rust
-setup-rust: ## Install Rust toolchain via rustup
+setup-rust: ## Install Rust toolchain (stable + nightly for tier-3 targets)
 	@if ! command -v rustup >/dev/null 2>&1; then \
 		echo "Installing rustup..."; \
 		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; \
 		echo 'source "$$HOME/.cargo/env"' >> ~/.zshrc; \
 	fi
+	rustup toolchain install nightly --profile minimal
+	rustup component add rust-src --toolchain nightly
 	@echo "Rust toolchain OK: $$(rustc --version 2>/dev/null || echo 'restart shell to activate')"
 
 .PHONY: setup-targets
@@ -31,21 +33,21 @@ setup-targets: ## Install required Rust cross-compilation targets
 		aarch64-apple-ios-sim \
 		x86_64-apple-ios \
 		aarch64-apple-darwin \
-		x86_64-apple-darwin \
-		aarch64-apple-tvos \
-		aarch64-apple-tvos-sim \
-		x86_64-apple-tvos \
-		aarch64-apple-visionos \
-		aarch64-apple-visionos-sim
+		x86_64-apple-darwin
+	@echo "tvOS/visionOS targets are tier-3 and will be built with nightly -Z build-std"
 
 # ── Build ────────────────────────────────────────────────────────────────────
 
 .PHONY: build
-build: ## Build the XCFramework (release)
+build: ## Build the XCFramework (iOS + macOS)
 	@bash $(SCRIPT_DIR)build-xcframework.sh
 
+.PHONY: build-all
+build-all: ## Build the XCFramework (all platforms incl. tvOS/visionOS)
+	@bash $(SCRIPT_DIR)build-xcframework.sh --all-platforms
+
 .PHONY: build-debug
-build-debug: ## Build the XCFramework (debug, faster compile)
+build-debug: ## Build the XCFramework (debug, iOS + macOS)
 	@bash $(SCRIPT_DIR)build-xcframework.sh --debug
 
 # ── Info ─────────────────────────────────────────────────────────────────────

@@ -5,10 +5,13 @@
 # Prerequisites:
 #   - Xcode (with command-line tools)
 #   - Rust toolchain (rustup)
-#   - Required Rust targets (installed automatically by this script)
+#   - For tvOS/visionOS: nightly toolchain + rust-src (see `make setup`)
 #
 # Usage:
-#   ./build-xcframework.sh [--release]
+#   ./build-xcframework.sh [--debug] [--all-platforms]
+#
+#   --debug          Build in debug mode (faster compile, larger binary)
+#   --all-platforms  Include tvOS and visionOS (tier-3, requires nightly)
 #
 # Output:
 #   out/QdrantEdge.xcframework   - The XCFramework
@@ -33,67 +36,96 @@ PACKAGE_NAME="qdrant-edge-swift"
 # Parse args
 PROFILE="release"
 CARGO_FLAGS="--release"
-if [[ "${1:-}" == "--debug" ]]; then
-    PROFILE="debug"
-    CARGO_FLAGS=""
-fi
+ALL_PLATFORMS=false
 
-# Apple targets to build
-TARGETS=(
+for arg in "$@"; do
+    case "$arg" in
+        --debug) PROFILE="debug"; CARGO_FLAGS="" ;;
+        --all-platforms) ALL_PLATFORMS=true ;;
+    esac
+done
+
+# ── Targets ──────────────────────────────────────────────────────────────────
+
+# Tier 1/2 — build with stable toolchain
+STABLE_TARGETS=(
     "aarch64-apple-ios"           # iOS devices
     "aarch64-apple-ios-sim"       # iOS Simulator (Apple Silicon)
     "x86_64-apple-ios"            # iOS Simulator (Intel)
     "aarch64-apple-darwin"        # macOS (Apple Silicon)
     "x86_64-apple-darwin"         # macOS (Intel)
-    "aarch64-apple-tvos"          # tvOS devices
-    "aarch64-apple-tvos-sim"      # tvOS Simulator (Apple Silicon)
-    "x86_64-apple-tvos"           # tvOS Simulator (Intel)
-    "aarch64-apple-visionos"      # visionOS devices
-    "aarch64-apple-visionos-sim"  # visionOS Simulator
 )
 
+# Tier 3 — require nightly + -Z build-std
+TIER3_TARGETS=()
+if $ALL_PLATFORMS; then
+    TIER3_TARGETS=(
+        "aarch64-apple-tvos"          # tvOS devices
+        "aarch64-apple-tvos-sim"      # tvOS Simulator (Apple Silicon)
+        "x86_64-apple-tvos"           # tvOS Simulator (Intel)
+        "aarch64-apple-visionos"      # visionOS devices
+        "aarch64-apple-visionos-sim"  # visionOS Simulator
+    )
+fi
+
+ALL_TARGETS=("${STABLE_TARGETS[@]}" ${TIER3_TARGETS[@]+"${TIER3_TARGETS[@]}"})
+
+# ── Build ────────────────────────────────────────────────────────────────────
+
 echo "==> Installing required Rust targets..."
-for target in "${TARGETS[@]}"; do
+for target in "${STABLE_TARGETS[@]}"; do
     rustup target add "$target" 2>/dev/null || true
 done
 
 echo "==> Building static libraries..."
-for target in "${TARGETS[@]}"; do
-    echo "    Building for $target..."
+for target in "${STABLE_TARGETS[@]}"; do
+    echo "    Building for $target (stable)..."
     cargo build $CARGO_FLAGS \
         --lib \
         --package "$PACKAGE_NAME" \
         --target "$target" \
         --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
 done
+for target in ${TIER3_TARGETS[@]+"${TIER3_TARGETS[@]}"}; do
+    echo "    Building for $target (nightly + build-std)..."
+    cargo +nightly build $CARGO_FLAGS \
+        --lib \
+        --package "$PACKAGE_NAME" \
+        --target "$target" \
+        --manifest-path "$WORKSPACE_ROOT/Cargo.toml" \
+        -Z build-std
+done
 
 echo "==> Stripping debug symbols..."
-for target in "${TARGETS[@]}"; do
+for target in "${ALL_TARGETS[@]}"; do
     strip -S "$WORKSPACE_ROOT/target/$target/$PROFILE/$LIB_NAME"
 done
+
+# ── Universal (fat) libraries ────────────────────────────────────────────────
 
 echo "==> Creating universal (fat) libraries..."
 mkdir -p "$OUT_DIR/ios-simulator-universal"
 mkdir -p "$OUT_DIR/macos-universal"
-mkdir -p "$OUT_DIR/tvos-simulator-universal"
 
-# iOS Simulator universal (arm64 + x86_64)
 lipo -create \
     "$WORKSPACE_ROOT/target/aarch64-apple-ios-sim/$PROFILE/$LIB_NAME" \
     "$WORKSPACE_ROOT/target/x86_64-apple-ios/$PROFILE/$LIB_NAME" \
     -output "$OUT_DIR/ios-simulator-universal/$LIB_NAME"
 
-# macOS universal (arm64 + x86_64)
 lipo -create \
     "$WORKSPACE_ROOT/target/aarch64-apple-darwin/$PROFILE/$LIB_NAME" \
     "$WORKSPACE_ROOT/target/x86_64-apple-darwin/$PROFILE/$LIB_NAME" \
     -output "$OUT_DIR/macos-universal/$LIB_NAME"
 
-# tvOS Simulator universal (arm64 + x86_64)
-lipo -create \
-    "$WORKSPACE_ROOT/target/aarch64-apple-tvos-sim/$PROFILE/$LIB_NAME" \
-    "$WORKSPACE_ROOT/target/x86_64-apple-tvos/$PROFILE/$LIB_NAME" \
-    -output "$OUT_DIR/tvos-simulator-universal/$LIB_NAME"
+if $ALL_PLATFORMS; then
+    mkdir -p "$OUT_DIR/tvos-simulator-universal"
+    lipo -create \
+        "$WORKSPACE_ROOT/target/aarch64-apple-tvos-sim/$PROFILE/$LIB_NAME" \
+        "$WORKSPACE_ROOT/target/x86_64-apple-tvos/$PROFILE/$LIB_NAME" \
+        -output "$OUT_DIR/tvos-simulator-universal/$LIB_NAME"
+fi
+
+# ── Swift bindings ───────────────────────────────────────────────────────────
 
 echo "==> Generating Swift bindings..."
 mkdir -p "$BINDINGS_DIR"
@@ -112,18 +144,19 @@ mv "$BINDINGS_DIR/${CRATE_NAME}.swift" "$BINDINGS_DIR/QdrantEdge.swift"
 mv "$BINDINGS_DIR/${CRATE_NAME}FFI.h" "$BINDINGS_DIR/QdrantEdgeFFI.h"
 mv "$BINDINGS_DIR/${CRATE_NAME}FFI.modulemap" "$BINDINGS_DIR/QdrantEdgeFFI.modulemap" 2>/dev/null || true
 
-echo "==> Preparing headers..."
-HEADERS_IOS="$OUT_DIR/headers-ios"
-HEADERS_SIM="$OUT_DIR/headers-sim"
-HEADERS_MAC="$OUT_DIR/headers-mac"
-HEADERS_TVOS="$OUT_DIR/headers-tvos"
-HEADERS_TVOS_SIM="$OUT_DIR/headers-tvos-sim"
-HEADERS_VISIONOS="$OUT_DIR/headers-visionos"
-HEADERS_VISIONOS_SIM="$OUT_DIR/headers-visionos-sim"
+# ── Headers & modulemap ─────────────────────────────────────────────────────
 
-for hdir in "$HEADERS_IOS" "$HEADERS_SIM" "$HEADERS_MAC" \
-            "$HEADERS_TVOS" "$HEADERS_TVOS_SIM" \
-            "$HEADERS_VISIONOS" "$HEADERS_VISIONOS_SIM"; do
+echo "==> Preparing headers..."
+
+HEADER_DIRS=("$OUT_DIR/headers-ios" "$OUT_DIR/headers-sim" "$OUT_DIR/headers-mac")
+if $ALL_PLATFORMS; then
+    HEADER_DIRS+=(
+        "$OUT_DIR/headers-tvos" "$OUT_DIR/headers-tvos-sim"
+        "$OUT_DIR/headers-visionos" "$OUT_DIR/headers-visionos-sim"
+    )
+fi
+
+for hdir in "${HEADER_DIRS[@]}"; do
     rm -rf "$hdir"
     mkdir -p "$hdir"
     cp "$BINDINGS_DIR/QdrantEdgeFFI.h" "$hdir/"
@@ -136,37 +169,52 @@ module qdrant_edge_swiftFFI {
 MODULEMAP
 done
 
+# ── XCFramework ──────────────────────────────────────────────────────────────
+
 echo "==> Building XCFramework..."
 rm -rf "$XCFRAMEWORK_DIR"
 
-xcodebuild -create-xcframework \
-    -library "$WORKSPACE_ROOT/target/aarch64-apple-ios/$PROFILE/$LIB_NAME" \
-        -headers "$HEADERS_IOS" \
-    -library "$OUT_DIR/ios-simulator-universal/$LIB_NAME" \
-        -headers "$HEADERS_SIM" \
-    -library "$OUT_DIR/macos-universal/$LIB_NAME" \
-        -headers "$HEADERS_MAC" \
-    -library "$WORKSPACE_ROOT/target/aarch64-apple-tvos/$PROFILE/$LIB_NAME" \
-        -headers "$HEADERS_TVOS" \
-    -library "$OUT_DIR/tvos-simulator-universal/$LIB_NAME" \
-        -headers "$HEADERS_TVOS_SIM" \
-    -library "$WORKSPACE_ROOT/target/aarch64-apple-visionos/$PROFILE/$LIB_NAME" \
-        -headers "$HEADERS_VISIONOS" \
-    -library "$WORKSPACE_ROOT/target/aarch64-apple-visionos-sim/$PROFILE/$LIB_NAME" \
-        -headers "$HEADERS_VISIONOS_SIM" \
-    -output "$XCFRAMEWORK_DIR"
+XCFRAMEWORK_ARGS=(
+    -library "$WORKSPACE_ROOT/target/aarch64-apple-ios/$PROFILE/$LIB_NAME"
+        -headers "$OUT_DIR/headers-ios"
+    -library "$OUT_DIR/ios-simulator-universal/$LIB_NAME"
+        -headers "$OUT_DIR/headers-sim"
+    -library "$OUT_DIR/macos-universal/$LIB_NAME"
+        -headers "$OUT_DIR/headers-mac"
+)
+
+if $ALL_PLATFORMS; then
+    XCFRAMEWORK_ARGS+=(
+        -library "$WORKSPACE_ROOT/target/aarch64-apple-tvos/$PROFILE/$LIB_NAME"
+            -headers "$OUT_DIR/headers-tvos"
+        -library "$OUT_DIR/tvos-simulator-universal/$LIB_NAME"
+            -headers "$OUT_DIR/headers-tvos-sim"
+        -library "$WORKSPACE_ROOT/target/aarch64-apple-visionos/$PROFILE/$LIB_NAME"
+            -headers "$OUT_DIR/headers-visionos"
+        -library "$WORKSPACE_ROOT/target/aarch64-apple-visionos-sim/$PROFILE/$LIB_NAME"
+            -headers "$OUT_DIR/headers-visionos-sim"
+    )
+fi
+
+xcodebuild -create-xcframework "${XCFRAMEWORK_ARGS[@]}" -output "$XCFRAMEWORK_DIR"
+
+# ── Cleanup ──────────────────────────────────────────────────────────────────
 
 echo "==> Cleaning up temporary files..."
-rm -rf "$HEADERS_IOS" "$HEADERS_SIM" "$HEADERS_MAC" \
-       "$HEADERS_TVOS" "$HEADERS_TVOS_SIM" \
-       "$HEADERS_VISIONOS" "$HEADERS_VISIONOS_SIM"
-rm -rf "$OUT_DIR/ios-simulator-universal" "$OUT_DIR/macos-universal" \
-       "$OUT_DIR/tvos-simulator-universal"
+rm -rf "${HEADER_DIRS[@]}"
+rm -rf "$OUT_DIR/ios-simulator-universal" "$OUT_DIR/macos-universal"
+if $ALL_PLATFORMS; then
+    rm -rf "$OUT_DIR/tvos-simulator-universal"
+fi
 
 echo ""
 echo "Done! Output:"
 echo "  XCFramework:    $XCFRAMEWORK_DIR"
 echo "  Swift bindings: $BINDINGS_DIR"
+if ! $ALL_PLATFORMS; then
+    echo ""
+    echo "Note: tvOS/visionOS not included. Use --all-platforms to add them."
+fi
 echo ""
 echo "To use in your Swift project, add the XCFramework and the generated"
 echo "Swift file ($BINDINGS_DIR/QdrantEdge.swift) to your Xcode project,"
