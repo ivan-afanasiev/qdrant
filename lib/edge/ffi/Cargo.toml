@@ -1,5 +1,5 @@
 [package]
-name = "qdrant-edge-swift"
+name = "qdrant-edge-ffi"
 version = "0.1.0"
 authors = ["Qdrant Team <info@qdrant.tech>"]
 license = "Apache-2.0"
@@ -9,8 +9,8 @@ edition = "2024"
 workspace = true
 
 [lib]
-name = "qdrant_edge_swift"
-crate-type = ["staticlib", "lib"]
+name = "qdrant_edge_ffi"
+crate-type = ["staticlib", "cdylib", "lib"]
 
 [dependencies]
 edge = { path = ".." }

@@ -12,18 +12,18 @@ let package = Package(
     products: [
         .library(
             name: "QdrantEdge",
-            targets: ["QdrantEdge", "qdrant_edge_swiftFFI"]
+            targets: ["QdrantEdge", "qdrant_edge_ffiFFI"]
         ),
     ],
     targets: [
         .target(
             name: "QdrantEdge",
-            dependencies: ["qdrant_edge_swiftFFI"],
+            dependencies: ["qdrant_edge_ffiFFI"],
             path: "out/swift-bindings",
             sources: ["QdrantEdge.swift"]
         ),
         .binaryTarget(
-            name: "qdrant_edge_swiftFFI",
+            name: "qdrant_edge_ffiFFI",
             path: "out/QdrantEdge.xcframework"
         ),
     ]

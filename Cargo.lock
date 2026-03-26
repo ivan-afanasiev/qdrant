@@ -5582,6 +5582,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "qdrant-edge-ffi"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "edge",
+ "ordered-float 5.1.0",
+ "parking_lot",
+ "segment",
+ "serde_json",
+ "shard",
+ "sparse",
+ "thiserror 2.0.18",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
+name = "qdrant-edge-ffi-bindgen"
+version = "0.1.0"
+dependencies = [
+ "uniffi",
+]
+
+[[package]]
 name = "qdrant-edge-py"
 version = "0.5.0"
 dependencies = [
@@ -5600,30 +5624,6 @@ dependencies = [
  "sparse",
  "tempfile",
  "uuid",
-]
-
-[[package]]
-name = "qdrant-edge-swift"
-version = "0.1.0"
-dependencies = [
- "ahash",
- "edge",
- "ordered-float 5.1.0",
- "parking_lot",
- "segment",
- "serde_json",
- "shard",
- "sparse",
- "thiserror 2.0.18",
- "uniffi",
- "uuid",
-]
-
-[[package]]
-name = "qdrant-edge-swift-bindgen"
-version = "0.1.0"
-dependencies = [
- "uniffi",
 ]
 
 [[package]]

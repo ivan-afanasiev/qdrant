@@ -29,9 +29,9 @@ OUT_DIR="$SCRIPT_DIR/out"
 BINDINGS_DIR="$OUT_DIR/swift-bindings"
 XCFRAMEWORK_DIR="$OUT_DIR/QdrantEdge.xcframework"
 
-CRATE_NAME="qdrant_edge_swift"
+CRATE_NAME="qdrant_edge_ffi"
 LIB_NAME="lib${CRATE_NAME}.a"
-PACKAGE_NAME="qdrant-edge-swift"
+PACKAGE_NAME="qdrant-edge-ffi"
 
 # Parse args
 PROFILE="release"
@@ -131,7 +131,7 @@ echo "==> Generating Swift bindings..."
 mkdir -p "$BINDINGS_DIR"
 
 cargo run \
-    --package "qdrant-edge-swift-bindgen" \
+    --package "qdrant-edge-ffi-bindgen" \
     --bin uniffi-bindgen \
     --manifest-path "$WORKSPACE_ROOT/Cargo.toml" \
     -- generate \
@@ -161,9 +161,9 @@ for hdir in "${HEADER_DIRS[@]}"; do
     mkdir -p "$hdir"
     cp "$BINDINGS_DIR/QdrantEdgeFFI.h" "$hdir/"
     cat > "$hdir/module.modulemap" << 'MODULEMAP'
-module qdrant_edge_swiftFFI {
+module qdrant_edge_ffiFFI {
     header "QdrantEdgeFFI.h"
-    link "qdrant_edge_swift"
+    link "qdrant_edge_ffi"
     export *
 }
 MODULEMAP
