@@ -32,7 +32,7 @@ final class DuplicateDetectionState {
         }
     }
 
-    func findDuplicates(vectorStore: any VectorStoring, threshold: Float) async {
+    func findDuplicates(vectorStore: any VectorStoring, threshold: Float, scanStore: (any ScanSessionStoring)? = nil) async {
         reduce(.didStartAnalysis)
 
         do {
@@ -50,6 +50,13 @@ final class DuplicateDetectionState {
                 vectorStore: vectorStore,
                 threshold: threshold
             )
+
+            if let store = scanStore, !groups.isEmpty {
+                if let session = try? await store.latestCompletedSession() {
+                    try? await store.deleteAllPendingGroups()
+                    try? await store.saveDuplicateGroups(groups, sessionId: session.id)
+                }
+            }
 
             reduce(.didFinishAnalysis(groups: groups))
         } catch let appError as AppError {

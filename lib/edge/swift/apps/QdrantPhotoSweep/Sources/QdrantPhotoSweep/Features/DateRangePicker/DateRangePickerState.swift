@@ -71,6 +71,11 @@ final class DateRangePickerState {
     var customEnd: Date = .now
     var isCustomRange: Bool = false
 
+    var newPhotoCount: Int = 0
+    var lastSession: ScanSessionDTO?
+    var pendingGroupCount: Int = 0
+    var interruptedSession: ScanSessionDTO?
+
     var currentDateRange: DateRange {
         switch isCustomRange {
         case true:
@@ -122,6 +127,27 @@ final class DateRangePickerState {
             reduce(.countLoaded(count))
         } catch {
             reduce(.countFailed(error))
+        }
+    }
+
+    func checkForNewPhotos(scanStore: any ScanSessionStoring, photoLibrary: any PhotoLibraryProviding) async {
+        do {
+            if let session = try await scanStore.latestCompletedSession() {
+                lastSession = session
+                let range = DateRange(start: session.rangeStart, end: session.rangeEnd)
+                newPhotoCount = try await scanStore.countNewPhotosSince(
+                    date: session.scannedAt,
+                    in: range,
+                    using: photoLibrary
+                )
+            }
+            interruptedSession = try await scanStore.latestInterruptedSession()
+            let pending = try await scanStore.loadPendingGroups()
+            pendingGroupCount = pending.count
+        } catch {
+            newPhotoCount = 0
+            pendingGroupCount = 0
+            interruptedSession = nil
         }
     }
 }

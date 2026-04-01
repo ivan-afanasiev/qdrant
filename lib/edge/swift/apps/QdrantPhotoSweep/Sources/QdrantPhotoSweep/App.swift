@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 @main
@@ -11,6 +12,22 @@ struct QdrantPhotoSweepApp: App {
     @State private var bootstrapStatus: BootstrapStatus = .loading
     @Environment(\.scenePhase) private var scenePhase
 
+    let modelContainer: ModelContainer
+
+    init() {
+        do {
+            modelContainer = try ModelContainer(for:
+                ScanSessionEntity.self,
+                PhotoPointEntity.self,
+                DuplicateGroupEntity.self,
+                GroupMemberEntity.self
+            )
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+        BackgroundScanService.register(modelContainer: modelContainer)
+    }
+
     var body: some Scene {
         WindowGroup {
             contentView
@@ -22,6 +39,7 @@ struct QdrantPhotoSweepApp: App {
                     handleScenePhase(newPhase)
                 }
         }
+        .modelContainer(modelContainer)
     }
 
     private var activeDependencies: Dependencies? {
@@ -83,12 +101,14 @@ struct QdrantPhotoSweepApp: App {
             dimensions: 0
         )
 
+        let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
         let settings = AppSettings()
 
         bootstrapStatus = .ready(Dependencies(
             vectorStore: vectorStore,
             embeddingService: embeddingService,
             photoLibrary: photoLibrary,
+            scanStore: scanStore,
             settings: settings
         ))
     }
@@ -97,7 +117,9 @@ struct QdrantPhotoSweepApp: App {
         switch phase {
         case .background:
             guard case .ready(let deps) = bootstrapStatus else { return }
+            BackgroundScanService.interruptActiveSessions(scanStore: deps.scanStore)
             Task { await deps.vectorStore.close() }
+            BackgroundScanService.schedule()
         case .active, .inactive:
             break
         @unknown default:

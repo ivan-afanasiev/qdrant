@@ -46,5 +46,13 @@
 	<string>PhotoSweep needs access to your photos to find and remove duplicates.</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.qdrant.edge.PhotoSweep.backgroundScan</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

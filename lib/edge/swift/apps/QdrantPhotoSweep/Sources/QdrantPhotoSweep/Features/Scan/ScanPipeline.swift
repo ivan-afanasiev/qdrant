@@ -5,20 +5,35 @@ struct ScanPipeline {
     let photoLibrary: any PhotoLibraryProviding
     let embeddingService: any EmbeddingProviding
     let vectorStore: any VectorStoring
+    let scanStore: any ScanSessionStoring
     let configureDimensions: @Sendable (Int) async -> Void
     let upsertBatchSize: Int = 20
 
-    func run(dateRange: DateRange, state: ScanState) async {
+    func run(dateRange: DateRange, state: ScanState, resumeSessionId: UUID? = nil) async {
         do {
             let assets = try await photoLibrary.fetchAssets(in: dateRange)
             await state.reduce(.didStartScan(total: assets.count))
 
-            var pendingPoints: [VectorPoint] = []
+            let sessionId: UUID
+            if let existing = resumeSessionId {
+                try? await scanStore.updateSessionStatus(existing, status: .scanning, indexedPhotos: nil)
+                sessionId = existing
+            } else {
+                sessionId = try await scanStore.createSession(
+                    rangeStart: dateRange.start,
+                    rangeEnd: dateRange.end,
+                    totalPhotos: assets.count
+                )
+            }
+
+            var pendingBatch: [(assetLocalId: String, point: VectorPoint)] = []
             var indexed = 0
             var dimensionsPropagated = false
+            var currentDimensions = 0
 
             for asset in assets {
                 guard !Task.isCancelled else {
+                    try? await scanStore.updateSessionStatus(sessionId, status: .interrupted, indexedPhotos: indexed)
                     await state.reduce(.didTapCancel)
                     return
                 }
@@ -33,28 +48,44 @@ struct ScanPipeline {
 
                 if let point = await embedAsset(asset, id: pointId) {
                     if !dimensionsPropagated {
-                        await configureDimensions(point.vector.count)
+                        currentDimensions = point.vector.count
+                        await configureDimensions(currentDimensions)
                         dimensionsPropagated = true
                     }
-                    pendingPoints.append(point)
+                    pendingBatch.append((asset.localIdentifier, point))
                 }
                 await state.reduce(.batchCompleted(count: 1))
 
-                if pendingPoints.count >= upsertBatchSize {
-                    try await vectorStore.upsert(points: pendingPoints)
-                    indexed += pendingPoints.count
-                    pendingPoints.removeAll(keepingCapacity: true)
+                if pendingBatch.count >= upsertBatchSize {
+                    try await flushBatch(pendingBatch, sessionId: sessionId, dimensions: currentDimensions)
+                    indexed += pendingBatch.count
+                    pendingBatch.removeAll(keepingCapacity: true)
                 }
             }
 
-            if !pendingPoints.isEmpty {
-                try await vectorStore.upsert(points: pendingPoints)
-                indexed += pendingPoints.count
+            if !pendingBatch.isEmpty {
+                try await flushBatch(pendingBatch, sessionId: sessionId, dimensions: currentDimensions)
+                indexed += pendingBatch.count
             }
 
+            try? await scanStore.updateSessionStatus(sessionId, status: .completed, indexedPhotos: indexed)
             await state.reduce(.didFinishScan(indexed: indexed))
+        } catch let appError as AppError {
+            await state.reduce(.didFail(appError))
         } catch {
-            await state.reduce(.didFail(error))
+            await state.reduce(.didFail(.unknown(error.localizedDescription)))
+        }
+    }
+
+    private func flushBatch(_ batch: [(assetLocalId: String, point: VectorPoint)], sessionId: UUID, dimensions: Int) async throws {
+        try await vectorStore.upsert(points: batch.map(\.point))
+        for entry in batch {
+            try? await scanStore.recordIndexedPhoto(
+                sessionId: sessionId,
+                assetLocalId: entry.assetLocalId,
+                vectorUUID: entry.point.id,
+                dimensions: dimensions
+            )
         }
     }
 

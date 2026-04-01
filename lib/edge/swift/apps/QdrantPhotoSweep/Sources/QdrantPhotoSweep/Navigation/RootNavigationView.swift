@@ -6,13 +6,22 @@ struct RootNavigationView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            DateRangePickerView(onStartScan: { dateRange in
-                path.append(.scan(dateRange))
-            })
+            DateRangePickerView(
+                onStartScan: { dateRange in
+                    path.append(.scan(dateRange))
+                },
+                onResumeScan: { dateRange, sessionId in
+                    path.append(.scan(dateRange, resumeSessionId: sessionId))
+                },
+                onReviewPending: {
+                    let threshold = dependencies?.settings.similarityThreshold ?? AppSettings.defaultSimilarityThreshold
+                    path.append(.review(threshold: threshold))
+                }
+            )
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .scan(let dateRange):
-                    ScanView(dateRange: dateRange, onComplete: {
+                case .scan(let dateRange, let resumeSessionId):
+                    ScanView(dateRange: dateRange, resumeSessionId: resumeSessionId, onComplete: {
                         let threshold = dependencies?.settings.similarityThreshold ?? AppSettings.defaultSimilarityThreshold
                         path = [.review(threshold: threshold)]
                     })

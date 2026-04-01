@@ -101,9 +101,21 @@ struct SwipeReviewView: View {
     private func runDetection() async {
         guard detectionState.status == .idle else { return }
         guard let deps = dependencies else { return }
+
+        // Try loading persisted pending groups first
+        if let pendingDTOs = try? await deps.scanStore.loadPendingGroups(), !pendingDTOs.isEmpty {
+            let groups = pendingDTOs.compactMap { $0.toDuplicateGroup() }
+            if !groups.isEmpty {
+                detectionState.reduce(.didFinishAnalysis(groups: groups))
+                reviewState.reduce(.didLoadGroups(groups))
+                return
+            }
+        }
+
         await detectionState.findDuplicates(
             vectorStore: deps.vectorStore,
-            threshold: threshold
+            threshold: threshold,
+            scanStore: deps.scanStore
         )
         switch detectionState.status {
         case .complete(let groups):
@@ -295,7 +307,7 @@ struct SwipeReviewView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             dragOffset = 0
             swipeDirection = .none
-            reviewState.reduce(.didSkipGroup)
+            skipCurrentGroup()
         }
     }
 
@@ -400,12 +412,14 @@ struct SwipeReviewView: View {
     private func deleteCurrentGroup() {
         guard let deps = dependencies, let group = reviewState.currentGroup else { return }
         let idsToDelete = reviewState.deletionIdsForCurrentGroup()
-        let keptCount = reviewState.keptIds(for: group).count
+        let keptIds = reviewState.keptIds(for: group)
+        let keptCount = keptIds.count
 
         reviewState.reduce(.didConfirmGroup)
 
         guard !idsToDelete.isEmpty else {
             reviewState.reduce(.didFinishGroupDeletion(deleted: 0, kept: keptCount))
+            persistGroupStatus(group: group, keptIds: keptIds, deletedAssetIds: [], deps: deps)
             return
         }
 
@@ -415,11 +429,34 @@ struct SwipeReviewView: View {
                 let uuids = idsToDelete.map { deterministicUUID(from: $0) }
                 try await deps.vectorStore.delete(ids: uuids)
                 reviewState.reduce(.didFinishGroupDeletion(deleted: idsToDelete.count, kept: keptCount))
+                persistGroupStatus(group: group, keptIds: keptIds, deletedAssetIds: idsToDelete, deps: deps)
             } catch let error as AppError {
                 reviewState.reduce(.didFail(error))
             } catch {
                 reviewState.reduce(.didFail(.unknown(error.localizedDescription)))
             }
+        }
+    }
+
+    private func persistGroupStatus(group: DuplicateGroup, keptIds: Set<String>, deletedAssetIds: [String], deps: Dependencies) {
+        guard let groupUUID = UUID(uuidString: group.id) else { return }
+        Task {
+            if deletedAssetIds.isEmpty {
+                try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: keptIds)
+            } else {
+                let deletedUUIDs = Set(deletedAssetIds.map { deterministicUUID(from: $0) })
+                try? await deps.scanStore.markGroupDeleted(groupId: groupUUID, keptVectorUUIDs: keptIds, deletedVectorUUIDs: deletedUUIDs)
+            }
+        }
+    }
+
+    private func skipCurrentGroup() {
+        guard let deps = dependencies, let group = reviewState.currentGroup else { return }
+        let allIds = Set(group.photos.map(\.id))
+        reviewState.reduce(.didSkipGroup)
+        guard let groupUUID = UUID(uuidString: group.id) else { return }
+        Task {
+            try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: allIds)
         }
     }
 }

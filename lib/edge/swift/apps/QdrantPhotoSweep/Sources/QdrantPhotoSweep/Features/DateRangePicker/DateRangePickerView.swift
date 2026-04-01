@@ -4,10 +4,15 @@ struct DateRangePickerView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var state = DateRangePickerState()
     let onStartScan: (DateRange) -> Void
+    let onResumeScan: (DateRange, UUID) -> Void
+    let onReviewPending: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(spacing: QSpacing.xl) {
+                interruptedScanBanner
+                newPhotosBanner
+                pendingGroupsBanner
                 headerSection
                 presetSection
                 customRangeSection
@@ -20,6 +25,85 @@ struct DateRangePickerView: View {
         .task {
             guard let deps = dependencies else { return }
             await state.loadCount(using: deps.photoLibrary)
+            await state.checkForNewPhotos(scanStore: deps.scanStore, photoLibrary: deps.photoLibrary)
+        }
+    }
+
+    @ViewBuilder
+    private var interruptedScanBanner: some View {
+        if let session = state.interruptedSession {
+            let remaining = session.totalPhotos - session.indexedPhotos
+            VStack(spacing: QSpacing.sm) {
+                HStack(spacing: QSpacing.sm) {
+                    Image(systemName: QIcons.warningFill)
+                        .foregroundStyle(QColors.warning)
+                    Text(L10n.interruptedScanBanner(remaining))
+                        .font(QTypography.bodyMedium)
+                    Spacer()
+                }
+
+                Button {
+                    let range = DateRange(start: session.rangeStart, end: session.rangeEnd)
+                    onResumeScan(range, session.id)
+                } label: {
+                    Label(L10n.resumeScan, systemImage: QIcons.search)
+                }
+                .buttonStyle(.qPrimary)
+            }
+            .padding()
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
+        }
+    }
+
+    @ViewBuilder
+    private var newPhotosBanner: some View {
+        if state.newPhotoCount > 0, let session = state.lastSession {
+            VStack(spacing: QSpacing.sm) {
+                HStack(spacing: QSpacing.sm) {
+                    Image(systemName: QIcons.sparkles)
+                        .foregroundStyle(QColors.primary)
+                    Text(L10n.newPhotosSinceLastScan(state.newPhotoCount))
+                        .font(QTypography.bodyMedium)
+                    Spacer()
+                }
+
+                Button {
+                    let incrementalRange = DateRange(start: session.scannedAt, end: .now)
+                    onStartScan(incrementalRange)
+                } label: {
+                    Label(L10n.scanNewPhotos, systemImage: QIcons.search)
+                }
+                .buttonStyle(.qSecondary)
+            }
+            .padding()
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
+        }
+    }
+
+    @ViewBuilder
+    private var pendingGroupsBanner: some View {
+        if state.pendingGroupCount > 0 {
+            VStack(spacing: QSpacing.sm) {
+                HStack(spacing: QSpacing.sm) {
+                    Image(systemName: QIcons.photoStack)
+                        .foregroundStyle(QColors.warning)
+                    Text(L10n.pendingGroupsToReview(state.pendingGroupCount))
+                        .font(QTypography.bodyMedium)
+                    Spacer()
+                }
+
+                Button {
+                    onReviewPending()
+                } label: {
+                    Label(L10n.continueReview, systemImage: QIcons.photoAngled)
+                }
+                .buttonStyle(.qSecondary)
+            }
+            .padding()
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
         }
     }
 

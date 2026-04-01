@@ -10,6 +10,7 @@ struct Dependencies {
     let vectorStore: any VectorStoring
     let embeddingService: any EmbeddingProviding
     let photoLibrary: any PhotoLibraryProviding
+    let scanStore: any ScanSessionStoring
     let settings: AppSettings
 }
 

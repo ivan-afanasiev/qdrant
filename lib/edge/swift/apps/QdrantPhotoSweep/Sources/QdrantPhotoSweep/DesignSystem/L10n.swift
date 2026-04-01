@@ -87,6 +87,31 @@ enum L10n {
         String(localized: "review.similarPhotos \(count)")
     }
 
+    // MARK: - Home Banners
+
+    static let scanNewPhotos: LocalizedStringKey = "home.newPhotos.scanButton"
+    static let continueReview: LocalizedStringKey = "home.pendingGroups.continueReview"
+    static let resumeScan: LocalizedStringKey = "home.interruptedScan.resumeButton"
+
+    static func newPhotosSinceLastScan(_ count: Int) -> String {
+        String(localized: "home.newPhotos.banner \(count)")
+    }
+
+    static func pendingGroupsToReview(_ count: Int) -> String {
+        String(localized: "home.pendingGroups.banner \(count)")
+    }
+
+    static func interruptedScanBanner(_ remaining: Int) -> String {
+        String(localized: "home.interruptedScan.banner \(remaining)")
+    }
+
+    // MARK: - Background
+
+    static let backgroundScanCompleteTitle = String(localized: "background.scan.completeTitle")
+    static func backgroundScanCompleteBody(_ count: Int) -> String {
+        String(localized: "background.scan.completeBody \(count)")
+    }
+
     // MARK: - Settings
 
     static let settings: LocalizedStringKey = "settings.title"

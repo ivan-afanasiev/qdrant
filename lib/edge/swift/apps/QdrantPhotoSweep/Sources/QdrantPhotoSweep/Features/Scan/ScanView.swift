@@ -6,7 +6,14 @@ struct ScanView: View {
     @State private var scanTask: Task<Void, Never>?
 
     let dateRange: DateRange
+    let resumeSessionId: UUID?
     let onComplete: () -> Void
+
+    init(dateRange: DateRange, resumeSessionId: UUID? = nil, onComplete: @escaping () -> Void) {
+        self.dateRange = dateRange
+        self.resumeSessionId = resumeSessionId
+        self.onComplete = onComplete
+    }
 
     var body: some View {
         VStack(spacing: QSpacing.xl) {
@@ -35,6 +42,10 @@ struct ScanView: View {
         }
         .onDisappear {
             scanTask?.cancel()
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
+        .onChange(of: isScanActive) { _, active in
+            UIApplication.shared.isIdleTimerDisabled = active
         }
     }
 
@@ -152,13 +163,18 @@ struct ScanView: View {
                 photoLibrary: deps.photoLibrary,
                 embeddingService: deps.embeddingService,
                 vectorStore: deps.vectorStore,
+                scanStore: deps.scanStore,
                 configureDimensions: { dims in
                     if let store = deps.vectorStore as? QdrantVectorStore {
                         await store.updateDimensions(dims)
                     }
                 }
             )
-            await pipeline.run(dateRange: dateRange, state: state)
+            await pipeline.run(
+                dateRange: dateRange,
+                state: state,
+                resumeSessionId: resumeSessionId
+            )
         }
     }
 }
