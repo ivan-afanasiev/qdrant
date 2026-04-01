@@ -63,13 +63,30 @@ struct QdrantPhotoSweepApp: App {
             return
         }
 
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let shardPath = documentsPath.appendingPathComponent("qdrant-edge").path
-
         let embeddingService = VisionEmbeddingService()
+        do {
+            try embeddingService.probeDimensions()
+        } catch {
+            authorizationError = error
+            return
+        }
+
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
+        let dimensionMarker = documentsPath.appendingPathComponent("qdrant-edge-dims")
+
+        let currentDims = embeddingService.dimensions
+        let previousDims = (try? String(contentsOf: dimensionMarker, encoding: .utf8))
+            .flatMap(Int.init)
+
+        if let prev = previousDims, prev != currentDims {
+            try? FileManager.default.removeItem(at: shardDir)
+        }
+        try? String(currentDims).write(to: dimensionMarker, atomically: true, encoding: .utf8)
+
         let vectorStore = QdrantVectorStore(
-            path: shardPath,
-            dimensions: embeddingService.dimensions
+            path: shardDir.path,
+            dimensions: currentDims
         )
 
         dependencies = Dependencies(
