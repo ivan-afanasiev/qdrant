@@ -14,6 +14,24 @@
             "state": "new",
             "value": "%1$lld / %2$lld"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
         }
       }
     },
@@ -29,6 +47,24 @@
             "state": "translated",
             "value": "Loading…"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando…"
+          }
         }
       }
     },
@@ -36,6 +72,24 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant PhotoSweep"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant PhotoSweep"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant PhotoSweep"
+          }
+        },
+        "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Qdrant PhotoSweep"
@@ -51,6 +105,24 @@
             "state": "translated",
             "value": "Open Settings"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
         }
       }
     },
@@ -61,6 +133,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photo Access Required"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Необходим доступ к фото"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotozugriff erforderlich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere acceso a fotos"
           }
         }
       }
@@ -73,6 +163,24 @@
             "state": "translated",
             "value": "Found %lld duplicate groups ready for review"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено %lld групп дубликатов для просмотра"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Duplikatgruppen zum Überprüfen gefunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se encontraron %lld grupos de duplicados para revisar"
+          }
         }
       }
     },
@@ -83,6 +191,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan Complete"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование завершено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan abgeschlossen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneo completado"
           }
         }
       }
@@ -95,6 +221,24 @@
             "state": "translated",
             "value": "Counting photos…"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подсчéт фото…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos werden gezählt…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contando fotos…"
+          }
         }
       }
     },
@@ -105,6 +249,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Custom Range"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой диапазон"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigener Zeitraum"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango personalizado"
           }
         }
       }
@@ -117,6 +279,24 @@
             "state": "translated",
             "value": "From"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde"
+          }
         }
       }
     },
@@ -127,6 +307,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld photos found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено фото: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Fotos gefunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fotos encontradas"
           }
         }
       }
@@ -139,6 +337,24 @@
             "state": "translated",
             "value": "Quick Select"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрый выбор"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schnellauswahl"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selección rápida"
+          }
         }
       }
     },
@@ -149,6 +365,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Select Time Range"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите период"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitraum auswählen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar período"
           }
         }
       }
@@ -161,6 +395,24 @@
             "state": "translated",
             "value": "Choose which photos to scan for duplicates"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите, какие фото проверять на дубликаты"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie, welche Fotos auf Duplikate geprüft werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige qué fotos escanear en busca de duplicados"
+          }
         }
       }
     },
@@ -171,6 +423,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start Scanning"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать сканирование"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar escaneo"
           }
         }
       }
@@ -183,6 +453,24 @@
             "state": "translated",
             "value": "to"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "по"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hasta"
+          }
         }
       }
     },
@@ -193,6 +481,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "To"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta"
           }
         }
       }
@@ -205,6 +511,24 @@
             "state": "translated",
             "value": "Authorization failed: %@"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка авторизации: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisierung fehlgeschlagen: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de autorización: %@"
+          }
         }
       }
     },
@@ -215,6 +539,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deletion failed: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка удаления: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschung fehlgeschlagen: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al eliminar: %@"
           }
         }
       }
@@ -227,6 +569,24 @@
             "state": "translated",
             "value": "Embedding failed: %@"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка встраивания: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einbettung fehlgeschlagen: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de incrustación: %@"
+          }
         }
       }
     },
@@ -237,6 +597,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photo library access was denied. Enable in Settings."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к фото отклонéн. Включите в Настройках."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotozugriff abgelehnt. Bitte in den Einstellungen aktivieren."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso a fotos denegado. Actívalo en Ajustes."
           }
         }
       }
@@ -249,6 +627,24 @@
             "state": "translated",
             "value": "Photo library authorization was not determined."
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешение на доступ к фото не определено."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotofreigabe wurde nicht festgelegt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La autorización de fotos no fue determinada."
+          }
         }
       }
     },
@@ -259,6 +655,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photo library access is restricted on this device."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к фото ограничен на этом устройстве."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotozugriff ist auf diesem Gerät eingeschränkt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso a fotos está restringido en este dispositivo."
           }
         }
       }
@@ -271,6 +685,24 @@
             "state": "translated",
             "value": "Unknown photo library authorization status."
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неизвестный статус доступа к фото."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannter Status der Fotofreigabe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de autorización de fotos desconocido."
+          }
         }
       }
     },
@@ -281,6 +713,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photo library error: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка фотобиблиотеки: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotobibliothek-Fehler: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de la fototeca: %@"
           }
         }
       }
@@ -293,6 +743,24 @@
             "state": "translated",
             "value": "Unexpected error: %@"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Непредвиденная ошибка: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unerwarteter Fehler: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error inesperado: %@"
+          }
         }
       }
     },
@@ -303,6 +771,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vector store error: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка хранилища векторов: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vektorspeicher-Fehler: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error del almacén de vectores: %@"
           }
         }
       }
@@ -315,6 +801,24 @@
             "state": "translated",
             "value": "Scan interrupted — %lld photos remaining"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование прервано — осталось фото: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan unterbrochen — %lld Fotos verbleibend"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneo interrumpido — %lld fotos restantes"
+          }
         }
       }
     },
@@ -325,6 +829,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resume Scan"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить сканирование"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan fortsetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar escaneo"
           }
         }
       }
@@ -337,6 +859,24 @@
             "state": "translated",
             "value": "%lld new photos since last scan"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld новых фото с последнего сканирования"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld neue Fotos seit dem letzten Scan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fotos nuevas desde el último escaneo"
+          }
         }
       }
     },
@@ -347,6 +887,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan New Photos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканировать новые фото"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Fotos scannen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear fotos nuevas"
           }
         }
       }
@@ -359,6 +917,24 @@
             "state": "translated",
             "value": "%lld duplicate groups to review"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld групп дубликатов для просмотра"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Duplikatgruppen zu überprüfen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld grupos de duplicados por revisar"
+          }
         }
       }
     },
@@ -369,6 +945,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Continue Review"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить просмотр"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überprüfung fortsetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar revisión"
           }
         }
       }
@@ -381,6 +975,24 @@
             "state": "translated",
             "value": "Duplicates Found"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено дубликатов"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikate gefunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicados encontrados"
+          }
         }
       }
     },
@@ -391,6 +1003,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Statistics"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiken"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estadísticas"
           }
         }
       }
@@ -403,6 +1033,24 @@
             "state": "translated",
             "value": "Last Scan"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее сканирование"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Scan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último escaneo"
+          }
         }
       }
     },
@@ -413,6 +1061,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photos Deleted"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото удалено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos gelöscht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos eliminadas"
           }
         }
       }
@@ -425,6 +1091,24 @@
             "state": "translated",
             "value": "Photos Indexed"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото индексировано"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos indexiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos indexadas"
+          }
         }
       }
     },
@@ -435,6 +1119,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Back"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назад"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
           }
         }
       }
@@ -447,6 +1149,24 @@
             "state": "translated",
             "value": "Select a time range and index your photo library"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите временной диапазон и проиндексируйте вашу фотобиблиотеку"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie einen Zeitraum und indexieren Sie Ihre Fotobibliothek"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un rango de tiempo e indexa tu biblioteca de fotos"
+          }
         }
       }
     },
@@ -457,6 +1177,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan Your Photos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканируйте ваши фото"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos scannen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea tus fotos"
           }
         }
       }
@@ -469,6 +1207,24 @@
             "state": "translated",
             "value": "Review duplicates and choose which ones to keep"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просмотрите дубликаты и выберите, какие оставить"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überprüfen Sie Duplikate und wählen Sie, welche behalten werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa duplicados y elige cuáles conservar"
+          }
         }
       }
     },
@@ -479,6 +1235,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Swipe to Clean"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свайп для очистки"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wischen zum Aufräumen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza para limpiar"
           }
         }
       }
@@ -491,6 +1265,24 @@
             "state": "translated",
             "value": "Find similar photos using on-device vector search powered by Qdrant"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Находите похожие фото с помощью векторного поиска на устройстве, работающего на Qdrant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finden Sie ähnliche Fotos mit geräteinterner Vektorsuche powered by Qdrant"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encuentra fotos similares con búsqueda vectorial en el dispositivo con Qdrant"
+          }
         }
       }
     },
@@ -501,6 +1293,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vector Search"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Векторный поиск"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vektorsuche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Búsqueda vectorial"
           }
         }
       }
@@ -513,6 +1323,24 @@
             "state": "translated",
             "value": "Get Started"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los geht's"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comenzar"
+          }
         }
       }
     },
@@ -523,6 +1351,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Next"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Далее"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente"
           }
         }
       }
@@ -535,6 +1381,24 @@
             "state": "translated",
             "value": "Access was denied. Please enable photo access in Settings to use PhotoSweep."
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ был отклонéн. Пожалуйста, включите доступ к фото в Настройках."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff wurde verweigert. Bitte aktivieren Sie den Fotozugriff in den Einstellungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso fue denegado. Activa el acceso a fotos en Ajustes para usar PhotoSweep."
+          }
         }
       }
     },
@@ -545,6 +1409,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Grant Access"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предоставить доступ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff gewähren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conceder acceso"
           }
         }
       }
@@ -557,6 +1439,24 @@
             "state": "translated",
             "value": "Access Granted"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ предоставлен"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff gewährt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso concedido"
+          }
         }
       }
     },
@@ -567,6 +1467,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "PhotoSweep needs access to your photos to find and remove duplicates. All processing happens on-device."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PhotoSweep необходим доступ к вашим фото для поиска и удаления дубликатов. Вся обработка происходит на устройстве."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PhotoSweep benötigt Zugriff auf Ihre Fotos, um Duplikate zu finden und zu entfernen. Die gesamte Verarbeitung erfolgt auf dem Gerät."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PhotoSweep necesita acceso a tus fotos para encontrar y eliminar duplicados. Todo el procesamiento ocurre en el dispositivo."
           }
         }
       }
@@ -579,6 +1497,24 @@
             "state": "translated",
             "value": "Photo Library Access"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к фотобиблиотеке"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff auf Fotobibliothek"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso a la fototeca"
+          }
         }
       }
     },
@@ -589,6 +1525,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Select which photos to include when scanning for duplicates"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите, какие фото включить при поиске дубликатов"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie, welche Fotos bei der Duplikatsuche einbezogen werden sollen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona qué fotos incluir al buscar duplicados"
           }
         }
       }
@@ -601,6 +1555,24 @@
             "state": "translated",
             "value": "Choose Scan Period"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите период сканирования"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanzeitraum wählen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige el período de escaneo"
+          }
         }
       }
     },
@@ -611,6 +1583,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Clean up your photo library with on-device vector search"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистите вашу фотобиблиотеку с помощью векторного поиска на устройстве"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Räumen Sie Ihre Fotobibliothek mit geräteinterner Vektorsuche auf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpia tu biblioteca de fotos con búsqueda vectorial en el dispositivo"
           }
         }
       }
@@ -623,6 +1613,24 @@
             "state": "translated",
             "value": "All Time"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всé время"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesamter Zeitraum"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo el tiempo"
+          }
         }
       }
     },
@@ -633,6 +1641,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Last 3 Months"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последние 3 месяца"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte 3 Monate"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 3 meses"
           }
         }
       }
@@ -645,6 +1671,24 @@
             "state": "translated",
             "value": "Last 6 Months"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последние 6 месяцев"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte 6 Monate"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 6 meses"
+          }
         }
       }
     },
@@ -655,6 +1699,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Last Month"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последний месяц"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Monat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último mes"
           }
         }
       }
@@ -667,6 +1729,24 @@
             "state": "translated",
             "value": "Last Week"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя неделя"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Woche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última semana"
+          }
         }
       }
     },
@@ -677,6 +1757,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Last Year"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последний год"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letztes Jahr"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último año"
           }
         }
       }
@@ -689,6 +1787,24 @@
             "state": "translated",
             "value": "All Done!"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Listo!"
+          }
         }
       }
     },
@@ -699,6 +1815,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Delete %lld Photos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить фото: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Fotos löschen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar %lld fotos"
           }
         }
       }
@@ -711,6 +1845,24 @@
             "state": "translated",
             "value": "Deleted photos will be moved to Recently Deleted"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалéнные фото будут перемещены в Недавно удалéнные"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöschte Fotos werden in Zuletzt gelöscht verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las fotos eliminadas se moverán a Eliminados recientemente"
+          }
         }
       }
     },
@@ -721,6 +1873,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deleting photos…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удаление фото…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos werden gelöscht…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminando fotos…"
           }
         }
       }
@@ -733,6 +1903,24 @@
             "state": "translated",
             "value": "Done"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
         }
       }
     },
@@ -740,6 +1928,24 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehler"
+          }
+        },
+        "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Error"
@@ -755,6 +1961,24 @@
             "state": "translated",
             "value": "Finding Duplicates…"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск дубликатов…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikate werden gesucht…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando duplicados…"
+          }
         }
       }
     },
@@ -765,6 +1989,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comparing photos to find similar ones"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сравнение фотографий для поиска похожих"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos werden verglichen, um ähnliche zu finden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparando fotos para encontrar similares"
           }
         }
       }
@@ -777,6 +2019,24 @@
             "state": "translated",
             "value": "Finish"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abschließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalizar"
+          }
         }
       }
     },
@@ -787,6 +2047,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Group %1$lld of %2$lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Группа %1$lld из %2$lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe %1$lld von %2$lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupo %1$lld de %2$lld"
           }
         }
       }
@@ -799,6 +2077,24 @@
             "state": "translated",
             "value": "Your photo library looks clean!"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваша фотобиблиотека выглядит чисто!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Fotobibliothek sieht sauber aus!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Tu biblioteca de fotos luce limpia!"
+          }
         }
       }
     },
@@ -809,6 +2105,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "No Duplicates Found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дубликаты не найдены"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Duplikate gefunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontraron duplicados"
           }
         }
       }
@@ -821,6 +2135,24 @@
             "state": "translated",
             "value": "Ready to Clean Up"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово к очистке"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereit zum Aufräumen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo para limpiar"
+          }
         }
       }
     },
@@ -831,6 +2163,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld similar photos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld похожих фото"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ähnliche Fotos"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fotos similares"
           }
         }
       }
@@ -843,6 +2193,24 @@
             "state": "translated",
             "value": "Skip"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пропустить"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überspringen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omitir"
+          }
         }
       }
     },
@@ -853,6 +2221,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Groups reviewed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Групп просмотрено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppen überprüft"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupos revisados"
           }
         }
       }
@@ -865,6 +2251,24 @@
             "state": "translated",
             "value": "Photos cleaned"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото очищено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos bereinigt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos limpiadas"
+          }
         }
       }
     },
@@ -875,6 +2279,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Photos to delete"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото для удаления"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos zum Löschen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos a eliminar"
           }
         }
       }
@@ -887,6 +2309,24 @@
             "state": "translated",
             "value": "Photos to keep"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото для сохранения"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos zum Behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos a conservar"
+          }
         }
       }
     },
@@ -897,6 +2337,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tap a photo to keep it, others will be marked for deletion"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите на фото, чтобы оставить, остальные будут помечены для удаления"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippen Sie auf ein Foto, um es zu behalten, die anderen werden zum Löschen markiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca una foto para conservarla, las demás se marcarán para eliminar"
           }
         }
       }
@@ -909,6 +2367,24 @@
             "state": "translated",
             "value": "Review Duplicates"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просмотр дубликатов"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikate überprüfen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar duplicados"
+          }
         }
       }
     },
@@ -919,6 +2395,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Unknown date"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неизвестная дата"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekanntes Datum"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha desconocida"
           }
         }
       }
@@ -931,6 +2425,24 @@
             "state": "translated",
             "value": "Cancel"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмена"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
         }
       }
     },
@@ -941,6 +2453,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan Cancelled"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование отменено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan abgebrochen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneo cancelado"
           }
         }
       }
@@ -953,6 +2483,24 @@
             "state": "translated",
             "value": "Scan Complete"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование завершено"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan abgeschlossen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneo completado"
+          }
         }
       }
     },
@@ -963,6 +2511,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Embedding photos…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обработка фото…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos werden eingebettet…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procesando fotos…"
           }
         }
       }
@@ -975,6 +2541,24 @@
             "state": "translated",
             "value": "Processing images and building vector database"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обработка изображений и создание векторной базы"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder werden verarbeitet und Vektordatenbank wird erstellt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procesando imágenes y construyendo la base de datos vectorial"
+          }
         }
       }
     },
@@ -985,6 +2569,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan Failed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование не удалось"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan fehlgeschlagen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneo fallido"
           }
         }
       }
@@ -997,6 +2599,24 @@
             "state": "translated",
             "value": "Find Duplicates"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найти дубликаты"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikate finden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar duplicados"
+          }
         }
       }
     },
@@ -1007,6 +2627,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld photos indexed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проиндексировано фото: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Fotos indexiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fotos indexadas"
           }
         }
       }
@@ -1019,6 +2657,24 @@
             "state": "translated",
             "value": "Preparing to scan…"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подготовка к сканированию…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan wird vorbereitet…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando escaneo…"
+          }
         }
       }
     },
@@ -1029,6 +2685,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retry"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
           }
         }
       }
@@ -1041,6 +2715,24 @@
             "state": "translated",
             "value": "Scanning"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneando"
+          }
         }
       }
     },
@@ -1048,6 +2740,24 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Vision"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Vision"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Vision"
+          }
+        },
+        "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Apple Vision"
@@ -1063,6 +2773,24 @@
             "state": "translated",
             "value": "Embeddings"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эмбеддинги"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einbettungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incrustaciones"
+          }
         }
       }
     },
@@ -1073,6 +2801,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Engine"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Движок"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Engine"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motor"
           }
         }
       }
@@ -1085,6 +2831,24 @@
             "state": "translated",
             "value": "About"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "О приложении"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de"
+          }
         }
       }
     },
@@ -1092,6 +2856,24 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant Edge"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant Edge"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qdrant Edge"
+          }
+        },
+        "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Qdrant Edge"
@@ -1107,6 +2889,24 @@
             "state": "translated",
             "value": "Clear Database"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить базу данных"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenbank löschen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar base de datos"
+          }
         }
       }
     },
@@ -1117,6 +2917,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Database cleared"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "База данных очищена"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenbank gelöscht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base de datos borrada"
           }
         }
       }
@@ -1129,6 +2947,24 @@
             "state": "translated",
             "value": "Clearing…"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистка…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gelöscht…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrando…"
+          }
         }
       }
     },
@@ -1139,6 +2975,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Database"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "База данных"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenbank"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base de datos"
           }
         }
       }
@@ -1151,6 +3005,24 @@
             "state": "translated",
             "value": "Indexed Photos"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Индексированные фото"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indexierte Fotos"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos indexadas"
+          }
         }
       }
     },
@@ -1161,6 +3033,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Detection"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обнаружение"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erkennung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detección"
           }
         }
       }
@@ -1173,6 +3063,24 @@
             "state": "translated",
             "value": "Similarity Threshold"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог сходства"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ähnlichkeitsschwelle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de similitud"
+          }
         }
       }
     },
@@ -1183,6 +3091,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Higher values find only very similar photos. Lower values find more potential duplicates."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Более высокие значения находят только очень похожие фото. Более низкие — больше потенциальных дубликатов."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höhere Werte finden nur sehr ähnliche Fotos. Niedrigere Werte finden mehr potenzielle Duplikate."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valores más altos encuentran solo fotos muy similares. Valores más bajos encuentran más posibles duplicados."
           }
         }
       }
@@ -1195,6 +3121,24 @@
             "state": "translated",
             "value": "Choose which time range to scan when looking for duplicate photos."
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите временной диапазон для сканирования при поиске дубликатов."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie den Zeitraum für die Duplikatsuche."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige qué rango de tiempo escanear al buscar fotos duplicadas."
+          }
         }
       }
     },
@@ -1206,6 +3150,24 @@
             "state": "translated",
             "value": "Scan Period"
           }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Период сканирования"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanzeitraum"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período de escaneo"
+          }
         }
       }
     },
@@ -1216,6 +3178,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Settings"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
           }
         }
       }
