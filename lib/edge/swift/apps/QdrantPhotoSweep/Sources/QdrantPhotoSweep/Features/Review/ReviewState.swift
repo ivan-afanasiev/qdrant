@@ -1,9 +1,9 @@
 import Foundation
 
 struct ReviewStats: Equatable, Sendable {
-    let groupsReviewed: Int
-    let photosToDelete: Int
-    let photosToKeep: Int
+    var groupsReviewed: Int
+    var photosDeleted: Int
+    var photosKept: Int
 }
 
 @Observable
@@ -11,10 +11,9 @@ struct ReviewStats: Equatable, Sendable {
 final class ReviewState {
     enum Status: Equatable {
         case empty
-        case reviewing(currentIndex: Int, groups: [DuplicateGroup])
-        case confirming(deletionIds: [String], stats: ReviewStats)
-        case deleting
-        case allReviewed(stats: ReviewStats)
+        case reviewing
+        case deletingGroup
+        case allReviewed
         case failed(AppError)
     }
 
@@ -23,41 +22,50 @@ final class ReviewState {
         case didToggleKeep(PhotoReference)
         case didSkipGroup
         case didConfirmGroup
-        case didConfirmDeletion
-        case didStartDeletion
-        case didFinishDeletion(stats: ReviewStats)
+        case didFinishGroupDeletion(deleted: Int, kept: Int)
         case didFail(AppError)
     }
 
     private(set) var status: Status = .empty
     private(set) var keepSelections: [String: Set<String>] = [:]
+    private(set) var stats = ReviewStats(groupsReviewed: 0, photosDeleted: 0, photosKept: 0)
+    private(set) var groups: [DuplicateGroup] = []
+    private(set) var currentIndex: Int = 0
 
     var currentGroup: DuplicateGroup? {
-        switch status {
-        case .reviewing(let index, let groups) where index < groups.count:
-            groups[index]
-        default:
-            nil
-        }
+        guard case .reviewing = status, currentIndex < groups.count else { return nil }
+        return groups[currentIndex]
     }
+
+    var totalGroups: Int { groups.count }
 
     func keptIds(for group: DuplicateGroup) -> Set<String> {
         keepSelections[group.id] ?? [group.bestCandidate.id]
     }
 
+    func deletionIdsForCurrentGroup() -> [String] {
+        guard let group = currentGroup else { return [] }
+        let kept = keptIds(for: group)
+        return group.photos
+            .filter { !kept.contains($0.id) }
+            .map(\.assetId)
+    }
+
     func reduce(_ action: Action) {
         switch action {
-        case .didLoadGroups(let groups):
-            guard !groups.isEmpty else {
+        case .didLoadGroups(let loadedGroups):
+            guard !loadedGroups.isEmpty else {
                 status = .empty
                 return
             }
+            groups = loadedGroups
+            currentIndex = 0
             keepSelections = [:]
-            status = .reviewing(currentIndex: 0, groups: groups)
+            stats = ReviewStats(groupsReviewed: 0, photosDeleted: 0, photosKept: 0)
+            status = .reviewing
 
         case .didToggleKeep(let photo):
-            guard case .reviewing = status,
-                  let group = currentGroup else { return }
+            guard case .reviewing = status, let group = currentGroup else { return }
             var kept = keptIds(for: group)
             switch kept.contains(photo.id) {
             case true:
@@ -69,68 +77,35 @@ final class ReviewState {
             keepSelections[group.id] = kept
 
         case .didConfirmGroup:
-            guard case .reviewing(let index, let groups) = status else { return }
-            advanceToNext(index: index, groups: groups)
+            guard case .reviewing = status else { return }
+            status = .deletingGroup
 
         case .didSkipGroup:
-            guard case .reviewing(let index, let groups) = status else { return }
-            keepSelections.removeValue(forKey: groups[index].id)
-            advanceToNext(index: index, groups: groups)
+            guard case .reviewing = status else { return }
+            let group = groups[currentIndex]
+            keepSelections.removeValue(forKey: group.id)
+            stats.groupsReviewed += 1
+            advanceToNext()
 
-        case .didConfirmDeletion:
-            guard case .reviewing(_, let groups) = status else { return }
-            let ids = buildDeletionIds(groups: groups)
-            let stats = buildStats(groups: groups, deletionCount: ids.count)
-            guard !ids.isEmpty else {
-                status = .allReviewed(stats: stats)
-                return
-            }
-            status = .confirming(deletionIds: ids, stats: stats)
-
-        case .didStartDeletion:
-            guard case .confirming = status else { return }
-            status = .deleting
-
-        case .didFinishDeletion(let stats):
-            status = .allReviewed(stats: stats)
+        case .didFinishGroupDeletion(let deleted, let kept):
+            guard case .deletingGroup = status else { return }
+            stats.groupsReviewed += 1
+            stats.photosDeleted += deleted
+            stats.photosKept += kept
+            advanceToNext()
 
         case .didFail(let error):
             status = .failed(error)
         }
     }
 
-    private func advanceToNext(index: Int, groups: [DuplicateGroup]) {
-        let next = index + 1
+    private func advanceToNext() {
+        let next = currentIndex + 1
         guard next < groups.count else {
-            let ids = buildDeletionIds(groups: groups)
-            let stats = buildStats(groups: groups, deletionCount: ids.count)
-            guard !ids.isEmpty else {
-                status = .allReviewed(stats: stats)
-                return
-            }
-            status = .confirming(deletionIds: ids, stats: stats)
+            status = .allReviewed
             return
         }
-        status = .reviewing(currentIndex: next, groups: groups)
-    }
-
-    private func buildDeletionIds(groups: [DuplicateGroup]) -> [String] {
-        var ids: [String] = []
-        for group in groups {
-            guard let kept = keepSelections[group.id] else { continue }
-            let toDelete = group.photos.filter { !kept.contains($0.id) }
-            ids.append(contentsOf: toDelete.map(\.assetId))
-        }
-        return ids
-    }
-
-    private func buildStats(groups: [DuplicateGroup], deletionCount: Int) -> ReviewStats {
-        let reviewedGroups = groups.filter { keepSelections[$0.id] != nil }
-        let totalKept = reviewedGroups.reduce(0) { $0 + (keepSelections[$1.id]?.count ?? 0) }
-        return ReviewStats(
-            groupsReviewed: reviewedGroups.count,
-            photosToDelete: deletionCount,
-            photosToKeep: totalKept
-        )
+        currentIndex = next
+        status = .reviewing
     }
 }

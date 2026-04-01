@@ -15,8 +15,8 @@ struct SwipeReviewView: View {
             case .idle, .analyzing:
                 analyzingView
 
-            case .complete(let groups):
-                reviewContent(groups: groups)
+            case .complete:
+                reviewContent
 
             case .failed(let error):
                 detectionFailedView(error: error)
@@ -114,23 +114,20 @@ struct SwipeReviewView: View {
     // MARK: - Review Phase
 
     @ViewBuilder
-    private func reviewContent(groups: [DuplicateGroup]) -> some View {
+    private var reviewContent: some View {
         VStack {
             switch reviewState.status {
             case .empty:
                 emptyView
 
-            case .reviewing(let index, let allGroups):
-                reviewingView(index: index, total: allGroups.count)
+            case .reviewing:
+                reviewingView
 
-            case .confirming(let ids, let stats):
-                confirmingView(deletionCount: ids.count, stats: stats)
-
-            case .deleting:
+            case .deletingGroup:
                 deletingView
 
-            case .allReviewed(let stats):
-                allReviewedView(stats: stats)
+            case .allReviewed:
+                allReviewedView
 
             case .failed(let error):
                 failedView(error: error)
@@ -153,10 +150,10 @@ struct SwipeReviewView: View {
         }
     }
 
-    private func reviewingView(index: Int, total: Int) -> some View {
+    private var reviewingView: some View {
         VStack(spacing: QSpacing.md) {
             HStack {
-                Text(L10n.groupNofTotal(index + 1, total))
+                Text(L10n.groupNofTotal(reviewState.currentIndex + 1, reviewState.totalGroups))
                     .font(QTypography.bodyLarge)
                 Spacer()
                 Button(L10n.skip) {
@@ -168,7 +165,7 @@ struct SwipeReviewView: View {
             }
             .padding(.horizontal)
 
-            ProgressView(value: Double(index), total: Double(total))
+            ProgressView(value: Double(reviewState.currentIndex), total: Double(reviewState.totalGroups))
                 .tint(QColors.primary)
                 .padding(.horizontal)
 
@@ -211,9 +208,7 @@ struct SwipeReviewView: View {
             switch deleteCount > 0 {
             case true:
                 Button {
-                    withAnimation {
-                        reviewState.reduce(.didConfirmGroup)
-                    }
+                    deleteCurrentGroup()
                 } label: {
                     Label(L10n.deleteNPhotos(deleteCount), systemImage: QIcons.delete)
                 }
@@ -223,7 +218,7 @@ struct SwipeReviewView: View {
             case false:
                 Button {
                     withAnimation {
-                        reviewState.reduce(.didConfirmGroup)
+                        reviewState.reduce(.didSkipGroup)
                     }
                 } label: {
                     Text(L10n.skip)
@@ -234,41 +229,6 @@ struct SwipeReviewView: View {
         }
     }
 
-    private func confirmingView(deletionCount: Int, stats: ReviewStats) -> some View {
-        VStack(spacing: QSpacing.lg) {
-            QStatusIcon(QIcons.trashCircle, size: QSize.iconLarge, color: QColors.warning)
-
-            Text(L10n.readyToCleanUp)
-                .font(QTypography.titleMedium)
-
-            VStack(spacing: QSpacing.xs) {
-                statRow(label: L10n.groupsReviewed, value: "\(stats.groupsReviewed)")
-                statRow(label: L10n.photosToDelete, value: "\(deletionCount)")
-                statRow(label: L10n.photosToKeep, value: "\(stats.photosToKeep)")
-            }
-            .padding()
-            .background(QColors.surfaceSubtle)
-            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
-
-            Text(L10n.deletedPhotosNote)
-                .font(QTypography.caption)
-                .foregroundStyle(QColors.textTertiary)
-
-            Button {
-                performDeletion()
-            } label: {
-                Label(L10n.deleteNPhotos(deletionCount), systemImage: QIcons.delete)
-            }
-            .buttonStyle(.qDestructive)
-
-            Button(L10n.cancel) {
-                onFinished()
-            }
-            .buttonStyle(.qGhost)
-        }
-        .padding()
-    }
-
     private var deletingView: some View {
         VStack(spacing: QSpacing.md) {
             ProgressView()
@@ -277,7 +237,7 @@ struct SwipeReviewView: View {
         }
     }
 
-    private func allReviewedView(stats: ReviewStats) -> some View {
+    private var allReviewedView: some View {
         VStack(spacing: QSpacing.lg) {
             QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
@@ -285,8 +245,8 @@ struct SwipeReviewView: View {
                 .font(QTypography.titleMedium)
 
             VStack(spacing: QSpacing.xs) {
-                statRow(label: L10n.groupsReviewed, value: "\(stats.groupsReviewed)")
-                statRow(label: L10n.photosCleaned, value: "\(stats.photosToDelete)")
+                statRow(label: L10n.groupsReviewed, value: "\(reviewState.stats.groupsReviewed)")
+                statRow(label: L10n.photosCleaned, value: "\(reviewState.stats.photosDeleted)")
             }
             .padding()
             .background(QColors.surfaceSubtle)
@@ -328,21 +288,26 @@ struct SwipeReviewView: View {
         }
     }
 
-    private func performDeletion() {
-        guard let deps = dependencies,
-              case .confirming(let ids, _) = reviewState.status else { return }
-        reviewState.reduce(.didStartDeletion)
+    // MARK: - Deletion
+
+    private func deleteCurrentGroup() {
+        guard let deps = dependencies, let group = reviewState.currentGroup else { return }
+        let idsToDelete = reviewState.deletionIdsForCurrentGroup()
+        let keptCount = reviewState.keptIds(for: group).count
+
+        reviewState.reduce(.didConfirmGroup)
+
+        guard !idsToDelete.isEmpty else {
+            reviewState.reduce(.didFinishGroupDeletion(deleted: 0, kept: keptCount))
+            return
+        }
+
         Task {
             do {
-                try await deps.photoLibrary.deleteAssets(ids)
-                let uuids = ids.map { deterministicUUID(from: $0) }
+                try await deps.photoLibrary.deleteAssets(idsToDelete)
+                let uuids = idsToDelete.map { deterministicUUID(from: $0) }
                 try await deps.vectorStore.delete(ids: uuids)
-                let stats = ReviewStats(
-                    groupsReviewed: reviewState.keepSelections.count,
-                    photosToDelete: ids.count,
-                    photosToKeep: reviewState.keepSelections.values.reduce(0) { $0 + $1.count }
-                )
-                reviewState.reduce(.didFinishDeletion(stats: stats))
+                reviewState.reduce(.didFinishGroupDeletion(deleted: idsToDelete.count, kept: keptCount))
             } catch let error as AppError {
                 reviewState.reduce(.didFail(error))
             } catch {
