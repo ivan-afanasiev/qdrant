@@ -207,20 +207,29 @@ struct SwipeReviewView: View {
             let kept = reviewState.keptIds(for: group)
             let deleteCount = group.photos.count - kept.count
 
-            Button {
-                withAnimation {
-                    reviewState.reduce(.didConfirmGroup)
-                }
-            } label: {
-                switch deleteCount > 0 {
-                case true:
+            switch deleteCount > 0 {
+            case true:
+                Button {
+                    withAnimation {
+                        reviewState.reduce(.didConfirmGroup)
+                    }
+                } label: {
                     Label(L10n.deleteNPhotos(deleteCount), systemImage: QIcons.delete)
-                case false:
+                }
+                .buttonStyle(.qDestructive)
+                .padding(.horizontal)
+
+            case false:
+                Button {
+                    withAnimation {
+                        reviewState.reduce(.didConfirmGroup)
+                    }
+                } label: {
                     Text(L10n.skip)
                 }
+                .buttonStyle(.qGhost)
+                .padding(.horizontal)
             }
-            .buttonStyle(deleteCount > 0 ? .qDestructive : .qGhost)
-            .padding(.horizontal)
         }
     }
 

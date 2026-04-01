@@ -44,5 +44,7 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PhotoSweep needs access to your photos to find and remove duplicates.</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 </dict>
 </plist>
