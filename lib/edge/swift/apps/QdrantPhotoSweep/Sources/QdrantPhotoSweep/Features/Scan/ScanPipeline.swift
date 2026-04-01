@@ -5,64 +5,48 @@ struct ScanPipeline {
     let photoLibrary: any PhotoLibraryProviding
     let embeddingService: any EmbeddingProviding
     let vectorStore: any VectorStoring
-    let batchSize: Int = 50
+    let upsertBatchSize: Int = 20
+    let maxConcurrency: Int = 4
 
     func run(dateRange: DateRange, state: ScanState) async {
         do {
             let assets = try await photoLibrary.fetchAssets(in: dateRange)
-            state.reduce(.didStartScan(total: assets.count))
+            await state.reduce(.didStartScan(total: assets.count))
 
+            var pendingPoints: [VectorPoint] = []
             var indexed = 0
-            for batchStart in stride(from: 0, to: assets.count, by: batchSize) {
-                guard !Task.isCancelled else {
-                    state.reduce(.didTapCancel)
-                    return
-                }
 
-                let batchEnd = min(batchStart + batchSize, assets.count)
-                let batch = Array(assets[batchStart..<batchEnd])
-                let points = await processBatch(batch)
-
-                guard !Task.isCancelled else {
-                    state.reduce(.didTapCancel)
-                    return
-                }
-
-                guard !points.isEmpty else {
-                    state.reduce(.batchCompleted(count: batch.count))
-                    continue
-                }
-
-                try await vectorStore.upsert(points: points)
-                indexed += points.count
-                state.reduce(.batchCompleted(count: batch.count))
-            }
-
-            state.reduce(.didFinishScan(indexed: indexed))
-        } catch {
-            state.reduce(.didFail(error))
-        }
-    }
-
-    private func processBatch(_ assets: [PhotoAsset]) async -> [VectorPoint] {
-        await withTaskGroup(of: VectorPoint?.self, returning: [VectorPoint].self) { group in
-            let thumbnailSize = CGSize(width: 224, height: 224)
             for asset in assets {
-                group.addTask {
-                    await embedAsset(asset, thumbnailSize: thumbnailSize)
+                guard !Task.isCancelled else {
+                    await state.reduce(.didTapCancel)
+                    return
+                }
+
+                if let point = await embedAsset(asset) {
+                    pendingPoints.append(point)
+                }
+                await state.reduce(.batchCompleted(count: 1))
+
+                if pendingPoints.count >= upsertBatchSize {
+                    try await vectorStore.upsert(points: pendingPoints)
+                    indexed += pendingPoints.count
+                    pendingPoints.removeAll(keepingCapacity: true)
                 }
             }
 
-            var results: [VectorPoint] = []
-            for await result in group {
-                guard let point = result else { continue }
-                results.append(point)
+            if !pendingPoints.isEmpty {
+                try await vectorStore.upsert(points: pendingPoints)
+                indexed += pendingPoints.count
             }
-            return results
+
+            await state.reduce(.didFinishScan(indexed: indexed))
+        } catch {
+            await state.reduce(.didFail(error))
         }
     }
 
-    private func embedAsset(_ asset: PhotoAsset, thumbnailSize: CGSize) async -> VectorPoint? {
+    private func embedAsset(_ asset: PhotoAsset) async -> VectorPoint? {
+        let thumbnailSize = CGSize(width: 224, height: 224)
         do {
             let image = try await photoLibrary.loadThumbnail(for: asset, size: thumbnailSize)
             let vector = try await embeddingService.embed(image: image)

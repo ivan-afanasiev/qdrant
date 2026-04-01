@@ -1,6 +1,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class ScanState {
     enum Status: Equatable {
         case idle

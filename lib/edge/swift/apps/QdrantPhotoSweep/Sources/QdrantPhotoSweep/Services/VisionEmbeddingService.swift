@@ -1,8 +1,12 @@
 import CoreGraphics
 import Vision
 
-struct VisionEmbeddingService: EmbeddingProviding {
-    let dimensions: Int = 768
+final class VisionEmbeddingService: EmbeddingProviding, @unchecked Sendable {
+    private var _cachedDimensions: Int?
+
+    var dimensions: Int {
+        _cachedDimensions ?? 2048
+    }
 
     func embed(image: CGImage) async throws(AppError) -> [Float] {
         let request = VNGenerateImageFeaturePrintRequest()
@@ -20,6 +24,10 @@ struct VisionEmbeddingService: EmbeddingProviding {
         let elementCount = observation.elementCount
         guard observation.elementType == .float else {
             throw .embedding("Unexpected element type: \(observation.elementType)")
+        }
+
+        if _cachedDimensions == nil {
+            _cachedDimensions = elementCount
         }
 
         var floats = [Float](repeating: 0, count: elementCount)
