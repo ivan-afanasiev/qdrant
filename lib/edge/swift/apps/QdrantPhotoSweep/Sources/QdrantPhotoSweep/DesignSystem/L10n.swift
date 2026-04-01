@@ -56,6 +56,8 @@ enum L10n {
     // MARK: - Review
 
     static let reviewDuplicates: LocalizedStringKey = "review.title"
+    static let findingDuplicates: LocalizedStringKey = "review.findingDuplicates"
+    static let findingDuplicatesSubtitle: LocalizedStringKey = "review.findingDuplicatesSubtitle"
     static let noDuplicatesFound: LocalizedStringKey = "review.noDuplicatesFound"
     static let libraryLooksClean: LocalizedStringKey = "review.libraryLooksClean"
     static let done: LocalizedStringKey = "review.done"

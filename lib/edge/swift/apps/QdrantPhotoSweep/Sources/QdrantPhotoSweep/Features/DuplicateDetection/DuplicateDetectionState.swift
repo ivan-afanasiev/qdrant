@@ -1,6 +1,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class DuplicateDetectionState {
     enum Status: Equatable {
         case idle

@@ -17,12 +17,12 @@ struct RootNavigationView: View {
                     })
 
                 case .scan(let dateRange):
-                    ScanView(dateRange: dateRange, onComplete: { groups in
-                        path.append(.review(groups))
+                    ScanView(dateRange: dateRange, onComplete: {
+                        path.append(.review(threshold: 0.92))
                     })
 
-                case .review(let groups):
-                    SwipeReviewView(groups: groups, onFinished: {
+                case .review(let threshold):
+                    SwipeReviewView(threshold: threshold, onFinished: {
                         path.removeAll()
                     })
 

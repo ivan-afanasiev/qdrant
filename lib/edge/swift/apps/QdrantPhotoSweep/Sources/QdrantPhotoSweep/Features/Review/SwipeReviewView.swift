@@ -2,15 +2,120 @@ import SwiftUI
 
 struct SwipeReviewView: View {
     @Environment(\.dependencies) private var dependencies
-    @State private var state = ReviewState()
+    @State private var detectionState = DuplicateDetectionState()
+    @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
 
-    let groups: [DuplicateGroup]
+    let threshold: Float
     let onFinished: () -> Void
 
     var body: some View {
+        Group {
+            switch detectionState.status {
+            case .idle, .analyzing:
+                analyzingView
+
+            case .complete(let groups):
+                reviewContent(groups: groups)
+
+            case .failed(let error):
+                detectionFailedView(error: error)
+            }
+        }
+        .navigationTitle(L10n.reviewDuplicates)
+        .task {
+            await runDetection()
+        }
+        .fullScreenCover(item: $fullscreenPhoto) { photo in
+            FullscreenPhotoView(photo: photo) {
+                fullscreenPhoto = nil
+            }
+        }
+    }
+
+    // MARK: - Detection Phase
+
+    private var analyzingView: some View {
+        VStack(spacing: QSpacing.lg) {
+            let progress = detectionProgress
+
+            ZStack {
+                Circle()
+                    .stroke(lineWidth: QSize.progressStroke)
+                    .foregroundStyle(QColors.surfaceMuted)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
+                    .foregroundStyle(QColors.primary)
+                    .rotationEffect(.degrees(-90))
+                    .animation(QAnimation.smooth, value: progress)
+                VStack {
+                    Text("\(Int(progress * 100))%")
+                        .font(QTypography.numericLarge)
+                }
+            }
+            .frame(width: QSize.progressRing, height: QSize.progressRing)
+
+            Text(L10n.findingDuplicates)
+                .font(QTypography.bodyLarge)
+            Text(L10n.findingDuplicatesSubtitle)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+    }
+
+    private var detectionProgress: Double {
+        switch detectionState.status {
+        case .analyzing(let progress): progress
+        default: 0
+        }
+    }
+
+    private func detectionFailedView(error: AppError) -> some View {
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
+            Text(L10n.error)
+                .font(QTypography.titleMedium)
+            Text(error.localizedDescription)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
+                .multilineTextAlignment(.center)
+
+            Button(L10n.retry) {
+                Task { await runDetection() }
+            }
+            .buttonStyle(.qPrimary)
+
+            Button(L10n.done) {
+                onFinished()
+            }
+            .buttonStyle(.qGhost)
+        }
+        .padding()
+    }
+
+    private func runDetection() async {
+        guard let deps = dependencies else { return }
+        await detectionState.findDuplicates(
+            vectorStore: deps.vectorStore,
+            threshold: threshold
+        )
+        switch detectionState.status {
+        case .complete(let groups):
+            reviewState.reduce(.didLoadGroups(groups))
+        default:
+            break
+        }
+    }
+
+    // MARK: - Review Phase
+
+    @ViewBuilder
+    private func reviewContent(groups: [DuplicateGroup]) -> some View {
         VStack {
-            switch state.status {
+            switch reviewState.status {
             case .empty:
                 emptyView
 
@@ -28,15 +133,6 @@ struct SwipeReviewView: View {
 
             case .failed(let error):
                 failedView(error: error)
-            }
-        }
-        .navigationTitle(L10n.reviewDuplicates)
-        .task {
-            state.reduce(.didLoadGroups(groups))
-        }
-        .fullScreenCover(item: $fullscreenPhoto) { photo in
-            FullscreenPhotoView(photo: photo) {
-                fullscreenPhoto = nil
             }
         }
     }
@@ -64,7 +160,7 @@ struct SwipeReviewView: View {
                 Spacer()
                 Button(L10n.skip) {
                     withAnimation {
-                        state.reduce(.didSkipGroup)
+                        reviewState.reduce(.didSkipGroup)
                     }
                 }
                 .buttonStyle(.qGhost)
@@ -89,13 +185,13 @@ struct SwipeReviewView: View {
 
     @ViewBuilder
     private var cardStack: some View {
-        if let group = state.currentGroup {
+        if let group = reviewState.currentGroup {
             GroupComparisonView(
                 group: group,
-                keptIds: state.keptIds(for: group),
+                keptIds: reviewState.keptIds(for: group),
                 onToggleKeep: { photo in
                     withAnimation(QAnimation.springDefault) {
-                        state.reduce(.didToggleKeep(photo))
+                        reviewState.reduce(.didToggleKeep(photo))
                     }
                 },
                 onFullscreen: { photo in
@@ -107,13 +203,13 @@ struct SwipeReviewView: View {
 
     @ViewBuilder
     private var confirmGroupButton: some View {
-        if let group = state.currentGroup {
-            let kept = state.keptIds(for: group)
+        if let group = reviewState.currentGroup {
+            let kept = reviewState.keptIds(for: group)
             let deleteCount = group.photos.count - kept.count
 
             Button {
                 withAnimation {
-                    state.reduce(.didConfirmGroup)
+                    reviewState.reduce(.didConfirmGroup)
                 }
             } label: {
                 switch deleteCount > 0 {
@@ -224,23 +320,23 @@ struct SwipeReviewView: View {
 
     private func performDeletion() {
         guard let deps = dependencies,
-              case .confirming(let ids, _) = state.status else { return }
-        state.status = .deleting
+              case .confirming(let ids, _) = reviewState.status else { return }
+        reviewState.status = .deleting
         Task {
             do {
                 try await deps.photoLibrary.deleteAssets(ids)
                 let uuids = ids.map { deterministicUUID(from: $0) }
                 try await deps.vectorStore.delete(ids: uuids)
                 let stats = ReviewStats(
-                    groupsReviewed: state.keepSelections.count,
+                    groupsReviewed: reviewState.keepSelections.count,
                     photosToDelete: ids.count,
-                    photosToKeep: state.keepSelections.count
+                    photosToKeep: reviewState.keepSelections.count
                 )
-                state.reduce(.didFinishDeletion(stats: stats))
+                reviewState.reduce(.didFinishDeletion(stats: stats))
             } catch let error as AppError {
-                state.reduce(.didFail(error))
+                reviewState.reduce(.didFail(error))
             } catch {
-                state.reduce(.didFail(.unknown(error.localizedDescription)))
+                reviewState.reduce(.didFail(.unknown(error.localizedDescription)))
             }
         }
     }

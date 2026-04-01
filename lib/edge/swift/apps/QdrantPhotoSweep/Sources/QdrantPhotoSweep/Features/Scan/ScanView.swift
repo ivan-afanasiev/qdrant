@@ -6,7 +6,7 @@ struct ScanView: View {
     @State private var scanTask: Task<Void, Never>?
 
     let dateRange: DateRange
-    let onComplete: ([DuplicateGroup]) -> Void
+    let onComplete: () -> Void
 
     var body: some View {
         VStack(spacing: QSpacing.xl) {
@@ -100,13 +100,9 @@ struct ScanView: View {
                 .font(QTypography.titleMedium)
             Text(L10n.photosIndexed(indexed))
                 .foregroundStyle(QColors.textTertiary)
-
-            Button {
-                findDuplicates()
-            } label: {
-                Label(L10n.findDuplicates, systemImage: QIcons.searchSpark)
-            }
-            .buttonStyle(.qPrimary)
+        }
+        .task {
+            onComplete()
         }
     }
 
@@ -150,24 +146,6 @@ struct ScanView: View {
                 vectorStore: deps.vectorStore
             )
             await pipeline.run(dateRange: dateRange, state: state)
-        }
-    }
-
-    @State private var detectionState = DuplicateDetectionState()
-
-    private func findDuplicates() {
-        guard let deps = dependencies else { return }
-        Task {
-            await detectionState.findDuplicates(
-                vectorStore: deps.vectorStore,
-                threshold: 0.92
-            )
-            switch detectionState.status {
-            case .complete(let groups):
-                onComplete(groups)
-            default:
-                break
-            }
         }
     }
 }

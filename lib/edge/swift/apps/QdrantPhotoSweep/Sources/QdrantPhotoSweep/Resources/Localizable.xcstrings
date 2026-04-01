@@ -353,6 +353,28 @@
         }
       }
     },
+    "review.findingDuplicates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding Duplicates…"
+          }
+        }
+      }
+    },
+    "review.findingDuplicatesSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparing photos to find similar ones"
+          }
+        }
+      }
+    },
     "review.noDuplicatesFound" : {
       "extractionState" : "manual",
       "localizations" : {

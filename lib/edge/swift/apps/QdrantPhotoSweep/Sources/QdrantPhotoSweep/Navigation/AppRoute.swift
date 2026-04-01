@@ -3,7 +3,7 @@ import Foundation
 enum AppRoute: Hashable {
     case dateRangePicker
     case scan(DateRange)
-    case review([DuplicateGroup])
+    case review(threshold: Float)
     case settings
 }
 
