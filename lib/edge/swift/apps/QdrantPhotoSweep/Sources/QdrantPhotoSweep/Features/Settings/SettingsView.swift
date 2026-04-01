@@ -10,7 +10,7 @@ struct SettingsView: View {
             databaseSection
             aboutSection
         }
-        .navigationTitle("Settings")
+        .navigationTitle(L10n.settings)
         .task {
             await loadInfo()
         }
@@ -20,7 +20,7 @@ struct SettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: QSpacing.xs) {
                 HStack {
-                    Text("Similarity Threshold")
+                    Text(L10n.similarityThreshold)
                     Spacer()
                     Text(String(format: "%.0f%%", state.similarityThreshold * 100))
                         .monospacedDigit()
@@ -28,12 +28,12 @@ struct SettingsView: View {
                 }
                 Slider(value: $state.similarityThreshold, in: 0.7...0.99, step: 0.01)
                     .tint(QColors.primary)
-                Text("Higher values find only very similar photos. Lower values find more potential duplicates.")
+                Text(L10n.thresholdDescription)
                     .font(QTypography.caption)
                     .foregroundStyle(QColors.textTertiary)
             }
         } header: {
-            Text("Detection")
+            Text(L10n.detection)
         }
     }
 
@@ -43,7 +43,7 @@ struct SettingsView: View {
             switch state.status {
             case .idle(let count):
                 HStack {
-                    Text("Indexed Photos")
+                    Text(L10n.indexedPhotos)
                     Spacer()
                     Text("\(count)")
                         .foregroundStyle(QColors.textSecondary)
@@ -53,19 +53,19 @@ struct SettingsView: View {
                 Button(role: .destructive) {
                     clearDatabase()
                 } label: {
-                    Label("Clear Database", systemImage: QIcons.delete)
+                    Label(L10n.clearDatabase, systemImage: QIcons.delete)
                 }
                 .disabled(count == 0)
 
             case .clearing:
                 HStack {
                     ProgressView()
-                    Text("Clearing...")
+                    Text(L10n.clearing)
                         .foregroundStyle(QColors.textTertiary)
                 }
 
             case .cleared:
-                Label("Database cleared", systemImage: QIcons.success)
+                Label(L10n.databaseCleared, systemImage: QIcons.success)
                     .foregroundStyle(QColors.success)
 
             case .failed(let error):
@@ -74,33 +74,26 @@ struct SettingsView: View {
                     .font(QTypography.caption)
             }
         } header: {
-            Text("Database")
+            Text(L10n.database)
         }
     }
 
     private var aboutSection: some View {
         Section {
             HStack {
-                Text("Engine")
+                Text(L10n.engine)
                 Spacer()
-                Text("Qdrant Edge")
+                Text(L10n.qdrantEdge)
                     .foregroundStyle(QColors.textSecondary)
             }
             HStack {
-                Text("Embeddings")
+                Text(L10n.embeddings)
                 Spacer()
-                Text("Apple Vision")
+                Text(L10n.appleVision)
                     .foregroundStyle(QColors.textSecondary)
-            }
-            HStack {
-                Text("Dimensions")
-                Spacer()
-                Text("768")
-                    .foregroundStyle(QColors.textSecondary)
-                    .monospacedDigit()
             }
         } header: {
-            Text("About")
+            Text(L10n.about)
         }
     }
 

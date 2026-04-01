@@ -8,7 +8,7 @@ struct GroupComparisonView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: QSpacing.sm) {
-                Text("\(group.count) similar photos")
+                Text(L10n.similarPhotos(group.count))
                     .font(QTypography.bodyMedium)
                     .foregroundStyle(QColors.textTertiary)
 

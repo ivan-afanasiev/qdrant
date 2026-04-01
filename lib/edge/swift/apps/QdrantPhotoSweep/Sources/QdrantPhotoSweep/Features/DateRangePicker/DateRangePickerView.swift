@@ -16,7 +16,7 @@ struct DateRangePickerView: View {
             }
             .padding()
         }
-        .navigationTitle("Qdrant PhotoSweep")
+        .navigationTitle(L10n.appTitle)
         .task {
             guard let deps = dependencies else { return }
             await state.loadCount(using: deps.photoLibrary)
@@ -26,9 +26,9 @@ struct DateRangePickerView: View {
     private var headerSection: some View {
         VStack(spacing: QSpacing.xs) {
             QStatusIcon(QIcons.photoStack, size: QSize.iconLarge, color: QColors.primary)
-            Text("Select Time Range")
+            Text(L10n.selectTimeRange)
                 .font(QTypography.titleMedium)
-            Text("Choose which photos to scan for duplicates")
+            Text(L10n.selectTimeRangeSubtitle)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textTertiary)
         }
@@ -37,7 +37,7 @@ struct DateRangePickerView: View {
 
     private var presetSection: some View {
         VStack(alignment: .leading, spacing: QSpacing.sm) {
-            Text("Quick Select")
+            Text(L10n.quickSelect)
                 .font(QTypography.bodyLarge)
 
             LazyVGrid(columns: [
@@ -59,7 +59,7 @@ struct DateRangePickerView: View {
                 await state.recount(using: deps.photoLibrary)
             }
         } label: {
-            Text(preset.rawValue)
+            Text(preset.localizedName)
                 .font(QTypography.bodyMedium.weight(.medium))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, QSpacing.sm)
@@ -81,15 +81,15 @@ struct DateRangePickerView: View {
 
     private var customRangeSection: some View {
         VStack(alignment: .leading, spacing: QSpacing.sm) {
-            Text("Custom Range")
+            Text(L10n.customRange)
                 .font(QTypography.bodyLarge)
 
             HStack {
-                DatePicker("From", selection: $state.customStart, displayedComponents: .date)
+                DatePicker(L10n.from, selection: $state.customStart, displayedComponents: .date)
                     .labelsHidden()
-                Text("to")
+                Text(L10n.to)
                     .foregroundStyle(QColors.textTertiary)
-                DatePicker("To", selection: $state.customEnd, displayedComponents: .date)
+                DatePicker(L10n.toLabel, selection: $state.customEnd, displayedComponents: .date)
                     .labelsHidden()
             }
             .onChange(of: state.customStart) { _, newValue in
@@ -118,7 +118,7 @@ struct DateRangePickerView: View {
         case .counting:
             HStack(spacing: QSpacing.xs) {
                 ProgressView()
-                Text("Counting photos...")
+                Text(L10n.countingPhotos)
                     .foregroundStyle(QColors.textTertiary)
             }
             .padding()
@@ -127,7 +127,7 @@ struct DateRangePickerView: View {
             HStack {
                 Image(systemName: QIcons.photoAngled)
                     .foregroundStyle(QColors.primary)
-                Text("\(photoCount) photos found")
+                Text(L10n.photosFound(photoCount))
                     .font(QTypography.bodyLarge)
             }
             .padding()
@@ -151,7 +151,7 @@ struct DateRangePickerView: View {
         Button {
             onStartScan(state.currentDateRange)
         } label: {
-            Label("Start Scanning", systemImage: QIcons.search)
+            Label(L10n.startScanning, systemImage: QIcons.search)
         }
         .buttonStyle(.qPrimary)
         .disabled(!isScanEnabled)

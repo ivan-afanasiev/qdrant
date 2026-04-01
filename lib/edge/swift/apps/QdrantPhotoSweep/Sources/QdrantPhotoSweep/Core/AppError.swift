@@ -10,12 +10,12 @@ enum AppError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .authorization(let detail): "Authorization failed: \(detail)"
-        case .embedding(let detail): "Embedding failed: \(detail)"
-        case .vectorStore(let detail): "Vector store error: \(detail)"
-        case .photoLibrary(let detail): "Photo library error: \(detail)"
-        case .deletion(let detail): "Deletion failed: \(detail)"
-        case .unknown(let detail): "Unexpected error: \(detail)"
+        case .authorization(let detail): L10n.authorizationError(detail)
+        case .embedding(let detail): L10n.embeddingError(detail)
+        case .vectorStore(let detail): L10n.vectorStoreError(detail)
+        case .photoLibrary(let detail): L10n.photoLibraryError(detail)
+        case .deletion(let detail): L10n.deletionError(detail)
+        case .unknown(let detail): L10n.unexpectedError(detail)
         }
     }
 }

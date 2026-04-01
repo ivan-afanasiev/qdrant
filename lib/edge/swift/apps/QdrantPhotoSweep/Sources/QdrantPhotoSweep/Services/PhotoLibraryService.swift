@@ -8,13 +8,13 @@ final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendable {
         case .authorized, .limited:
             return
         case .denied:
-            throw .authorization("Photo library access was denied. Enable in Settings.")
+            throw .authorization(L10n.photoAccessDenied)
         case .restricted:
-            throw .authorization("Photo library access is restricted on this device.")
+            throw .authorization(L10n.photoAccessRestricted)
         case .notDetermined:
-            throw .authorization("Photo library authorization was not determined.")
+            throw .authorization(L10n.photoAccessNotDetermined)
         @unknown default:
-            throw .authorization("Unknown photo library authorization status.")
+            throw .authorization(L10n.photoAccessUnknown)
         }
     }
 

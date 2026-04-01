@@ -67,7 +67,7 @@ struct PhotoCardView: View {
             Text(date, style: .date)
                 .font(QTypography.captionSmall)
         case .none:
-            Text("Unknown date")
+            Text(L10n.unknownDate)
                 .font(QTypography.captionSmall)
                 .foregroundStyle(QColors.textTertiary)
         }

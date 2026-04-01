@@ -28,7 +28,7 @@ struct ScanView: View {
             }
         }
         .padding()
-        .navigationTitle("Scanning")
+        .navigationTitle(L10n.scanning)
         .navigationBarBackButtonHidden(isScanActive)
         .task {
             startScan()
@@ -48,7 +48,7 @@ struct ScanView: View {
     private var idleView: some View {
         VStack(spacing: QSpacing.md) {
             ProgressView()
-            Text("Preparing to scan...")
+            Text(L10n.preparingToScan)
                 .foregroundStyle(QColors.textTertiary)
         }
     }
@@ -75,9 +75,9 @@ struct ScanView: View {
             }
             .frame(width: QSize.progressRing, height: QSize.progressRing)
 
-            Text("Embedding photos...")
+            Text(L10n.embeddingPhotos)
                 .font(QTypography.bodyLarge)
-            Text("Processing images and building vector database")
+            Text(L10n.embeddingSubtitle)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
@@ -86,7 +86,7 @@ struct ScanView: View {
                 scanTask?.cancel()
                 state.reduce(.didTapCancel)
             } label: {
-                Text("Cancel")
+                Text(L10n.cancel)
             }
             .buttonStyle(.qDestructive)
         }
@@ -96,15 +96,15 @@ struct ScanView: View {
         VStack(spacing: QSpacing.lg) {
             QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
-            Text("Scan Complete")
+            Text(L10n.scanComplete)
                 .font(QTypography.titleMedium)
-            Text("\(indexed) photos indexed")
+            Text(L10n.photosIndexed(indexed))
                 .foregroundStyle(QColors.textTertiary)
 
             Button {
                 findDuplicates()
             } label: {
-                Label("Find Duplicates", systemImage: QIcons.searchSpark)
+                Label(L10n.findDuplicates, systemImage: QIcons.searchSpark)
             }
             .buttonStyle(.qPrimary)
         }
@@ -113,14 +113,14 @@ struct ScanView: View {
     private func failedView(error: AppError) -> some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
-            Text("Scan Failed")
+            Text(L10n.scanFailed)
                 .font(QTypography.titleMedium)
             Text(error.localizedDescription)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
-            Button("Retry") {
+            Button(L10n.retry) {
                 startScan()
             }
             .buttonStyle(.qPrimary)
@@ -130,10 +130,10 @@ struct ScanView: View {
     private var cancelledView: some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.cancelFill, size: QSize.iconLarge, color: QColors.warning)
-            Text("Scan Cancelled")
+            Text(L10n.scanCancelled)
                 .font(QTypography.titleMedium)
 
-            Button("Retry") {
+            Button(L10n.retry) {
                 startScan()
             }
             .buttonStyle(.qPrimary)

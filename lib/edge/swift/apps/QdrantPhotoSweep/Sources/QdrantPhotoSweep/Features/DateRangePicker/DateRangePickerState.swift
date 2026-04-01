@@ -1,14 +1,26 @@
 import Foundation
+import SwiftUI
 
 enum DatePreset: String, CaseIterable, Identifiable {
-    case lastWeek = "Last Week"
-    case lastMonth = "Last Month"
-    case last3Months = "Last 3 Months"
-    case last6Months = "Last 6 Months"
-    case lastYear = "Last Year"
-    case allTime = "All Time"
+    case lastWeek
+    case lastMonth
+    case last3Months
+    case last6Months
+    case lastYear
+    case allTime
 
     var id: String { rawValue }
+
+    var localizedName: LocalizedStringKey {
+        switch self {
+        case .lastWeek: L10n.lastWeek
+        case .lastMonth: L10n.lastMonth
+        case .last3Months: L10n.last3Months
+        case .last6Months: L10n.last6Months
+        case .lastYear: L10n.lastYear
+        case .allTime: L10n.allTime
+        }
+    }
 
     var dateRange: DateRange {
         let now = Date.now

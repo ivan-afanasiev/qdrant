@@ -29,7 +29,7 @@ struct SwipeReviewView: View {
                 failedView(error: error)
             }
         }
-        .navigationTitle("Review Duplicates")
+        .navigationTitle(L10n.reviewDuplicates)
         .task {
             state.reduce(.didLoadGroups(groups))
         }
@@ -38,12 +38,12 @@ struct SwipeReviewView: View {
     private var emptyView: some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.sparkles, size: QSize.iconLarge, color: QColors.success)
-            Text("No Duplicates Found")
+            Text(L10n.noDuplicatesFound)
                 .font(QTypography.titleMedium)
-            Text("Your photo library looks clean!")
+            Text(L10n.libraryLooksClean)
                 .foregroundStyle(QColors.textTertiary)
 
-            Button("Done") {
+            Button(L10n.done) {
                 onFinished()
             }
             .buttonStyle(.qPrimary)
@@ -53,10 +53,10 @@ struct SwipeReviewView: View {
     private func reviewingView(index: Int, total: Int) -> some View {
         VStack(spacing: QSpacing.md) {
             HStack {
-                Text("Group \(index + 1) of \(total)")
+                Text(L10n.groupNofTotal(index + 1, total))
                     .font(QTypography.bodyLarge)
                 Spacer()
-                Button("Skip") {
+                Button(L10n.skip) {
                     withAnimation {
                         state.reduce(.didSkipGroup)
                     }
@@ -71,7 +71,7 @@ struct SwipeReviewView: View {
 
             cardStack
 
-            Text("Tap a photo to keep it, others will be marked for deletion")
+            Text(L10n.tapToKeepHint)
                 .font(QTypography.caption)
                 .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
@@ -98,30 +98,30 @@ struct SwipeReviewView: View {
         VStack(spacing: QSpacing.lg) {
             QStatusIcon(QIcons.trashCircle, size: QSize.iconLarge, color: QColors.warning)
 
-            Text("Ready to Clean Up")
+            Text(L10n.readyToCleanUp)
                 .font(QTypography.titleMedium)
 
             VStack(spacing: QSpacing.xs) {
-                statRow(label: "Groups reviewed", value: "\(stats.groupsReviewed)")
-                statRow(label: "Photos to delete", value: "\(deletionCount)")
-                statRow(label: "Photos to keep", value: "\(stats.photosToKeep)")
+                statRow(label: L10n.groupsReviewed, value: "\(stats.groupsReviewed)")
+                statRow(label: L10n.photosToDelete, value: "\(deletionCount)")
+                statRow(label: L10n.photosToKeep, value: "\(stats.photosToKeep)")
             }
             .padding()
             .background(QColors.surfaceSubtle)
             .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
 
-            Text("Deleted photos will be moved to Recently Deleted")
+            Text(L10n.deletedPhotosNote)
                 .font(QTypography.caption)
                 .foregroundStyle(QColors.textTertiary)
 
             Button {
                 performDeletion()
             } label: {
-                Label("Delete \(deletionCount) Photos", systemImage: QIcons.delete)
+                Label(L10n.deleteNPhotos(deletionCount), systemImage: QIcons.delete)
             }
             .buttonStyle(.qDestructive)
 
-            Button("Cancel") {
+            Button(L10n.cancel) {
                 onFinished()
             }
             .buttonStyle(.qGhost)
@@ -132,7 +132,7 @@ struct SwipeReviewView: View {
     private var deletingView: some View {
         VStack(spacing: QSpacing.md) {
             ProgressView()
-            Text("Deleting photos...")
+            Text(L10n.deletingPhotos)
                 .foregroundStyle(QColors.textTertiary)
         }
     }
@@ -141,18 +141,18 @@ struct SwipeReviewView: View {
         VStack(spacing: QSpacing.lg) {
             QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
-            Text("All Done!")
+            Text(L10n.allDone)
                 .font(QTypography.titleMedium)
 
             VStack(spacing: QSpacing.xs) {
-                statRow(label: "Groups reviewed", value: "\(stats.groupsReviewed)")
-                statRow(label: "Photos cleaned", value: "\(stats.photosToDelete)")
+                statRow(label: L10n.groupsReviewed, value: "\(stats.groupsReviewed)")
+                statRow(label: L10n.photosCleaned, value: "\(stats.photosToDelete)")
             }
             .padding()
             .background(QColors.surfaceSubtle)
             .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
 
-            Button("Finish") {
+            Button(L10n.finish) {
                 onFinished()
             }
             .buttonStyle(.qPrimary)
@@ -163,14 +163,14 @@ struct SwipeReviewView: View {
     private func failedView(error: AppError) -> some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
-            Text("Error")
+            Text(L10n.error)
                 .font(QTypography.titleMedium)
             Text(error.localizedDescription)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
-            Button("Done") {
+            Button(L10n.done) {
                 onFinished()
             }
             .buttonStyle(.qPrimary)
@@ -178,7 +178,7 @@ struct SwipeReviewView: View {
         .padding()
     }
 
-    private func statRow(label: String, value: String) -> some View {
+    private func statRow(label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(QColors.textSecondary)

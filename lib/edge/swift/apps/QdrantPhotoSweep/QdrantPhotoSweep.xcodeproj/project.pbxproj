@@ -36,6 +36,14 @@
 		EA57C5AF73C44A949593EBBF /* UUIDHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE99759B4BFC46A8824136EA /* UUIDHelpers.swift */; };
 		F2D72A1F25C24B7AA51911E6 /* EmbeddingProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29F307BB5EB4303AC64634F /* EmbeddingProviding.swift */; };
 		F97CD8F8007A4FFD8AA9395F /* PhotoLibraryProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49FAB8A9944F30938A9DCC /* PhotoLibraryProviding.swift */; };
+		CC000002000000000000CC01 /* QColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC01 /* QColors.swift */; };
+		CC000002000000000000CC02 /* QTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC02 /* QTypography.swift */; };
+		CC000002000000000000CC03 /* QLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC03 /* QLayout.swift */; };
+		CC000002000000000000CC04 /* QIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC04 /* QIcons.swift */; };
+		CC000002000000000000CC05 /* QComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC05 /* QComponents.swift */; };
+		CC000002000000000000CC06 /* QAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC06 /* QAnimation.swift */; };
+		CC000002000000000000CC07 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC07 /* L10n.swift */; };
+		CC000002000000000000CC08 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC08 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +77,14 @@
 		F29F307BB5EB4303AC64634F /* EmbeddingProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddingProviding.swift; sourceTree = "<group>"; };
 		F3F03CC699AF43E8BB87122D /* DuplicateDetectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionState.swift; sourceTree = "<group>"; };
 		F544A1BECD7B4D3983C2AA26 /* SettingsState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsState.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC01 /* QColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QColors.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC02 /* QTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QTypography.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC03 /* QLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QLayout.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC04 /* QIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QIcons.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC05 /* QComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QComponents.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC06 /* QAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAnimation.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC07 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC08 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,12 +200,36 @@
 			children = (
 				06F46B9E4E424E0097095374 /* App.swift */,
 				A112065D88F0412E85AAAF17 /* Core */,
+				CC000003000000000000CC01 /* DesignSystem */,
 				28937C807007442595855304 /* Features */,
 				212F038BAB754BF0A5BEC7EB /* Navigation */,
+				CC000003000000000000CC02 /* Resources */,
 				FF0D2116393B421BAEB08E7F /* Services */,
 				0639BF94D3A9402E8DB3C180 /* Utilities */,
 			);
 			path = QdrantPhotoSweep;
+			sourceTree = "<group>";
+		};
+		CC000003000000000000CC01 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				CC000001000000000000CC06 /* QAnimation.swift */,
+				CC000001000000000000CC01 /* QColors.swift */,
+				CC000001000000000000CC05 /* QComponents.swift */,
+				CC000001000000000000CC04 /* QIcons.swift */,
+				CC000001000000000000CC03 /* QLayout.swift */,
+				CC000001000000000000CC02 /* QTypography.swift */,
+				CC000001000000000000CC07 /* L10n.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		CC000003000000000000CC02 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CC000001000000000000CC08 /* Localizable.xcstrings */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		91BF22286D5A424CA9F354A4 /* DateRangePicker */ = {
@@ -289,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000001000000000000AAAA /* Assets.xcassets in Resources */,
+				CC000002000000000000CC08 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,6 +384,13 @@
 				4A026C8261B849D79C77DD12 /* VisionEmbeddingService.swift in Sources */,
 				2336FE3AEE844BB4BD88BB1E /* PHAssetExtensions.swift in Sources */,
 				EA57C5AF73C44A949593EBBF /* UUIDHelpers.swift in Sources */,
+				CC000002000000000000CC01 /* QColors.swift in Sources */,
+				CC000002000000000000CC02 /* QTypography.swift in Sources */,
+				CC000002000000000000CC03 /* QLayout.swift in Sources */,
+				CC000002000000000000CC04 /* QIcons.swift in Sources */,
+				CC000002000000000000CC05 /* QComponents.swift in Sources */,
+				CC000002000000000000CC06 /* QAnimation.swift in Sources */,
+				CC000002000000000000CC07 /* L10n.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
