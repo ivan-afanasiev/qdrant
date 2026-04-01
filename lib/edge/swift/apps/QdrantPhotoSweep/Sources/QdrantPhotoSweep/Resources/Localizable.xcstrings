@@ -1,12 +1,837 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "app.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qdrant PhotoSweep"
+          }
+        }
+      }
+    },
+    "app.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
+          }
+        }
+      }
+    },
+    "auth.photoAccessRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Access Required"
+          }
+        }
+      }
+    },
+    "auth.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "dateRangePicker.selectTimeRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Time Range"
+          }
+        }
+      }
+    },
+    "dateRangePicker.selectTimeRangeSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which photos to scan for duplicates"
+          }
+        }
+      }
+    },
+    "dateRangePicker.quickSelect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Select"
+          }
+        }
+      }
+    },
+    "dateRangePicker.customRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom Range"
+          }
+        }
+      }
+    },
+    "dateRangePicker.from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
+          }
+        }
+      }
+    },
+    "dateRangePicker.to" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to"
+          }
+        }
+      }
+    },
+    "dateRangePicker.toLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To"
+          }
+        }
+      }
+    },
+    "dateRangePicker.countingPhotos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counting photos…"
+          }
+        }
+      }
+    },
+    "dateRangePicker.startScanning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Scanning"
+          }
+        }
+      }
+    },
+    "dateRangePicker.photosFound %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld photos found"
+          }
+        }
+      }
+    },
+    "preset.lastWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last Week"
+          }
+        }
+      }
+    },
+    "preset.lastMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last Month"
+          }
+        }
+      }
+    },
+    "preset.last3Months" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 3 Months"
+          }
+        }
+      }
+    },
+    "preset.last6Months" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 6 Months"
+          }
+        }
+      }
+    },
+    "preset.lastYear" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last Year"
+          }
+        }
+      }
+    },
+    "preset.allTime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Time"
+          }
+        }
+      }
+    },
+    "scan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanning"
+          }
+        }
+      }
+    },
+    "scan.preparing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing to scan…"
+          }
+        }
+      }
+    },
+    "scan.embedding" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Embedding photos…"
+          }
+        }
+      }
+    },
+    "scan.embeddingSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processing images and building vector database"
+          }
+        }
+      }
+    },
+    "scan.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "scan.complete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan Complete"
+          }
+        }
+      }
+    },
+    "scan.findDuplicates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find Duplicates"
+          }
+        }
+      }
+    },
+    "scan.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan Failed"
+          }
+        }
+      }
+    },
+    "scan.cancelled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan Cancelled"
+          }
+        }
+      }
+    },
+    "scan.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
+    "scan.photosIndexed %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld photos indexed"
+          }
+        }
+      }
+    },
+    "review.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review Duplicates"
+          }
+        }
+      }
+    },
+    "review.noDuplicatesFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Duplicates Found"
+          }
+        }
+      }
+    },
+    "review.libraryLooksClean" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your photo library looks clean!"
+          }
+        }
+      }
+    },
+    "review.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "review.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "review.tapToKeepHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a photo to keep it, others will be marked for deletion"
+          }
+        }
+      }
+    },
+    "review.readyToCleanUp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to Clean Up"
+          }
+        }
+      }
+    },
+    "review.stats.groupsReviewed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groups reviewed"
+          }
+        }
+      }
+    },
+    "review.stats.photosToDelete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos to delete"
+          }
+        }
+      }
+    },
+    "review.stats.photosToKeep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos to keep"
+          }
+        }
+      }
+    },
+    "review.stats.photosCleaned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos cleaned"
+          }
+        }
+      }
+    },
+    "review.deletedPhotosNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted photos will be moved to Recently Deleted"
+          }
+        }
+      }
+    },
+    "review.deletingPhotos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting photos…"
+          }
+        }
+      }
+    },
+    "review.allDone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Done!"
+          }
+        }
+      }
+    },
+    "review.finish" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish"
+          }
+        }
+      }
+    },
+    "review.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        }
+      }
+    },
+    "review.unknownDate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown date"
+          }
+        }
+      }
+    },
+    "review.deleteNPhotos %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld Photos"
+          }
+        }
+      }
+    },
+    "review.groupNofTotal %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Group %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "review.similarPhotos %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld similar photos"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "settings.detection.similarityThreshold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Similarity Threshold"
+          }
+        }
+      }
+    },
+    "settings.detection.thresholdDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Higher values find only very similar photos. Lower values find more potential duplicates."
+          }
+        }
+      }
+    },
+    "settings.detection.header" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detection"
+          }
+        }
+      }
+    },
+    "settings.database.indexedPhotos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indexed Photos"
+          }
+        }
+      }
+    },
+    "settings.database.clearDatabase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear Database"
+          }
+        }
+      }
+    },
+    "settings.database.clearing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clearing…"
+          }
+        }
+      }
+    },
+    "settings.database.cleared" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Database cleared"
+          }
+        }
+      }
+    },
+    "settings.database.header" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Database"
+          }
+        }
+      }
+    },
+    "settings.about.engine" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Engine"
+          }
+        }
+      }
+    },
+    "settings.about.qdrantEdge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qdrant Edge"
+          }
+        }
+      }
+    },
+    "settings.about.embeddings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Embeddings"
+          }
+        }
+      }
+    },
+    "settings.about.appleVision" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Vision"
+          }
+        }
+      }
+    },
+    "settings.about.header" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "error.authorization %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization failed: %@"
+          }
+        }
+      }
+    },
+    "error.embedding %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Embedding failed: %@"
+          }
+        }
+      }
+    },
+    "error.vectorStore %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vector store error: %@"
+          }
+        }
+      }
+    },
+    "error.photoLibrary %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo library error: %@"
+          }
+        }
+      }
+    },
+    "error.deletion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deletion failed: %@"
+          }
+        }
+      }
+    },
+    "error.unexpected %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unexpected error: %@"
+          }
+        }
+      }
+    },
+    "error.photoAccess.denied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo library access was denied. Enable in Settings."
+          }
+        }
+      }
+    },
+    "error.photoAccess.restricted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo library access is restricted on this device."
+          }
+        }
+      }
+    },
+    "error.photoAccess.notDetermined" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo library authorization was not determined."
+          }
+        }
+      }
+    },
+    "error.photoAccess.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown photo library authorization status."
+          }
+        }
+      }
+    },
     "%lld" : {
       "comment" : "A count of the number of photos that have been successfully indexed.",
       "isCommentAutoGenerated" : true
     },
     "%lld / %lld" : {
-      "comment" : "A label showing the current progress of scanning photos, indicating how many have been processed out of the total. The first argument is the count of processed photos. The second argument is the total count of photos.",
+      "comment" : "A label showing the current progress of scanning photos.",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "en" : {
@@ -17,241 +842,9 @@
         }
       }
     },
-    "%lld photos found" : {
-      "extractionState" : "manual"
-    },
-    "%lld photos indexed" : {
-      "extractionState" : "manual"
-    },
-    "%lld similar photos" : {
-      "extractionState" : "manual"
-    },
     "%lld%%" : {
-      "comment" : "A label showing the percentage of photos that have been processed and the total number of photos to be processed.",
+      "comment" : "A label showing the percentage of photos that have been processed.",
       "isCommentAutoGenerated" : true
-    },
-    "768" : {
-      "comment" : "The width and height of the model's embedding vector.",
-      "isCommentAutoGenerated" : true
-    },
-    "About" : {
-      "extractionState" : "manual"
-    },
-    "All Done!" : {
-      "extractionState" : "manual"
-    },
-    "All Time" : {
-      "extractionState" : "manual"
-    },
-    "Apple Vision" : {
-      "extractionState" : "manual"
-    },
-    "Authorization failed: %@" : {
-      "extractionState" : "manual"
-    },
-    "Cancel" : {
-      "extractionState" : "manual"
-    },
-    "Choose which photos to scan for duplicates" : {
-      "extractionState" : "manual"
-    },
-    "Clear Database" : {
-      "extractionState" : "manual"
-    },
-    "Clearing..." : {
-      "extractionState" : "manual"
-    },
-    "Counting photos..." : {
-      "extractionState" : "manual"
-    },
-    "Custom Range" : {
-      "extractionState" : "manual"
-    },
-    "Database" : {
-      "extractionState" : "manual"
-    },
-    "Database cleared" : {
-      "extractionState" : "manual"
-    },
-    "Delete %lld Photos" : {
-      "extractionState" : "manual"
-    },
-    "Deleted photos will be moved to Recently Deleted" : {
-      "extractionState" : "manual"
-    },
-    "Deleting photos..." : {
-      "extractionState" : "manual"
-    },
-    "Deletion failed: %@" : {
-      "extractionState" : "manual"
-    },
-    "Detection" : {
-      "extractionState" : "manual"
-    },
-    "Dimensions" : {
-      "extractionState" : "manual"
-    },
-    "Done" : {
-      "extractionState" : "manual"
-    },
-    "Embedding failed: %@" : {
-      "extractionState" : "manual"
-    },
-    "Embedding photos..." : {
-      "extractionState" : "manual"
-    },
-    "Embeddings" : {
-      "extractionState" : "manual"
-    },
-    "Engine" : {
-      "extractionState" : "manual"
-    },
-    "Error" : {
-      "extractionState" : "manual"
-    },
-    "Find Duplicates" : {
-      "extractionState" : "manual"
-    },
-    "Finish" : {
-      "extractionState" : "manual"
-    },
-    "From" : {
-      "extractionState" : "manual"
-    },
-    "Group %lld of %lld" : {
-      "extractionState" : "manual"
-    },
-    "Groups reviewed" : {
-      "extractionState" : "manual"
-    },
-    "Higher values find only very similar photos. Lower values find more potential duplicates." : {
-      "extractionState" : "manual"
-    },
-    "Indexed Photos" : {
-      "extractionState" : "manual"
-    },
-    "Last 3 Months" : {
-      "extractionState" : "manual"
-    },
-    "Last 6 Months" : {
-      "extractionState" : "manual"
-    },
-    "Last Month" : {
-      "extractionState" : "manual"
-    },
-    "Last Week" : {
-      "extractionState" : "manual"
-    },
-    "Last Year" : {
-      "extractionState" : "manual"
-    },
-    "Loading..." : {
-      "extractionState" : "manual"
-    },
-    "No Duplicates Found" : {
-      "extractionState" : "manual"
-    },
-    "Open Settings" : {
-      "extractionState" : "manual"
-    },
-    "Photo Access Required" : {
-      "extractionState" : "manual"
-    },
-    "Photo library access is restricted on this device." : {
-      "extractionState" : "manual"
-    },
-    "Photo library access was denied. Enable in Settings." : {
-      "extractionState" : "manual"
-    },
-    "Photo library authorization was not determined." : {
-      "extractionState" : "manual"
-    },
-    "Photo library error: %@" : {
-      "extractionState" : "manual"
-    },
-    "Photos cleaned" : {
-      "extractionState" : "manual"
-    },
-    "Photos to delete" : {
-      "extractionState" : "manual"
-    },
-    "Photos to keep" : {
-      "extractionState" : "manual"
-    },
-    "Preparing to scan..." : {
-      "extractionState" : "manual"
-    },
-    "Processing images and building vector database" : {
-      "extractionState" : "manual"
-    },
-    "Qdrant Edge" : {
-      "extractionState" : "manual"
-    },
-    "Qdrant PhotoSweep" : {
-      "extractionState" : "manual"
-    },
-    "Quick Select" : {
-      "extractionState" : "manual"
-    },
-    "Ready to Clean Up" : {
-      "extractionState" : "manual"
-    },
-    "Retry" : {
-      "extractionState" : "manual"
-    },
-    "Review Duplicates" : {
-      "extractionState" : "manual"
-    },
-    "Scan Cancelled" : {
-      "extractionState" : "manual"
-    },
-    "Scan Complete" : {
-      "extractionState" : "manual"
-    },
-    "Scan Failed" : {
-      "extractionState" : "manual"
-    },
-    "Scanning" : {
-      "extractionState" : "manual"
-    },
-    "Select Time Range" : {
-      "extractionState" : "manual"
-    },
-    "Settings" : {
-      "extractionState" : "manual"
-    },
-    "Similarity Threshold" : {
-      "extractionState" : "manual"
-    },
-    "Skip" : {
-      "extractionState" : "manual"
-    },
-    "Start Scanning" : {
-      "extractionState" : "manual"
-    },
-    "Tap a photo to keep it, others will be marked for deletion" : {
-      "extractionState" : "manual"
-    },
-    "to" : {
-      "extractionState" : "manual"
-    },
-    "To" : {
-      "extractionState" : "manual"
-    },
-    "Unexpected error: %@" : {
-      "extractionState" : "manual"
-    },
-    "Unknown date" : {
-      "extractionState" : "manual"
-    },
-    "Unknown photo library authorization status." : {
-      "extractionState" : "manual"
-    },
-    "Vector store error: %@" : {
-      "extractionState" : "manual"
-    },
-    "Your photo library looks clean!" : {
-      "extractionState" : "manual"
     }
   },
   "version" : "1.1"

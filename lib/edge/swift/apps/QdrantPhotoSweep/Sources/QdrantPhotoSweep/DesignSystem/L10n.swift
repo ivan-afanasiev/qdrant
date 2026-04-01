@@ -3,134 +3,133 @@ import SwiftUI
 enum L10n {
     // MARK: - App
 
-    static let appTitle: LocalizedStringKey = "Qdrant PhotoSweep"
-    static let loading: LocalizedStringKey = "Loading..."
+    static let appTitle: LocalizedStringKey = "app.title"
+    static let loading: LocalizedStringKey = "app.loading"
 
     // MARK: - Authorization
 
-    static let photoAccessRequired: LocalizedStringKey = "Photo Access Required"
-    static let openSettings: LocalizedStringKey = "Open Settings"
+    static let photoAccessRequired: LocalizedStringKey = "auth.photoAccessRequired"
+    static let openSettings: LocalizedStringKey = "auth.openSettings"
 
     // MARK: - Date Range Picker
 
-    static let selectTimeRange: LocalizedStringKey = "Select Time Range"
-    static let selectTimeRangeSubtitle: LocalizedStringKey = "Choose which photos to scan for duplicates"
-    static let quickSelect: LocalizedStringKey = "Quick Select"
-    static let customRange: LocalizedStringKey = "Custom Range"
-    static let from: LocalizedStringKey = "From"
-    static let to: LocalizedStringKey = "to"
-    static let toLabel: LocalizedStringKey = "To"
-    static let countingPhotos: LocalizedStringKey = "Counting photos..."
-    static let startScanning: LocalizedStringKey = "Start Scanning"
+    static let selectTimeRange: LocalizedStringKey = "dateRangePicker.selectTimeRange"
+    static let selectTimeRangeSubtitle: LocalizedStringKey = "dateRangePicker.selectTimeRangeSubtitle"
+    static let quickSelect: LocalizedStringKey = "dateRangePicker.quickSelect"
+    static let customRange: LocalizedStringKey = "dateRangePicker.customRange"
+    static let from: LocalizedStringKey = "dateRangePicker.from"
+    static let to: LocalizedStringKey = "dateRangePicker.to"
+    static let toLabel: LocalizedStringKey = "dateRangePicker.toLabel"
+    static let countingPhotos: LocalizedStringKey = "dateRangePicker.countingPhotos"
+    static let startScanning: LocalizedStringKey = "dateRangePicker.startScanning"
 
     static func photosFound(_ count: Int) -> String {
-        String(localized: "\(count) photos found")
+        String(localized: "dateRangePicker.photosFound \(count)")
     }
 
     // MARK: - Presets
 
-    static let lastWeek: LocalizedStringKey = "Last Week"
-    static let lastMonth: LocalizedStringKey = "Last Month"
-    static let last3Months: LocalizedStringKey = "Last 3 Months"
-    static let last6Months: LocalizedStringKey = "Last 6 Months"
-    static let lastYear: LocalizedStringKey = "Last Year"
-    static let allTime: LocalizedStringKey = "All Time"
+    static let lastWeek: LocalizedStringKey = "preset.lastWeek"
+    static let lastMonth: LocalizedStringKey = "preset.lastMonth"
+    static let last3Months: LocalizedStringKey = "preset.last3Months"
+    static let last6Months: LocalizedStringKey = "preset.last6Months"
+    static let lastYear: LocalizedStringKey = "preset.lastYear"
+    static let allTime: LocalizedStringKey = "preset.allTime"
 
     // MARK: - Scan
 
-    static let scanning: LocalizedStringKey = "Scanning"
-    static let preparingToScan: LocalizedStringKey = "Preparing to scan..."
-    static let embeddingPhotos: LocalizedStringKey = "Embedding photos..."
-    static let embeddingSubtitle: LocalizedStringKey = "Processing images and building vector database"
-    static let cancel: LocalizedStringKey = "Cancel"
-    static let scanComplete: LocalizedStringKey = "Scan Complete"
-    static let findDuplicates: LocalizedStringKey = "Find Duplicates"
-    static let scanFailed: LocalizedStringKey = "Scan Failed"
-    static let scanCancelled: LocalizedStringKey = "Scan Cancelled"
-    static let retry: LocalizedStringKey = "Retry"
+    static let scanning: LocalizedStringKey = "scan.title"
+    static let preparingToScan: LocalizedStringKey = "scan.preparing"
+    static let embeddingPhotos: LocalizedStringKey = "scan.embedding"
+    static let embeddingSubtitle: LocalizedStringKey = "scan.embeddingSubtitle"
+    static let cancel: LocalizedStringKey = "scan.cancel"
+    static let scanComplete: LocalizedStringKey = "scan.complete"
+    static let findDuplicates: LocalizedStringKey = "scan.findDuplicates"
+    static let scanFailed: LocalizedStringKey = "scan.failed"
+    static let scanCancelled: LocalizedStringKey = "scan.cancelled"
+    static let retry: LocalizedStringKey = "scan.retry"
 
     static func photosIndexed(_ count: Int) -> String {
-        String(localized: "\(count) photos indexed")
+        String(localized: "scan.photosIndexed \(count)")
     }
 
     // MARK: - Review
 
-    static let reviewDuplicates: LocalizedStringKey = "Review Duplicates"
-    static let noDuplicatesFound: LocalizedStringKey = "No Duplicates Found"
-    static let libraryLooksClean: LocalizedStringKey = "Your photo library looks clean!"
-    static let done: LocalizedStringKey = "Done"
-    static let skip: LocalizedStringKey = "Skip"
-    static let tapToKeepHint: LocalizedStringKey = "Tap a photo to keep it, others will be marked for deletion"
-    static let readyToCleanUp: LocalizedStringKey = "Ready to Clean Up"
-    static let groupsReviewed: LocalizedStringKey = "Groups reviewed"
-    static let photosToDelete: LocalizedStringKey = "Photos to delete"
-    static let photosToKeep: LocalizedStringKey = "Photos to keep"
-    static let photosCleaned: LocalizedStringKey = "Photos cleaned"
-    static let deletedPhotosNote: LocalizedStringKey = "Deleted photos will be moved to Recently Deleted"
-    static let deletingPhotos: LocalizedStringKey = "Deleting photos..."
-    static let allDone: LocalizedStringKey = "All Done!"
-    static let finish: LocalizedStringKey = "Finish"
-    static let error: LocalizedStringKey = "Error"
-    static let unknownDate: LocalizedStringKey = "Unknown date"
+    static let reviewDuplicates: LocalizedStringKey = "review.title"
+    static let noDuplicatesFound: LocalizedStringKey = "review.noDuplicatesFound"
+    static let libraryLooksClean: LocalizedStringKey = "review.libraryLooksClean"
+    static let done: LocalizedStringKey = "review.done"
+    static let skip: LocalizedStringKey = "review.skip"
+    static let tapToKeepHint: LocalizedStringKey = "review.tapToKeepHint"
+    static let readyToCleanUp: LocalizedStringKey = "review.readyToCleanUp"
+    static let groupsReviewed: LocalizedStringKey = "review.stats.groupsReviewed"
+    static let photosToDelete: LocalizedStringKey = "review.stats.photosToDelete"
+    static let photosToKeep: LocalizedStringKey = "review.stats.photosToKeep"
+    static let photosCleaned: LocalizedStringKey = "review.stats.photosCleaned"
+    static let deletedPhotosNote: LocalizedStringKey = "review.deletedPhotosNote"
+    static let deletingPhotos: LocalizedStringKey = "review.deletingPhotos"
+    static let allDone: LocalizedStringKey = "review.allDone"
+    static let finish: LocalizedStringKey = "review.finish"
+    static let error: LocalizedStringKey = "review.error"
+    static let unknownDate: LocalizedStringKey = "review.unknownDate"
 
     static func deleteNPhotos(_ count: Int) -> String {
-        String(localized: "Delete \(count) Photos")
+        String(localized: "review.deleteNPhotos \(count)")
     }
 
     static func groupNofTotal(_ index: Int, _ total: Int) -> String {
-        String(localized: "Group \(index) of \(total)")
+        String(localized: "review.groupNofTotal \(index) \(total)")
     }
 
     static func similarPhotos(_ count: Int) -> String {
-        String(localized: "\(count) similar photos")
+        String(localized: "review.similarPhotos \(count)")
     }
 
     // MARK: - Settings
 
-    static let settings: LocalizedStringKey = "Settings"
-    static let similarityThreshold: LocalizedStringKey = "Similarity Threshold"
-    static let thresholdDescription: LocalizedStringKey = "Higher values find only very similar photos. Lower values find more potential duplicates."
-    static let detection: LocalizedStringKey = "Detection"
-    static let indexedPhotos: LocalizedStringKey = "Indexed Photos"
-    static let clearDatabase: LocalizedStringKey = "Clear Database"
-    static let clearing: LocalizedStringKey = "Clearing..."
-    static let databaseCleared: LocalizedStringKey = "Database cleared"
-    static let database: LocalizedStringKey = "Database"
-    static let engine: LocalizedStringKey = "Engine"
-    static let qdrantEdge: LocalizedStringKey = "Qdrant Edge"
-    static let embeddings: LocalizedStringKey = "Embeddings"
-    static let appleVision: LocalizedStringKey = "Apple Vision"
-    static let dimensions: LocalizedStringKey = "Dimensions"
-    static let about: LocalizedStringKey = "About"
+    static let settings: LocalizedStringKey = "settings.title"
+    static let similarityThreshold: LocalizedStringKey = "settings.detection.similarityThreshold"
+    static let thresholdDescription: LocalizedStringKey = "settings.detection.thresholdDescription"
+    static let detection: LocalizedStringKey = "settings.detection.header"
+    static let indexedPhotos: LocalizedStringKey = "settings.database.indexedPhotos"
+    static let clearDatabase: LocalizedStringKey = "settings.database.clearDatabase"
+    static let clearing: LocalizedStringKey = "settings.database.clearing"
+    static let databaseCleared: LocalizedStringKey = "settings.database.cleared"
+    static let database: LocalizedStringKey = "settings.database.header"
+    static let engine: LocalizedStringKey = "settings.about.engine"
+    static let qdrantEdge: LocalizedStringKey = "settings.about.qdrantEdge"
+    static let embeddings: LocalizedStringKey = "settings.about.embeddings"
+    static let appleVision: LocalizedStringKey = "settings.about.appleVision"
+    static let about: LocalizedStringKey = "settings.about.header"
 
     // MARK: - Errors
 
     static func authorizationError(_ detail: String) -> String {
-        String(localized: "Authorization failed: \(detail)")
+        String(localized: "error.authorization \(detail)")
     }
 
     static func embeddingError(_ detail: String) -> String {
-        String(localized: "Embedding failed: \(detail)")
+        String(localized: "error.embedding \(detail)")
     }
 
     static func vectorStoreError(_ detail: String) -> String {
-        String(localized: "Vector store error: \(detail)")
+        String(localized: "error.vectorStore \(detail)")
     }
 
     static func photoLibraryError(_ detail: String) -> String {
-        String(localized: "Photo library error: \(detail)")
+        String(localized: "error.photoLibrary \(detail)")
     }
 
     static func deletionError(_ detail: String) -> String {
-        String(localized: "Deletion failed: \(detail)")
+        String(localized: "error.deletion \(detail)")
     }
 
     static func unexpectedError(_ detail: String) -> String {
-        String(localized: "Unexpected error: \(detail)")
+        String(localized: "error.unexpected \(detail)")
     }
 
-    static let photoAccessDenied = String(localized: "Photo library access was denied. Enable in Settings.")
-    static let photoAccessRestricted = String(localized: "Photo library access is restricted on this device.")
-    static let photoAccessNotDetermined = String(localized: "Photo library authorization was not determined.")
-    static let photoAccessUnknown = String(localized: "Unknown photo library authorization status.")
+    static let photoAccessDenied = String(localized: "error.photoAccess.denied")
+    static let photoAccessRestricted = String(localized: "error.photoAccess.restricted")
+    static let photoAccessNotDetermined = String(localized: "error.photoAccess.notDetermined")
+    static let photoAccessUnknown = String(localized: "error.photoAccess.unknown")
 }
