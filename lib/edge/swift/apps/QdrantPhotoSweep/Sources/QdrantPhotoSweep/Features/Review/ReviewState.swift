@@ -69,7 +69,6 @@ final class ReviewState {
             var kept = keptIds(for: group)
             switch kept.contains(photo.id) {
             case true:
-                guard kept.count > 1 else { return }
                 kept.remove(photo.id)
             case false:
                 kept.insert(photo.id)

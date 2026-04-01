@@ -8,6 +8,8 @@ struct PhotoCardView: View {
     let onFullscreen: () -> Void
 
     @State private var thumbnail: CGImage?
+    @State private var fullImage: CGImage?
+    @State private var isLoadingFull = false
     @State private var aspectRatio: CGFloat?
 
     var body: some View {
@@ -17,6 +19,7 @@ struct PhotoCardView: View {
                 dateOverlay
                 selectionBadge
                 fullscreenButton
+                loadingIndicator
             }
             .clipShape(RoundedRectangle(cornerRadius: QRadius.lg))
             .overlay(
@@ -27,13 +30,14 @@ struct PhotoCardView: View {
         }
         .buttonStyle(.plain)
         .task {
-            await loadThumbnail()
+            await loadImages()
         }
     }
 
     @ViewBuilder
     private var imageContent: some View {
-        switch thumbnail {
+        let displayImage = fullImage ?? thumbnail
+        switch displayImage {
         case .some(let image):
             let ratio = aspectRatio ?? 1
             Image(decorative: image, scale: 1)
@@ -51,6 +55,24 @@ struct PhotoCardView: View {
     private var computedAspectRatio: CGFloat {
         guard photo.pixelWidth > 0, photo.pixelHeight > 0 else { return 1 }
         return CGFloat(photo.pixelWidth) / CGFloat(photo.pixelHeight)
+    }
+
+    @ViewBuilder
+    private var loadingIndicator: some View {
+        if isLoadingFull, thumbnail != nil {
+            VStack {
+                HStack {
+                    ProgressView()
+                        .tint(.white)
+                        .padding(QSpacing.xs)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                        .padding(QSpacing.xs)
+                    Spacer()
+                }
+                Spacer()
+            }
+        }
     }
 
     private var dateOverlay: some View {
@@ -108,7 +130,7 @@ struct PhotoCardView: View {
         }
     }
 
-    private func loadThumbnail() async {
+    private func loadImages() async {
         let fetchResult = PHAsset.fetchAssets(
             withLocalIdentifiers: [photo.assetId],
             options: nil
@@ -116,14 +138,22 @@ struct PhotoCardView: View {
         guard let phAsset = fetchResult.firstObject else { return }
         let ratio = CGFloat(phAsset.pixelWidth) / max(CGFloat(phAsset.pixelHeight), 1)
         self.aspectRatio = ratio
-        do {
-            let image = try await loadCGImage(
-                for: phAsset,
-                targetSize: QSize.thumbnailRequest
-            )
-            self.thumbnail = image
-        } catch {
-            // best-effort
+
+        // Phase 1: fast thumbnail for immediate display
+        if let fast = try? await loadCGImage(for: phAsset, targetSize: QSize.thumbnailRequest) {
+            self.thumbnail = fast
         }
+
+        // Phase 2: high-quality image at screen-appropriate size
+        isLoadingFull = true
+        let targetSize = CGSize(
+            width: Swift.min(CGFloat(phAsset.pixelWidth), 1200),
+            height: Swift.min(CGFloat(phAsset.pixelHeight), 1200)
+        )
+        if let hq = try? await loadHighQualityCGImage(for: phAsset, targetSize: targetSize) {
+            self.fullImage = hq
+        }
+        isLoadingFull = false
     }
 }
+ 

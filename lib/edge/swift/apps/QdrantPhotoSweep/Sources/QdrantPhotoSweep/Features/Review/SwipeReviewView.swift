@@ -5,6 +5,8 @@ struct SwipeReviewView: View {
     @State private var detectionState = DuplicateDetectionState()
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
+    @State private var dragOffset: CGFloat = 0
+    @State private var swipeDirection: SwipeDirection = .none
 
     let threshold: Float
     let onFinished: () -> Void
@@ -152,24 +154,13 @@ struct SwipeReviewView: View {
 
     private var reviewingView: some View {
         VStack(spacing: QSpacing.md) {
-            HStack {
-                Text(L10n.groupNofTotal(reviewState.currentIndex + 1, reviewState.totalGroups))
-                    .font(QTypography.bodyLarge)
-                Spacer()
-                Button(L10n.skip) {
-                    withAnimation {
-                        reviewState.reduce(.didSkipGroup)
-                    }
-                }
-                .buttonStyle(.qGhost)
-            }
-            .padding(.horizontal)
+            headerBar
 
             ProgressView(value: Double(reviewState.currentIndex), total: Double(reviewState.totalGroups))
                 .tint(QColors.primary)
                 .padding(.horizontal)
 
-            cardStack
+            swipeableCardStack
 
             confirmGroupButton
 
@@ -181,23 +172,139 @@ struct SwipeReviewView: View {
         }
     }
 
-    @ViewBuilder
-    private var cardStack: some View {
-        if let group = reviewState.currentGroup {
-            GroupComparisonView(
-                group: group,
-                keptIds: reviewState.keptIds(for: group),
-                onToggleKeep: { photo in
-                    withAnimation(QAnimation.springDefault) {
-                        reviewState.reduce(.didToggleKeep(photo))
-                    }
-                },
-                onFullscreen: { photo in
-                    fullscreenPhoto = photo
+    private var headerBar: some View {
+        HStack {
+            Text(L10n.groupNofTotal(reviewState.currentIndex + 1, reviewState.totalGroups))
+                .font(QTypography.bodyLarge)
+            Spacer()
+            Button(L10n.skip) {
+                animateSkip()
+            }
+            .buttonStyle(.qGhost)
+        }
+        .padding(.horizontal)
+    }
+
+    // MARK: - Swipeable Card Stack
+
+    private var swipeableCardStack: some View {
+        GeometryReader { geo in
+            ZStack {
+                if let group = reviewState.currentGroup {
+                    GroupComparisonView(
+                        group: group,
+                        keptIds: reviewState.keptIds(for: group),
+                        onToggleKeep: { photo in
+                            withAnimation(QAnimation.springDefault) {
+                                reviewState.reduce(.didToggleKeep(photo))
+                            }
+                        },
+                        onFullscreen: { photo in
+                            fullscreenPhoto = photo
+                        }
+                    )
+                    .id(reviewState.currentIndex)
+                    .offset(x: dragOffset)
+                    .rotationEffect(.degrees(Double(dragOffset) / 30), anchor: .bottom)
+                    .opacity(swipeOpacity)
+                    .allowsHitTesting(!isDragging)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .opacity)
+                    ))
                 }
-            )
+            }
+            .overlay {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(swipeGesture(screenWidth: geo.size.width))
+                    .allowsHitTesting(isDragging)
+            }
+            .simultaneousGesture(swipeDetectionGesture(screenWidth: geo.size.width))
+            .animation(QAnimation.springDefault, value: reviewState.currentIndex)
         }
     }
+
+    private var swipeOpacity: Double {
+        let progress = abs(dragOffset) / 200
+        return Double(1 - progress * 0.3)
+    }
+
+    private var isDragging: Bool {
+        dragOffset != 0
+    }
+
+    /// Detects whether the initial gesture direction is horizontal;
+    /// if so, locks into swipe mode and tracks the finger.
+    private func swipeDetectionGesture(screenWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onChanged { value in
+                let horizontal = abs(value.translation.width)
+                let vertical = abs(value.translation.height)
+                guard horizontal > vertical else { return }
+                dragOffset = value.translation.width
+            }
+            .onEnded { value in
+                guard dragOffset != 0 else { return }
+                let swipeThreshold = screenWidth * 0.3
+                let velocity = value.predictedEndTranslation.width
+
+                switch true {
+                case value.translation.width < -swipeThreshold || velocity < -500:
+                    performSwipeOut(direction: .left, screenWidth: screenWidth)
+                case value.translation.width > swipeThreshold || velocity > 500:
+                    performSwipeOut(direction: .right, screenWidth: screenWidth)
+                default:
+                    withAnimation(QAnimation.springDefault) {
+                        dragOffset = 0
+                    }
+                }
+            }
+    }
+
+    private func swipeGesture(screenWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                dragOffset = value.translation.width
+            }
+            .onEnded { value in
+                let swipeThreshold = screenWidth * 0.3
+                let velocity = value.predictedEndTranslation.width
+
+                switch true {
+                case value.translation.width < -swipeThreshold || velocity < -500:
+                    performSwipeOut(direction: .left, screenWidth: screenWidth)
+                case value.translation.width > swipeThreshold || velocity > 500:
+                    performSwipeOut(direction: .right, screenWidth: screenWidth)
+                default:
+                    withAnimation(QAnimation.springDefault) {
+                        dragOffset = 0
+                    }
+                }
+            }
+    }
+
+    private func performSwipeOut(direction: SwipeDirection, screenWidth: CGFloat) {
+        let exitX: CGFloat = direction == .left ? -screenWidth * 1.5 : screenWidth * 1.5
+        swipeDirection = direction
+
+        withAnimation(.easeIn(duration: 0.25)) {
+            dragOffset = exitX
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            dragOffset = 0
+            swipeDirection = .none
+            reviewState.reduce(.didSkipGroup)
+        }
+    }
+
+    private func animateSkip() {
+        guard reviewState.currentGroup != nil else { return }
+        performSwipeOut(direction: .left, screenWidth: UIScreen.main.bounds.width)
+    }
+
+    // MARK: - Buttons
 
     @ViewBuilder
     private var confirmGroupButton: some View {
@@ -217,9 +324,7 @@ struct SwipeReviewView: View {
 
             case false:
                 Button {
-                    withAnimation {
-                        reviewState.reduce(.didSkipGroup)
-                    }
+                    animateSkip()
                 } label: {
                     Text(L10n.skip)
                 }
@@ -228,6 +333,8 @@ struct SwipeReviewView: View {
             }
         }
     }
+
+    // MARK: - Status Views
 
     private var deletingView: some View {
         VStack(spacing: QSpacing.md) {
@@ -315,4 +422,10 @@ struct SwipeReviewView: View {
             }
         }
     }
+}
+
+// MARK: - Supporting Types
+
+private enum SwipeDirection {
+    case none, left, right
 }
