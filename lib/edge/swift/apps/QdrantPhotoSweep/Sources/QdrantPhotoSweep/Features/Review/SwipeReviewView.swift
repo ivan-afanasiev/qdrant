@@ -97,6 +97,7 @@ struct SwipeReviewView: View {
     }
 
     private func runDetection() async {
+        guard detectionState.status == .idle else { return }
         guard let deps = dependencies else { return }
         await detectionState.findDuplicates(
             vectorStore: deps.vectorStore,
@@ -330,7 +331,7 @@ struct SwipeReviewView: View {
     private func performDeletion() {
         guard let deps = dependencies,
               case .confirming(let ids, _) = reviewState.status else { return }
-        reviewState.status = .deleting
+        reviewState.reduce(.didStartDeletion)
         Task {
             do {
                 try await deps.photoLibrary.deleteAssets(ids)
@@ -339,7 +340,7 @@ struct SwipeReviewView: View {
                 let stats = ReviewStats(
                     groupsReviewed: reviewState.keepSelections.count,
                     photosToDelete: ids.count,
-                    photosToKeep: reviewState.keepSelections.count
+                    photosToKeep: reviewState.keepSelections.values.reduce(0) { $0 + $1.count }
                 )
                 reviewState.reduce(.didFinishDeletion(stats: stats))
             } catch let error as AppError {

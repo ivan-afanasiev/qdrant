@@ -1,7 +1,7 @@
 import CoreGraphics
 import Vision
 
-final class VisionEmbeddingService: EmbeddingProviding, @unchecked Sendable {
+actor VisionEmbeddingService: EmbeddingProviding {
     private var _detectedDimensions: Int?
 
     var dimensions: Int {

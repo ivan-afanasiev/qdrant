@@ -1,7 +1,6 @@
 import Foundation
 
 enum AppRoute: Hashable {
-    case dateRangePicker
     case scan(DateRange)
     case review(threshold: Float)
     case settings

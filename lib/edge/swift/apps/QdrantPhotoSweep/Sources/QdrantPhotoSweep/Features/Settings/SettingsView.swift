@@ -16,24 +16,17 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
     private var thresholdSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: QSpacing.xs) {
-                HStack {
-                    Text(L10n.similarityThreshold)
-                    Spacer()
-                    Text(String(format: "%.0f%%", state.similarityThreshold * 100))
-                        .monospacedDigit()
-                        .foregroundStyle(QColors.textSecondary)
-                }
-                Slider(value: $state.similarityThreshold, in: 0.7...0.99, step: 0.01)
-                    .tint(QColors.primary)
-                Text(L10n.thresholdDescription)
-                    .font(QTypography.caption)
-                    .foregroundStyle(QColors.textTertiary)
+        switch dependencies?.settings {
+        case .some(let settings):
+            Section {
+                ThresholdSlider(settings: settings)
+            } header: {
+                Text(L10n.detection)
             }
-        } header: {
-            Text(L10n.detection)
+        case .none:
+            EmptyView()
         }
     }
 
@@ -127,6 +120,27 @@ struct SettingsView: View {
             } catch {
                 state.reduce(.didFail(.unknown(error.localizedDescription)))
             }
+        }
+    }
+}
+
+private struct ThresholdSlider: View {
+    @Bindable var settings: AppSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: QSpacing.xs) {
+            HStack {
+                Text(L10n.similarityThreshold)
+                Spacer()
+                Text(String(format: "%.0f%%", settings.similarityThreshold * 100))
+                    .monospacedDigit()
+                    .foregroundStyle(QColors.textSecondary)
+            }
+            Slider(value: $settings.similarityThreshold, in: 0.7...0.99, step: 0.01)
+                .tint(QColors.primary)
+            Text(L10n.thresholdDescription)
+                .font(QTypography.caption)
+                .foregroundStyle(QColors.textTertiary)
         }
     }
 }

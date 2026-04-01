@@ -1,3 +1,4 @@
+import os
 import Photos
 import UIKit
 
@@ -23,12 +24,23 @@ func loadCGImage(for asset: PHAsset, targetSize: CGSize) async throws(AppError) 
 
     do {
         return try await withCheckedThrowingContinuation { continuation in
+            let resumed = OSAllocatedUnfairLock(initialState: false)
             PHImageManager.default().requestImage(
                 for: asset,
                 targetSize: targetSize,
                 contentMode: .aspectFill,
                 options: options
             ) { image, info in
+                let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                guard !isDegraded else { return }
+
+                let alreadyResumed = resumed.withLock { state -> Bool in
+                    guard !state else { return true }
+                    state = true
+                    return false
+                }
+                guard !alreadyResumed else { return }
+
                 if let error = info?[PHImageErrorKey] as? Error {
                     continuation.resume(throwing: AppError.photoLibrary("Image load failed: \(error.localizedDescription)"))
                     return
@@ -57,12 +69,23 @@ func loadHighQualityCGImage(for asset: PHAsset, targetSize: CGSize) async throws
 
     do {
         return try await withCheckedThrowingContinuation { continuation in
+            let resumed = OSAllocatedUnfairLock(initialState: false)
             PHImageManager.default().requestImage(
                 for: asset,
                 targetSize: targetSize,
                 contentMode: .aspectFit,
                 options: options
             ) { image, info in
+                let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                guard !isDegraded else { return }
+
+                let alreadyResumed = resumed.withLock { state -> Bool in
+                    guard !state else { return true }
+                    state = true
+                    return false
+                }
+                guard !alreadyResumed else { return }
+
                 if let error = info?[PHImageErrorKey] as? Error {
                     continuation.resume(throwing: AppError.photoLibrary("Image load failed: \(error.localizedDescription)"))
                     return

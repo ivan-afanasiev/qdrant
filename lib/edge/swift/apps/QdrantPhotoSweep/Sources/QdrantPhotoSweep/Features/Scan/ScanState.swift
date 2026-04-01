@@ -19,7 +19,7 @@ final class ScanState {
         case didTapCancel
     }
 
-    var status: Status = .idle
+    private(set) var status: Status = .idle
 
     var processedCount: Int {
         switch status {

@@ -74,8 +74,7 @@ struct PhotoCardView: View {
 
     @ViewBuilder
     private var selectionBadge: some View {
-        switch isSelected {
-        case true:
+        if isSelected {
             VStack {
                 HStack {
                     Spacer()
@@ -86,8 +85,6 @@ struct PhotoCardView: View {
                 }
                 Spacer()
             }
-        case false:
-            EmptyView()
         }
     }
 
@@ -100,7 +97,7 @@ struct PhotoCardView: View {
                     onFullscreen()
                 } label: {
                     Image(systemName: QIcons.fullscreen)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(QTypography.iconButton)
                         .foregroundStyle(.white)
                         .padding(QSpacing.xs)
                         .background(.ultraThinMaterial)

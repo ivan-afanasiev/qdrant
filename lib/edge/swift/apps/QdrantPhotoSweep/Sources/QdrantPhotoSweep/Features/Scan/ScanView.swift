@@ -102,6 +102,8 @@ struct ScanView: View {
                 .foregroundStyle(QColors.textTertiary)
         }
         .task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
             onComplete()
         }
     }
@@ -137,13 +139,24 @@ struct ScanView: View {
     }
 
     private func startScan() {
+        switch state.status {
+        case .scanning, .completed:
+            return
+        case .idle, .cancelled, .failed:
+            break
+        }
         guard let deps = dependencies else { return }
         scanTask?.cancel()
         scanTask = Task {
             let pipeline = ScanPipeline(
                 photoLibrary: deps.photoLibrary,
                 embeddingService: deps.embeddingService,
-                vectorStore: deps.vectorStore
+                vectorStore: deps.vectorStore,
+                configureDimensions: { dims in
+                    if let store = deps.vectorStore as? QdrantVectorStore {
+                        await store.updateDimensions(dims)
+                    }
+                }
             )
             await pipeline.run(dateRange: dateRange, state: state)
         }

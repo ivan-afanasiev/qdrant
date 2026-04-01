@@ -23,6 +23,11 @@ enum QTypography {
     static let caption = Font.caption
     static let captionSmall = Font.caption2
 
+    // MARK: - Controls
+
+    static let iconButton = Font.system(size: 14, weight: .semibold)
+    static let dismissButton = Font.system(size: 16, weight: .bold)
+
     // MARK: - Monospaced (for numeric displays)
 
     static let numericLarge = Font.title.bold().monospacedDigit()

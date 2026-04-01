@@ -2,14 +2,19 @@ import SwiftUI
 
 @main
 struct QdrantPhotoSweepApp: App {
-    @State private var dependencies: Dependencies?
+    enum BootstrapStatus {
+        case loading
+        case ready(Dependencies)
+        case failed(AppError)
+    }
+
+    @State private var bootstrapStatus: BootstrapStatus = .loading
     @Environment(\.scenePhase) private var scenePhase
-    @State private var authorizationError: AppError?
 
     var body: some Scene {
         WindowGroup {
             contentView
-                .environment(\.dependencies, dependencies)
+                .environment(\.dependencies, activeDependencies)
                 .task {
                     await setup()
                 }
@@ -19,17 +24,24 @@ struct QdrantPhotoSweepApp: App {
         }
     }
 
+    private var activeDependencies: Dependencies? {
+        switch bootstrapStatus {
+        case .ready(let deps): deps
+        default: nil
+        }
+    }
+
     @ViewBuilder
     private var contentView: some View {
-        switch (dependencies, authorizationError) {
-        case (.some, _):
+        switch bootstrapStatus {
+        case .loading:
+            ProgressView(L10n.loading)
+
+        case .ready:
             RootNavigationView()
 
-        case (_, .some(let error)):
+        case .failed(let error):
             authorizationErrorView(error)
-
-        case (.none, .none):
-            ProgressView(L10n.loading)
         }
     }
 
@@ -57,7 +69,7 @@ struct QdrantPhotoSweepApp: App {
         do {
             try await photoLibrary.requestAuthorization()
         } catch {
-            authorizationError = error
+            bootstrapStatus = .failed(error)
             return
         }
 
@@ -71,18 +83,21 @@ struct QdrantPhotoSweepApp: App {
             dimensions: 0
         )
 
-        dependencies = Dependencies(
+        let settings = AppSettings()
+
+        bootstrapStatus = .ready(Dependencies(
             vectorStore: vectorStore,
             embeddingService: embeddingService,
-            photoLibrary: photoLibrary
-        )
+            photoLibrary: photoLibrary,
+            settings: settings
+        ))
     }
 
     private func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .background:
-            guard let store = dependencies?.vectorStore else { return }
-            Task { await store.close() }
+            guard case .ready(let deps) = bootstrapStatus else { return }
+            Task { await deps.vectorStore.close() }
         case .active, .inactive:
             break
         @unknown default:

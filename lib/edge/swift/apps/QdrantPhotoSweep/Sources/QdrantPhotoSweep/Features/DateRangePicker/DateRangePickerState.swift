@@ -48,6 +48,7 @@ enum DatePreset: String, CaseIterable, Identifiable {
 }
 
 @Observable
+@MainActor
 final class DateRangePickerState {
     enum Status: Equatable {
         case idle
@@ -59,9 +60,9 @@ final class DateRangePickerState {
     enum Action {
         case presetSelected(DatePreset)
         case customRangeChanged(start: Date, end: Date)
+        case didStartCounting
         case countLoaded(Int)
         case countFailed(AppError)
-        case didTapScan
     }
 
     var status: Status = .idle
@@ -93,14 +94,14 @@ final class DateRangePickerState {
             customEnd = end
             status = .counting
 
+        case .didStartCounting:
+            status = .counting
+
         case .countLoaded(let count):
             status = .ready(photoCount: count)
 
         case .countFailed(let error):
             status = .failed(error)
-
-        case .didTapScan:
-            break
         }
     }
 
@@ -115,7 +116,7 @@ final class DateRangePickerState {
     }
 
     func recount(using photoLibrary: any PhotoLibraryProviding) async {
-        status = .counting
+        reduce(.didStartCounting)
         do {
             let count = try await photoLibrary.countAssets(in: currentDateRange)
             reduce(.countLoaded(count))

@@ -58,6 +58,8 @@ extension DuplicateGroup {
     }
 }
 
+private let sharedISOFormatter = ISO8601DateFormatter()
+
 private func parsePhotoReference(id: String, json: String, score: Float) -> PhotoReference {
     guard let data = json.data(using: .utf8),
           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -69,7 +71,7 @@ private func parsePhotoReference(id: String, json: String, score: Float) -> Phot
 
     let assetId = (dict["assetId"] as? String) ?? id
     let dateString = dict["creationDate"] as? String
-    let creationDate = dateString.flatMap { ISO8601DateFormatter().date(from: $0) }
+    let creationDate = dateString.flatMap { sharedISOFormatter.date(from: $0) }
     let pixelWidth = (dict["pixelWidth"] as? Int) ?? 0
     let pixelHeight = (dict["pixelHeight"] as? Int) ?? 0
 

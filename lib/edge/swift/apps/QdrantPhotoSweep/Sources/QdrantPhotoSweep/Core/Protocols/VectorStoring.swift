@@ -25,7 +25,7 @@ struct VectorRecord: Sendable, Identifiable {
 }
 
 protocol VectorStoring: Sendable {
-    func updateDimensions(_ dims: Int) async
+    func exists(id: String) async throws(AppError) -> Bool
     func upsert(points: [VectorPoint]) async throws(AppError)
     func search(vector: [Float], limit: Int, threshold: Float) async throws(AppError) -> [ScoredResult]
     func scroll(offset: String?, limit: Int) async throws(AppError) -> ScrollPage

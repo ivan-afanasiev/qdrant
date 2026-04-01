@@ -1,6 +1,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class SettingsState {
     enum Status: Equatable {
         case idle(pointCount: Int)
@@ -17,7 +18,6 @@ final class SettingsState {
     }
 
     var status: Status = .idle(pointCount: 0)
-    var similarityThreshold: Float = 0.92
 
     func reduce(_ action: Action) {
         switch action {

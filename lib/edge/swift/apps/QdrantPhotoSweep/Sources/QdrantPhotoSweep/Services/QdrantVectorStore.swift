@@ -11,11 +11,7 @@ actor QdrantVectorStore: VectorStoring {
         self.dimensions = dimensions
     }
 
-    nonisolated func updateDimensions(_ dims: Int) async {
-        await _updateDimensions(dims)
-    }
-
-    private func _updateDimensions(_ dims: Int) {
+    func updateDimensions(_ dims: Int) {
         guard shard == nil, dims > 0 else { return }
 
         let marker = URL(fileURLWithPath: basePath)
@@ -61,6 +57,29 @@ actor QdrantVectorStore: VectorStoring {
             return loaded
         } catch {
             throw .vectorStore("Failed to load shard: \(error.localizedDescription)")
+        }
+    }
+
+    nonisolated func exists(id: String) async throws(AppError) -> Bool {
+        try await _exists(id: id)
+    }
+
+    private func _exists(id: String) throws(AppError) -> Bool {
+        guard dimensions > 0 else { return false }
+        let shard = try ensureShard()
+        do {
+            let request = ScrollRequest(
+                offset: .uuid(value: id),
+                limit: 1,
+                filter: nil,
+                withPayload: .bool(enable: false),
+                withVector: .bool(enable: false),
+                orderBy: nil
+            )
+            let response = try shard.scroll(request: request)
+            return response.records.contains { pointIdString($0.id) == id }
+        } catch {
+            throw .vectorStore("Exists check failed: \(error.localizedDescription)")
         }
     }
 

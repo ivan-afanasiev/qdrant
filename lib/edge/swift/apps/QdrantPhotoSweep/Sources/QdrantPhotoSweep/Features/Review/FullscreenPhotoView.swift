@@ -23,11 +23,10 @@ struct FullscreenPhotoView: View {
                     .gesture(magnificationGesture)
                     .onTapGesture(count: 2) {
                         withAnimation(QAnimation.springDefault) {
-                            switch scale > 1.5 {
-                            case true:
+                            if scale > 1.5 {
                                 scale = 1
                                 offset = .zero
-                            case false:
+                            } else {
                                 scale = 3
                             }
                             lastScale = scale
@@ -67,7 +66,7 @@ struct FullscreenPhotoView: View {
                     onDismiss()
                 } label: {
                     Image(systemName: QIcons.xmark)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(QTypography.dismissButton)
                         .foregroundStyle(.white)
                         .padding(QSpacing.sm)
                         .background(.ultraThinMaterial)
@@ -120,14 +119,13 @@ struct FullscreenPhotoView: View {
         )
         guard let phAsset = fetchResult.firstObject else { return }
         let targetSize = CGSize(
-            width: min(CGFloat(phAsset.pixelWidth), UIScreen.main.bounds.width * UIScreen.main.scale * 2),
-            height: min(CGFloat(phAsset.pixelHeight), UIScreen.main.bounds.height * UIScreen.main.scale * 2)
+            width: CGFloat(phAsset.pixelWidth),
+            height: CGFloat(phAsset.pixelHeight)
         )
         do {
             let loaded = try await loadHighQualityCGImage(for: phAsset, targetSize: targetSize)
             self.image = loaded
         } catch {
-            // fallback: try thumbnail
             let thumb = try? await loadCGImage(for: phAsset, targetSize: QSize.thumbnailRequest)
             self.image = thumb
         }

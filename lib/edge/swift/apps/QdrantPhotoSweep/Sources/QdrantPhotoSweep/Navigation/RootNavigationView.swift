@@ -11,14 +11,10 @@ struct RootNavigationView: View {
             })
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .dateRangePicker:
-                    DateRangePickerView(onStartScan: { dateRange in
-                        path.append(.scan(dateRange))
-                    })
-
                 case .scan(let dateRange):
                     ScanView(dateRange: dateRange, onComplete: {
-                        path.append(.review(threshold: 0.92))
+                        let threshold = dependencies?.settings.similarityThreshold ?? AppSettings.defaultSimilarityThreshold
+                        path = [.review(threshold: threshold)]
                     })
 
                 case .review(let threshold):
