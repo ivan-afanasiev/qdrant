@@ -29,21 +29,21 @@ struct QdrantPhotoSweepApp: App {
             authorizationErrorView(error)
 
         case (.none, .none):
-            ProgressView("Loading...")
+            ProgressView(L10n.loading)
         }
     }
 
     private func authorizationErrorView(_ error: AppError) -> some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.photoError, size: QSize.iconLarge, color: QColors.error)
-            Text("Photo Access Required")
+            Text(L10n.photoAccessRequired)
                 .font(QTypography.titleMedium)
             Text(error.localizedDescription)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
-            Button("Open Settings") {
+            Button(L10n.openSettings) {
                 guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                 UIApplication.shared.open(url)
             }
@@ -62,29 +62,13 @@ struct QdrantPhotoSweepApp: App {
         }
 
         let embeddingService = VisionEmbeddingService()
-        do {
-            try embeddingService.probeDimensions()
-        } catch {
-            authorizationError = error
-            return
-        }
 
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
-        let dimensionMarker = documentsPath.appendingPathComponent("qdrant-edge-dims")
-
-        let currentDims = embeddingService.dimensions
-        let previousDims = (try? String(contentsOf: dimensionMarker, encoding: .utf8))
-            .flatMap(Int.init)
-
-        if let prev = previousDims, prev != currentDims {
-            try? FileManager.default.removeItem(at: shardDir)
-        }
-        try? String(currentDims).write(to: dimensionMarker, atomically: true, encoding: .utf8)
 
         let vectorStore = QdrantVectorStore(
             path: shardDir.path,
-            dimensions: currentDims
+            dimensions: 0
         )
 
         dependencies = Dependencies(

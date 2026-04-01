@@ -2,22 +2,46 @@ import Foundation
 import QdrantEdge
 
 actor QdrantVectorStore: VectorStoring {
-    private let path: String
-    private let dimensions: Int
+    private let basePath: String
+    private var dimensions: Int
     private var shard: EdgeShard?
 
     init(path: String, dimensions: Int) {
-        self.path = path
+        self.basePath = path
         self.dimensions = dimensions
+    }
+
+    nonisolated func updateDimensions(_ dims: Int) async {
+        await _updateDimensions(dims)
+    }
+
+    private func _updateDimensions(_ dims: Int) {
+        guard shard == nil, dims > 0 else { return }
+
+        let marker = URL(fileURLWithPath: basePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("qdrant-edge-dims")
+        let previousDims = (try? String(contentsOf: marker, encoding: .utf8))
+            .flatMap(Int.init)
+
+        if let prev = previousDims, prev != dims {
+            try? FileManager.default.removeItem(atPath: basePath)
+        }
+        try? String(dims).write(to: marker, atomically: true, encoding: .utf8)
+
+        self.dimensions = dims
     }
 
     private func ensureShard() throws(AppError) -> EdgeShard {
         if let existing = shard {
             return existing
         }
+        guard dimensions > 0 else {
+            throw .vectorStore("Vector dimensions not yet determined")
+        }
         do {
             try FileManager.default.createDirectory(
-                atPath: path,
+                atPath: basePath,
                 withIntermediateDirectories: true
             )
             let config = EdgeConfig(
@@ -32,7 +56,7 @@ actor QdrantVectorStore: VectorStoring {
                 ],
                 sparseVectorData: [:]
             )
-            let loaded = try EdgeShard.load(path: path, config: config)
+            let loaded = try EdgeShard.load(path: basePath, config: config)
             shard = loaded
             return loaded
         } catch {
@@ -143,6 +167,7 @@ actor QdrantVectorStore: VectorStoring {
     }
 
     private func _count() throws(AppError) -> Int {
+        guard dimensions > 0 else { return 0 }
         let shard = try ensureShard()
         do {
             let result = try shard.count(request: CountRequest(filter: nil, exact: true))

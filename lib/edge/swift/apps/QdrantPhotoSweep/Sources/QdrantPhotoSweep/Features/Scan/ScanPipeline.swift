@@ -15,6 +15,7 @@ struct ScanPipeline {
 
             var pendingPoints: [VectorPoint] = []
             var indexed = 0
+            var dimensionsPropagated = false
 
             for asset in assets {
                 guard !Task.isCancelled else {
@@ -23,6 +24,10 @@ struct ScanPipeline {
                 }
 
                 if let point = await embedAsset(asset) {
+                    if !dimensionsPropagated {
+                        await vectorStore.updateDimensions(point.vector.count)
+                        dimensionsPropagated = true
+                    }
                     pendingPoints.append(point)
                 }
                 await state.reduce(.batchCompleted(count: 1))
