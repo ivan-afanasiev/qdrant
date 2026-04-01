@@ -6,6 +6,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            scanPeriodSection
             thresholdSection
             databaseSection
             aboutSection
@@ -15,6 +16,86 @@ struct SettingsView: View {
             await loadInfo()
         }
     }
+
+    // MARK: - Scan Period
+
+    @ViewBuilder
+    private var scanPeriodSection: some View {
+        if let settings = dependencies?.settings {
+            Section {
+                presetGrid(settings: settings)
+                customRangeRow(settings: settings)
+            } header: {
+                Text(L10n.settingsScanPeriodHeader)
+            } footer: {
+                Text(L10n.settingsScanPeriodFooter)
+            }
+        }
+    }
+
+    private func presetGrid(settings: AppSettings) -> some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible()),
+        ], spacing: QSpacing.xs) {
+            ForEach(DatePreset.allCases) { preset in
+                Button {
+                    settings.scanPreset = preset
+                } label: {
+                    Text(preset.localizedName)
+                        .font(QTypography.bodyMedium.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, QSpacing.sm)
+                        .background(presetBg(for: preset, settings: settings))
+                        .foregroundStyle(presetFg(for: preset, settings: settings))
+                        .clipShape(RoundedRectangle(cornerRadius: QRadius.sm))
+                }
+            }
+        }
+        .listRowInsets(EdgeInsets(top: QSpacing.sm, leading: QSpacing.md, bottom: QSpacing.sm, trailing: QSpacing.md))
+    }
+
+    private func presetBg(for preset: DatePreset, settings: AppSettings) -> some ShapeStyle {
+        let isSelected = !settings.isCustomRange && settings.scanPreset == preset
+        return isSelected ? AnyShapeStyle(QColors.primary) : AnyShapeStyle(QColors.surfaceSubtle)
+    }
+
+    private func presetFg(for preset: DatePreset, settings: AppSettings) -> some ShapeStyle {
+        let isSelected = !settings.isCustomRange && settings.scanPreset == preset
+        return isSelected ? AnyShapeStyle(QColors.textOnPrimary) : AnyShapeStyle(QColors.textPrimary)
+    }
+
+    private func customRangeRow(settings: AppSettings) -> some View {
+        VStack(alignment: .leading, spacing: QSpacing.sm) {
+            Text(L10n.customRange)
+                .font(QTypography.bodyMedium)
+
+            HStack {
+                DatePicker(L10n.from, selection: Binding(
+                    get: { settings.customRangeStart },
+                    set: {
+                        settings.customRangeStart = $0
+                        settings.isCustomRange = true
+                    }
+                ), displayedComponents: .date)
+                .labelsHidden()
+
+                Text(L10n.to)
+                    .foregroundStyle(QColors.textTertiary)
+
+                DatePicker(L10n.toLabel, selection: Binding(
+                    get: { settings.customRangeEnd },
+                    set: {
+                        settings.customRangeEnd = $0
+                        settings.isCustomRange = true
+                    }
+                ), displayedComponents: .date)
+                .labelsHidden()
+            }
+        }
+    }
+
+    // MARK: - Detection
 
     @ViewBuilder
     private var thresholdSection: some View {

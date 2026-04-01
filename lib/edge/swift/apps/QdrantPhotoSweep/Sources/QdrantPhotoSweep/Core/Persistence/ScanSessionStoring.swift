@@ -16,4 +16,8 @@ protocol ScanSessionStoring: Sendable {
     func deleteAllPendingGroups() async throws
 
     func countNewPhotosSince(date: Date, in dateRange: DateRange, using photoLibrary: any PhotoLibraryProviding) async throws -> Int
+
+    func totalPhotosIndexed() async throws -> Int
+    func totalDuplicateGroupsFound() async throws -> Int
+    func totalPhotosDeleted() async throws -> Int
 }

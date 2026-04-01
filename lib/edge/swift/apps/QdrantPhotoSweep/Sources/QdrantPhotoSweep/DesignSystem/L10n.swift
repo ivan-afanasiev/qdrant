@@ -11,21 +11,13 @@ enum L10n {
     static let photoAccessRequired: LocalizedStringKey = "auth.photoAccessRequired"
     static let openSettings: LocalizedStringKey = "auth.openSettings"
 
-    // MARK: - Date Range Picker
+    // MARK: - Date Range (shared)
 
-    static let selectTimeRange: LocalizedStringKey = "dateRangePicker.selectTimeRange"
-    static let selectTimeRangeSubtitle: LocalizedStringKey = "dateRangePicker.selectTimeRangeSubtitle"
-    static let quickSelect: LocalizedStringKey = "dateRangePicker.quickSelect"
     static let customRange: LocalizedStringKey = "dateRangePicker.customRange"
     static let from: LocalizedStringKey = "dateRangePicker.from"
     static let to: LocalizedStringKey = "dateRangePicker.to"
     static let toLabel: LocalizedStringKey = "dateRangePicker.toLabel"
-    static let countingPhotos: LocalizedStringKey = "dateRangePicker.countingPhotos"
     static let startScanning: LocalizedStringKey = "dateRangePicker.startScanning"
-
-    static func photosFound(_ count: Int) -> String {
-        String(localized: "dateRangePicker.photosFound \(count)")
-    }
 
     // MARK: - Presets
 
@@ -105,6 +97,34 @@ enum L10n {
         String(localized: "home.interruptedScan.banner \(remaining)")
     }
 
+    // MARK: - Home Stats
+
+    static let homeStatsHeader: LocalizedStringKey = "home.stats.header"
+    static let homeStatPhotosIndexed: LocalizedStringKey = "home.stats.photosIndexed"
+    static let homeStatLastScan: LocalizedStringKey = "home.stats.lastScan"
+    static let homeStatDuplicatesFound: LocalizedStringKey = "home.stats.duplicatesFound"
+    static let homeStatPhotosDeleted: LocalizedStringKey = "home.stats.photosDeleted"
+
+    // MARK: - Onboarding
+
+    static let onboardingWelcomeSubtitle: LocalizedStringKey = "onboarding.welcome.subtitle"
+    static let onboardingFeatureScanTitle: LocalizedStringKey = "onboarding.feature.scan.title"
+    static let onboardingFeatureScanSubtitle: LocalizedStringKey = "onboarding.feature.scan.subtitle"
+    static let onboardingFeatureVectorTitle: LocalizedStringKey = "onboarding.feature.vector.title"
+    static let onboardingFeatureVectorSubtitle: LocalizedStringKey = "onboarding.feature.vector.subtitle"
+    static let onboardingFeatureSwipeTitle: LocalizedStringKey = "onboarding.feature.swipe.title"
+    static let onboardingFeatureSwipeSubtitle: LocalizedStringKey = "onboarding.feature.swipe.subtitle"
+    static let onboardingPermissionTitle: LocalizedStringKey = "onboarding.permission.title"
+    static let onboardingPermissionSubtitle: LocalizedStringKey = "onboarding.permission.subtitle"
+    static let onboardingGrantAccess: LocalizedStringKey = "onboarding.permission.grantAccess"
+    static let onboardingPermissionGranted: LocalizedStringKey = "onboarding.permission.granted"
+    static let onboardingPermissionDenied: LocalizedStringKey = "onboarding.permission.denied"
+    static let onboardingScanPeriodTitle: LocalizedStringKey = "onboarding.scanPeriod.title"
+    static let onboardingScanPeriodSubtitle: LocalizedStringKey = "onboarding.scanPeriod.subtitle"
+    static let onboardingNext: LocalizedStringKey = "onboarding.next"
+    static let onboardingBack: LocalizedStringKey = "onboarding.back"
+    static let onboardingGetStarted: LocalizedStringKey = "onboarding.getStarted"
+
     // MARK: - Background
 
     static let backgroundScanCompleteTitle = String(localized: "background.scan.completeTitle")
@@ -115,6 +135,8 @@ enum L10n {
     // MARK: - Settings
 
     static let settings: LocalizedStringKey = "settings.title"
+    static let settingsScanPeriodHeader: LocalizedStringKey = "settings.scanPeriod.header"
+    static let settingsScanPeriodFooter: LocalizedStringKey = "settings.scanPeriod.footer"
     static let similarityThreshold: LocalizedStringKey = "settings.detection.similarityThreshold"
     static let thresholdDescription: LocalizedStringKey = "settings.detection.thresholdDescription"
     static let detection: LocalizedStringKey = "settings.detection.header"

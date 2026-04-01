@@ -6,7 +6,7 @@ struct RootNavigationView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            DateRangePickerView(
+            HomeView(
                 onStartScan: { dateRange in
                     path.append(.scan(dateRange))
                 },

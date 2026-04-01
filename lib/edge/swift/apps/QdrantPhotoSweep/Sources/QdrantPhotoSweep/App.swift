@@ -1,10 +1,12 @@
 import SwiftData
 import SwiftUI
+import Photos
 
 @main
 struct QdrantPhotoSweepApp: App {
     enum BootstrapStatus {
         case loading
+        case onboarding(AppSettings)
         case ready(Dependencies)
         case failed(AppError)
     }
@@ -55,6 +57,11 @@ struct QdrantPhotoSweepApp: App {
         case .loading:
             ProgressView(L10n.loading)
 
+        case .onboarding(let settings):
+            OnboardingView(settings: settings) {
+                Task { await setupAfterOnboarding(settings: settings) }
+            }
+
         case .ready:
             RootNavigationView()
 
@@ -83,12 +90,34 @@ struct QdrantPhotoSweepApp: App {
     }
 
     private func setup() async {
-        let photoLibrary = PhotoLibraryService()
-        do {
-            try await photoLibrary.requestAuthorization()
-        } catch {
-            bootstrapStatus = .failed(error)
+        let settings = AppSettings()
+
+        guard settings.hasCompletedOnboarding else {
+            bootstrapStatus = .onboarding(settings)
             return
+        }
+
+        await bootstrapDependencies(settings: settings)
+    }
+
+    private func setupAfterOnboarding(settings: AppSettings) async {
+        await bootstrapDependencies(settings: settings)
+    }
+
+    private func bootstrapDependencies(settings: AppSettings) async {
+        let photoLibrary = PhotoLibraryService()
+
+        let currentAuth = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        switch currentAuth {
+        case .authorized, .limited:
+            break
+        default:
+            do {
+                try await photoLibrary.requestAuthorization()
+            } catch {
+                bootstrapStatus = .failed(error)
+                return
+            }
         }
 
         let embeddingService = VisionEmbeddingService()
@@ -102,7 +131,6 @@ struct QdrantPhotoSweepApp: App {
         )
 
         let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
-        let settings = AppSettings()
 
         bootstrapStatus = .ready(Dependencies(
             vectorStore: vectorStore,

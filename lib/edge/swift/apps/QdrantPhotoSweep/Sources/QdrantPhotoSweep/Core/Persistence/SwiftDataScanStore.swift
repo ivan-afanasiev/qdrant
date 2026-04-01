@@ -154,4 +154,24 @@ actor SwiftDataScanStore: ScanSessionStoring {
         let newRange = DateRange(start: date, end: dateRange.end)
         return try await photoLibrary.countAssets(in: newRange)
     }
+
+    func totalPhotosIndexed() throws -> Int {
+        let descriptor = FetchDescriptor<PhotoPointEntity>()
+        return try modelContext.fetchCount(descriptor)
+    }
+
+    func totalDuplicateGroupsFound() throws -> Int {
+        let descriptor = FetchDescriptor<DuplicateGroupEntity>()
+        return try modelContext.fetchCount(descriptor)
+    }
+
+    func totalPhotosDeleted() throws -> Int {
+        let deletedStatus = DuplicateGroupStatus.deleted.rawValue
+        let predicate = #Predicate<DuplicateGroupEntity> { $0.status == deletedStatus }
+        let descriptor = FetchDescriptor(predicate: predicate)
+        let groups = try modelContext.fetch(descriptor)
+        return groups.reduce(0) { total, group in
+            total + group.members.filter { $0.isKept == false }.count
+        }
+    }
 }
