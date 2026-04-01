@@ -18,29 +18,29 @@ enum QColors {
     static let accent = blue
 
     static let success = teal
-    static let warning = Color(hex: 0xE6A817)
+    static let warning = Color.adaptive(light: 0xE6A817, dark: 0xF0B429)
     static let error = amaranth
     static let destructive = amaranth
 
     // MARK: - Text
 
-    static let textPrimary = brandBlack
-    static let textSecondary = Color(hex: 0x5A6175)
-    static let textTertiary = Color(hex: 0x8E95A7)
+    static let textPrimary = Color.adaptive(light: 0x090E1A, dark: 0xF0F1F5)
+    static let textSecondary = Color.adaptive(light: 0x5A6175, dark: 0xA0A8BC)
+    static let textTertiary = Color.adaptive(light: 0x8E95A7, dark: 0x6B7185)
     static let textOnPrimary = brandWhite
 
     // MARK: - Surface
 
-    static let surfaceBackground = Color(hex: 0xF7F8FA)
-    static let surface = brandWhite
-    static let surfaceElevated = brandWhite
-    static let surfaceSubtle = Color(hex: 0xF0F1F5)
-    static let surfaceMuted = Color(hex: 0xE4E6ED)
+    static let surfaceBackground = Color.adaptive(light: 0xF7F8FA, dark: 0x0E1117)
+    static let surface = Color.adaptive(light: 0xFFFFFF, dark: 0x161B22)
+    static let surfaceElevated = Color.adaptive(light: 0xFFFFFF, dark: 0x1C2128)
+    static let surfaceSubtle = Color.adaptive(light: 0xF0F1F5, dark: 0x1C2128)
+    static let surfaceMuted = Color.adaptive(light: 0xE4E6ED, dark: 0x272D36)
 
     // MARK: - Border & Divider
 
-    static let border = Color(hex: 0xDDE0E8)
-    static let borderSubtle = Color(hex: 0xECEDF2)
+    static let border = Color.adaptive(light: 0xDDE0E8, dark: 0x30363D)
+    static let borderSubtle = Color.adaptive(light: 0xECEDF2, dark: 0x21262D)
 
     // MARK: - Overlay
 
@@ -60,5 +60,17 @@ extension Color {
             blue: Double(hex & 0xFF) / 255,
             opacity: opacity
         )
+    }
+
+    static func adaptive(light: UInt, dark: UInt) -> Color {
+        Color(UIColor { traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(
+                red: CGFloat((hex >> 16) & 0xFF) / 255,
+                green: CGFloat((hex >> 8) & 0xFF) / 255,
+                blue: CGFloat(hex & 0xFF) / 255,
+                alpha: 1
+            )
+        })
     }
 }

@@ -57,7 +57,7 @@ enum BackgroundScanService {
 
         defer { Task { await vectorStore.close() } }
 
-        let bgScanState = ScanState()
+        let bgScanState = await ScanState()
         let pipeline = ScanPipeline(
             photoLibrary: photoLibrary,
             embeddingService: embeddingService,
@@ -101,7 +101,7 @@ enum BackgroundScanService {
         // Run duplicate detection
         guard !Task.isCancelled else { return -1 }
 
-        let detectionState = DuplicateDetectionState()
+        let detectionState = await DuplicateDetectionState()
         let threshold = AppSettings.defaultSimilarityThreshold
         await detectionState.findDuplicates(
             vectorStore: vectorStore,
