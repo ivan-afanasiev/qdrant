@@ -1,0 +1,114 @@
+import Foundation
+
+enum DatePreset: String, CaseIterable, Identifiable {
+    case lastWeek = "Last Week"
+    case lastMonth = "Last Month"
+    case last3Months = "Last 3 Months"
+    case last6Months = "Last 6 Months"
+    case lastYear = "Last Year"
+    case allTime = "All Time"
+
+    var id: String { rawValue }
+
+    var dateRange: DateRange {
+        let now = Date.now
+        let calendar = Calendar.current
+        switch self {
+        case .lastWeek:
+            let start = calendar.date(byAdding: .weekOfYear, value: -1, to: now) ?? now
+            return DateRange(start: start, end: now)
+        case .lastMonth:
+            let start = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+            return DateRange(start: start, end: now)
+        case .last3Months:
+            let start = calendar.date(byAdding: .month, value: -3, to: now) ?? now
+            return DateRange(start: start, end: now)
+        case .last6Months:
+            let start = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+            return DateRange(start: start, end: now)
+        case .lastYear:
+            let start = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+            return DateRange(start: start, end: now)
+        case .allTime:
+            return .allTime
+        }
+    }
+}
+
+@Observable
+final class DateRangePickerState {
+    enum Status: Equatable {
+        case idle
+        case counting
+        case ready(photoCount: Int)
+        case failed(AppError)
+    }
+
+    enum Action {
+        case presetSelected(DatePreset)
+        case customRangeChanged(start: Date, end: Date)
+        case countLoaded(Int)
+        case countFailed(AppError)
+        case didTapScan
+    }
+
+    var status: Status = .idle
+    var selectedPreset: DatePreset? = .lastMonth
+    var customStart: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
+    var customEnd: Date = .now
+    var isCustomRange: Bool = false
+
+    var currentDateRange: DateRange {
+        switch isCustomRange {
+        case true:
+            DateRange(start: customStart, end: customEnd)
+        case false:
+            selectedPreset?.dateRange ?? .allTime
+        }
+    }
+
+    func reduce(_ action: Action) {
+        switch action {
+        case .presetSelected(let preset):
+            isCustomRange = false
+            selectedPreset = preset
+            status = .counting
+
+        case .customRangeChanged(let start, let end):
+            isCustomRange = true
+            selectedPreset = nil
+            customStart = start
+            customEnd = end
+            status = .counting
+
+        case .countLoaded(let count):
+            status = .ready(photoCount: count)
+
+        case .countFailed(let error):
+            status = .failed(error)
+
+        case .didTapScan:
+            break
+        }
+    }
+
+    func loadCount(using photoLibrary: any PhotoLibraryProviding) async {
+        reduce(.presetSelected(selectedPreset ?? .lastMonth))
+        do {
+            let count = try await photoLibrary.countAssets(in: currentDateRange)
+            reduce(.countLoaded(count))
+        } catch {
+            reduce(.countFailed(error))
+        }
+    }
+
+    func recount(using photoLibrary: any PhotoLibraryProviding) async {
+        status = .counting
+        do {
+            let count = try await photoLibrary.countAssets(in: currentDateRange)
+            reduce(.countLoaded(count))
+        } catch {
+            reduce(.countFailed(error))
+        }
+    }
+}
