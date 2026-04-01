@@ -7,7 +7,7 @@ struct DateRangePickerView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: QSpacing.xl) {
                 headerSection
                 presetSection
                 customRangeSection
@@ -24,28 +24,26 @@ struct DateRangePickerView: View {
     }
 
     private var headerSection: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo.stack")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
+        VStack(spacing: QSpacing.xs) {
+            QStatusIcon(QIcons.photoStack, size: QSize.iconLarge, color: QColors.primary)
             Text("Select Time Range")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text("Choose which photos to scan for duplicates")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
         }
         .padding(.top)
     }
 
     private var presetSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: QSpacing.sm) {
             Text("Quick Select")
-                .font(.headline)
+                .font(QTypography.bodyLarge)
 
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
-            ], spacing: 10) {
+            ], spacing: QSpacing.xs) {
                 ForEach(DatePreset.allCases) { preset in
                     presetButton(preset)
                 }
@@ -62,35 +60,35 @@ struct DateRangePickerView: View {
             }
         } label: {
             Text(preset.rawValue)
-                .font(.subheadline.weight(.medium))
+                .font(QTypography.bodyMedium.weight(.medium))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+                .padding(.vertical, QSpacing.sm)
                 .background(presetBackground(for: preset))
                 .foregroundStyle(presetForeground(for: preset))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: QRadius.sm))
         }
     }
 
     private func presetBackground(for preset: DatePreset) -> some ShapeStyle {
         let isSelected = !state.isCustomRange && state.selectedPreset == preset
-        return isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.fill.quaternary)
+        return isSelected ? AnyShapeStyle(QColors.primary) : AnyShapeStyle(QColors.surfaceSubtle)
     }
 
     private func presetForeground(for preset: DatePreset) -> some ShapeStyle {
         let isSelected = !state.isCustomRange && state.selectedPreset == preset
-        return isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary)
+        return isSelected ? AnyShapeStyle(QColors.textOnPrimary) : AnyShapeStyle(QColors.textPrimary)
     }
 
     private var customRangeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: QSpacing.sm) {
             Text("Custom Range")
-                .font(.headline)
+                .font(QTypography.bodyLarge)
 
             HStack {
                 DatePicker("From", selection: $state.customStart, displayedComponents: .date)
                     .labelsHidden()
                 Text("to")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QColors.textTertiary)
                 DatePicker("To", selection: $state.customEnd, displayedComponents: .date)
                     .labelsHidden()
             }
@@ -118,31 +116,32 @@ struct DateRangePickerView: View {
             EmptyView()
 
         case .counting:
-            HStack(spacing: 8) {
+            HStack(spacing: QSpacing.xs) {
                 ProgressView()
                 Text("Counting photos...")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QColors.textTertiary)
             }
             .padding()
 
         case .ready(let photoCount):
             HStack {
-                Image(systemName: "photo.on.rectangle.angled")
+                Image(systemName: QIcons.photoAngled)
+                    .foregroundStyle(QColors.primary)
                 Text("\(photoCount) photos found")
-                    .font(.headline)
+                    .font(QTypography.bodyLarge)
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(.fill.quaternary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
 
         case .failed(let error):
-            VStack(spacing: 8) {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.red)
+            VStack(spacing: QSpacing.xs) {
+                Image(systemName: QIcons.warning)
+                    .foregroundStyle(QColors.error)
                 Text(error.localizedDescription)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(QTypography.caption)
+                    .foregroundStyle(QColors.textTertiary)
             }
             .padding()
         }
@@ -152,14 +151,9 @@ struct DateRangePickerView: View {
         Button {
             onStartScan(state.currentDateRange)
         } label: {
-            Label("Start Scanning", systemImage: "magnifyingglass")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.tint)
-                .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+            Label("Start Scanning", systemImage: QIcons.search)
         }
+        .buttonStyle(.qPrimary)
         .disabled(!isScanEnabled)
     }
 

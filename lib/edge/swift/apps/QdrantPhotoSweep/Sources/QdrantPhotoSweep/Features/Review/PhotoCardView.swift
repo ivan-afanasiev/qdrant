@@ -15,12 +15,12 @@ struct PhotoCardView: View {
                 overlayInfo
                 selectionBadge
             }
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.lg))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.green : Color.clear, lineWidth: 3)
+                RoundedRectangle(cornerRadius: QRadius.lg)
+                    .stroke(isSelected ? QColors.success : Color.clear, lineWidth: 3)
             )
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+            .qShadow(QShadow.md)
         }
         .buttonStyle(.plain)
         .task {
@@ -35,13 +35,13 @@ struct PhotoCardView: View {
             Image(decorative: image, scale: 1)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(minHeight: 200)
+                .frame(minHeight: QSize.cardImageMinHeight)
                 .clipped()
 
         case .none:
             Rectangle()
-                .fill(.fill.quaternary)
-                .frame(height: 200)
+                .fill(QColors.surfaceSubtle)
+                .frame(height: QSize.cardImageMinHeight)
                 .overlay {
                     ProgressView()
                 }
@@ -49,15 +49,15 @@ struct PhotoCardView: View {
     }
 
     private var overlayInfo: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: QSpacing.xxxs) {
             Text(photo.resolution)
-                .font(.caption2.bold().monospacedDigit())
+                .font(QTypography.numericTiny)
             formattedDate
         }
-        .padding(8)
+        .padding(QSpacing.xs)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(8)
+        .clipShape(RoundedRectangle(cornerRadius: QRadius.sm))
+        .padding(QSpacing.xs)
     }
 
     @ViewBuilder
@@ -65,11 +65,11 @@ struct PhotoCardView: View {
         switch photo.creationDate {
         case .some(let date):
             Text(date, style: .date)
-                .font(.caption2)
+                .font(QTypography.captionSmall)
         case .none:
             Text("Unknown date")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(QTypography.captionSmall)
+                .foregroundStyle(QColors.textTertiary)
         }
     }
 
@@ -80,10 +80,10 @@ struct PhotoCardView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.green)
-                        .padding(8)
+                    Image(systemName: QIcons.successFill)
+                        .font(QTypography.titleMedium)
+                        .foregroundStyle(QColors.success)
+                        .padding(QSpacing.xs)
                 }
                 Spacer()
             }
@@ -101,7 +101,7 @@ struct PhotoCardView: View {
         do {
             let image = try await loadCGImage(
                 for: phAsset,
-                targetSize: CGSize(width: 300, height: 300)
+                targetSize: QSize.thumbnailRequest
             )
             self.thumbnail = image
         } catch {

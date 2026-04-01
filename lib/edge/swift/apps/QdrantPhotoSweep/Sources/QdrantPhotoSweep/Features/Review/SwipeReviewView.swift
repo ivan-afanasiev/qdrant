@@ -36,45 +36,44 @@ struct SwipeReviewView: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 48))
-                .foregroundStyle(.green)
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.sparkles, size: QSize.iconLarge, color: QColors.success)
             Text("No Duplicates Found")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text("Your photo library looks clean!")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(QColors.textTertiary)
 
             Button("Done") {
                 onFinished()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
     }
 
     private func reviewingView(index: Int, total: Int) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: QSpacing.md) {
             HStack {
                 Text("Group \(index + 1) of \(total)")
-                    .font(.headline)
+                    .font(QTypography.bodyLarge)
                 Spacer()
                 Button("Skip") {
                     withAnimation {
                         state.reduce(.didSkipGroup)
                     }
                 }
-                .foregroundStyle(.secondary)
+                .buttonStyle(.qGhost)
             }
             .padding(.horizontal)
 
             ProgressView(value: Double(index), total: Double(total))
+                .tint(QColors.primary)
                 .padding(.horizontal)
 
             cardStack
 
             Text("Tap a photo to keep it, others will be marked for deletion")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(QTypography.caption)
+                .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
@@ -87,7 +86,7 @@ struct SwipeReviewView: View {
                 group: group,
                 selectedKeepId: state.keepSelections[group.id],
                 onSelectKeep: { photo in
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    withAnimation(QAnimation.springDefault) {
                         state.reduce(.didSelectKeep(photo))
                     }
                 }
@@ -96,95 +95,85 @@ struct SwipeReviewView: View {
     }
 
     private func confirmingView(deletionCount: Int, stats: ReviewStats) -> some View {
-        VStack(spacing: 20) {
-            Image(systemName: "trash.circle")
-                .font(.system(size: 48))
-                .foregroundStyle(.orange)
+        VStack(spacing: QSpacing.lg) {
+            QStatusIcon(QIcons.trashCircle, size: QSize.iconLarge, color: QColors.warning)
 
             Text("Ready to Clean Up")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
 
-            VStack(spacing: 8) {
+            VStack(spacing: QSpacing.xs) {
                 statRow(label: "Groups reviewed", value: "\(stats.groupsReviewed)")
                 statRow(label: "Photos to delete", value: "\(deletionCount)")
                 statRow(label: "Photos to keep", value: "\(stats.photosToKeep)")
             }
             .padding()
-            .background(.fill.quaternary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
 
             Text("Deleted photos will be moved to Recently Deleted")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(QTypography.caption)
+                .foregroundStyle(QColors.textTertiary)
 
-            Button(role: .destructive) {
+            Button {
                 performDeletion()
             } label: {
-                Label("Delete \(deletionCount) Photos", systemImage: "trash")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
+                Label("Delete \(deletionCount) Photos", systemImage: QIcons.delete)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.red)
+            .buttonStyle(.qDestructive)
 
             Button("Cancel") {
                 onFinished()
             }
-            .foregroundStyle(.secondary)
+            .buttonStyle(.qGhost)
         }
         .padding()
     }
 
     private var deletingView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: QSpacing.md) {
             ProgressView()
             Text("Deleting photos...")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(QColors.textTertiary)
         }
     }
 
     private func allReviewedView(stats: ReviewStats) -> some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.green)
+        VStack(spacing: QSpacing.lg) {
+            QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
             Text("All Done!")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
 
-            VStack(spacing: 8) {
+            VStack(spacing: QSpacing.xs) {
                 statRow(label: "Groups reviewed", value: "\(stats.groupsReviewed)")
                 statRow(label: "Photos cleaned", value: "\(stats.photosToDelete)")
             }
             .padding()
-            .background(.fill.quaternary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(QColors.surfaceSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
 
             Button("Finish") {
                 onFinished()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
         .padding()
     }
 
     private func failedView(error: AppError) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.red)
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
             Text("Error")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text(error.localizedDescription)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
             Button("Done") {
                 onFinished()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
         .padding()
     }
@@ -192,10 +181,10 @@ struct SwipeReviewView: View {
     private func statRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(QColors.textSecondary)
             Spacer()
             Text(value)
-                .font(.headline.monospacedDigit())
+                .font(QTypography.numericMedium)
         }
     }
 

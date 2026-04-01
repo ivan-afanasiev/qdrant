@@ -9,7 +9,7 @@ struct ScanView: View {
     let onComplete: ([DuplicateGroup]) -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: QSpacing.xl) {
             switch state.status {
             case .idle:
                 idleView
@@ -46,40 +46,40 @@ struct ScanView: View {
     }
 
     private var idleView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: QSpacing.md) {
             ProgressView()
             Text("Preparing to scan...")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(QColors.textTertiary)
         }
     }
 
     private func scanningView(processed: Int, total: Int) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: QSpacing.lg) {
             ZStack {
                 Circle()
-                    .stroke(lineWidth: 8)
-                    .foregroundStyle(.fill.quaternary)
+                    .stroke(lineWidth: QSize.progressStroke)
+                    .foregroundStyle(QColors.surfaceMuted)
                 Circle()
                     .trim(from: 0, to: state.progress)
-                    .stroke(style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .foregroundStyle(.tint)
+                    .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
+                    .foregroundStyle(QColors.primary)
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.3), value: state.progress)
+                    .animation(QAnimation.smooth, value: state.progress)
                 VStack {
                     Text("\(Int(state.progress * 100))%")
-                        .font(.title.bold().monospacedDigit())
+                        .font(QTypography.numericLarge)
                     Text("\(processed) / \(total)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(QTypography.numericSmall)
+                        .foregroundStyle(QColors.textTertiary)
                 }
             }
-            .frame(width: 160, height: 160)
+            .frame(width: QSize.progressRing, height: QSize.progressRing)
 
             Text("Embedding photos...")
-                .font(.headline)
+                .font(QTypography.bodyLarge)
             Text("Processing images and building vector database")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
             Button(role: .destructive) {
@@ -87,69 +87,56 @@ struct ScanView: View {
                 state.reduce(.didTapCancel)
             } label: {
                 Text("Cancel")
-                    .frame(maxWidth: .infinity)
-                    .padding()
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.qDestructive)
         }
     }
 
     private func completedView(indexed: Int) -> some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.green)
+        VStack(spacing: QSpacing.lg) {
+            QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
             Text("Scan Complete")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text("\(indexed) photos indexed")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(QColors.textTertiary)
 
             Button {
                 findDuplicates()
             } label: {
-                Label("Find Duplicates", systemImage: "sparkle.magnifyingglass")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.tint)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                Label("Find Duplicates", systemImage: QIcons.searchSpark)
             }
+            .buttonStyle(.qPrimary)
         }
     }
 
     private func failedView(error: AppError) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.red)
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
             Text("Scan Failed")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text(error.localizedDescription)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
             Button("Retry") {
                 startScan()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
     }
 
     private var cancelledView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.orange)
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.cancelFill, size: QSize.iconLarge, color: QColors.warning)
             Text("Scan Cancelled")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
 
             Button("Retry") {
                 startScan()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
     }
 

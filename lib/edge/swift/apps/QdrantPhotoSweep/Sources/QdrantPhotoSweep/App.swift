@@ -34,22 +34,20 @@ struct QdrantPhotoSweepApp: App {
     }
 
     private func authorizationErrorView(_ error: AppError) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "photo.badge.exclamationmark")
-                .font(.system(size: 48))
-                .foregroundStyle(.red)
+        VStack(spacing: QSpacing.md) {
+            QStatusIcon(QIcons.photoError, size: QSize.iconLarge, color: QColors.error)
             Text("Photo Access Required")
-                .font(.title2.bold())
+                .font(QTypography.titleMedium)
             Text(error.localizedDescription)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
                 .multilineTextAlignment(.center)
 
             Button("Open Settings") {
                 guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                 UIApplication.shared.open(url)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.qPrimary)
         }
         .padding()
     }

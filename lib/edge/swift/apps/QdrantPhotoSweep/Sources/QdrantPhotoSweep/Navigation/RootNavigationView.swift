@@ -35,10 +35,11 @@ struct RootNavigationView: View {
                     Button {
                         path.append(.settings)
                     } label: {
-                        Image(systemName: "gear")
+                        Image(systemName: QIcons.settings)
                     }
                 }
             }
         }
+        .tint(QColors.primary)
     }
 }

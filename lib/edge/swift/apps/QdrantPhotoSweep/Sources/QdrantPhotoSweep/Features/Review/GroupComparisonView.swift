@@ -7,12 +7,12 @@ struct GroupComparisonView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: QSpacing.sm) {
                 Text("\(group.count) similar photos")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(QTypography.bodyMedium)
+                    .foregroundStyle(QColors.textTertiary)
 
-                LazyVGrid(columns: gridColumns, spacing: 12) {
+                LazyVGrid(columns: gridColumns, spacing: QSpacing.sm) {
                     ForEach(group.photos) { photo in
                         PhotoCardView(
                             photo: photo,

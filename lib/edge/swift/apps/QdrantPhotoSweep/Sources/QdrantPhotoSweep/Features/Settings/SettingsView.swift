@@ -18,18 +18,19 @@ struct SettingsView: View {
 
     private var thresholdSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: QSpacing.xs) {
                 HStack {
                     Text("Similarity Threshold")
                     Spacer()
                     Text(String(format: "%.0f%%", state.similarityThreshold * 100))
                         .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(QColors.textSecondary)
                 }
                 Slider(value: $state.similarityThreshold, in: 0.7...0.99, step: 0.01)
+                    .tint(QColors.primary)
                 Text("Higher values find only very similar photos. Lower values find more potential duplicates.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(QTypography.caption)
+                    .foregroundStyle(QColors.textTertiary)
             }
         } header: {
             Text("Detection")
@@ -45,14 +46,14 @@ struct SettingsView: View {
                     Text("Indexed Photos")
                     Spacer()
                     Text("\(count)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(QColors.textSecondary)
                         .monospacedDigit()
                 }
 
                 Button(role: .destructive) {
                     clearDatabase()
                 } label: {
-                    Label("Clear Database", systemImage: "trash")
+                    Label("Clear Database", systemImage: QIcons.delete)
                 }
                 .disabled(count == 0)
 
@@ -60,17 +61,17 @@ struct SettingsView: View {
                 HStack {
                     ProgressView()
                     Text("Clearing...")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(QColors.textTertiary)
                 }
 
             case .cleared:
-                Label("Database cleared", systemImage: "checkmark.circle")
-                    .foregroundStyle(.green)
+                Label("Database cleared", systemImage: QIcons.success)
+                    .foregroundStyle(QColors.success)
 
             case .failed(let error):
-                Label(error.localizedDescription, systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.red)
-                    .font(.caption)
+                Label(error.localizedDescription, systemImage: QIcons.warning)
+                    .foregroundStyle(QColors.error)
+                    .font(QTypography.caption)
             }
         } header: {
             Text("Database")
@@ -83,19 +84,19 @@ struct SettingsView: View {
                 Text("Engine")
                 Spacer()
                 Text("Qdrant Edge")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QColors.textSecondary)
             }
             HStack {
                 Text("Embeddings")
                 Spacer()
                 Text("Apple Vision")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QColors.textSecondary)
             }
             HStack {
                 Text("Dimensions")
                 Spacer()
                 Text("768")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QColors.textSecondary)
                     .monospacedDigit()
             }
         } header: {
