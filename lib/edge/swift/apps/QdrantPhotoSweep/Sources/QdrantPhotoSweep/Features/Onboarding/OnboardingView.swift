@@ -41,17 +41,16 @@ struct OnboardingView: View {
     }
 
     private var bottomBar: some View {
-        HStack {
+        HStack(spacing: QSpacing.md) {
             if state.currentStep != .welcome {
                 Button {
                     state.reduce(.didTapBack)
                 } label: {
                     Text(L10n.onboardingBack)
                 }
-                .buttonStyle(.qGhost)
+                .buttonStyle(.qSecondary)
+                .frame(maxWidth: .infinity)
             }
-
-            Spacer()
 
             Button {
                 handleForward()
@@ -59,7 +58,7 @@ struct OnboardingView: View {
                 Text(state.isLastStep ? L10n.onboardingGetStarted : L10n.onboardingNext)
             }
             .buttonStyle(.qPrimary)
-            .frame(maxWidth: 200)
+            .frame(maxWidth: .infinity)
             .disabled(!state.canAdvance)
         }
     }
