@@ -2,8 +2,9 @@ import SwiftUI
 
 struct GroupComparisonView: View {
     let group: DuplicateGroup
-    let selectedKeepId: String?
-    let onSelectKeep: (PhotoReference) -> Void
+    let keptIds: Set<String>
+    let onToggleKeep: (PhotoReference) -> Void
+    let onFullscreen: (PhotoReference) -> Void
 
     var body: some View {
         ScrollView {
@@ -16,8 +17,9 @@ struct GroupComparisonView: View {
                     ForEach(group.photos) { photo in
                         PhotoCardView(
                             photo: photo,
-                            isSelected: photo.id == (selectedKeepId ?? group.bestCandidate.id),
-                            onTap: { onSelectKeep(photo) }
+                            isSelected: keptIds.contains(photo.id),
+                            onTap: { onToggleKeep(photo) },
+                            onFullscreen: { onFullscreen(photo) }
                         )
                     }
                 }

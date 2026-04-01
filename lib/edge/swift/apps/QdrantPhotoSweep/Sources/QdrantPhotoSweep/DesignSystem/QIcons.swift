@@ -27,4 +27,6 @@ enum QIcons {
 
     static let sparkles = "sparkles"
     static let trashCircle = "trash.circle"
+    static let fullscreen = "arrow.up.left.and.arrow.down.right"
+    static let xmark = "xmark"
 }

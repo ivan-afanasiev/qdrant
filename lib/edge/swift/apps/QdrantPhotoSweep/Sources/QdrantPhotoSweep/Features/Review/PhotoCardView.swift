@@ -5,15 +5,18 @@ struct PhotoCardView: View {
     let photo: PhotoReference
     let isSelected: Bool
     let onTap: () -> Void
+    let onFullscreen: () -> Void
 
     @State private var thumbnail: CGImage?
+    @State private var aspectRatio: CGFloat?
 
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .bottomLeading) {
                 imageContent
-                overlayInfo
+                dateOverlay
                 selectionBadge
+                fullscreenButton
             }
             .clipShape(RoundedRectangle(cornerRadius: QRadius.lg))
             .overlay(
@@ -32,45 +35,41 @@ struct PhotoCardView: View {
     private var imageContent: some View {
         switch thumbnail {
         case .some(let image):
+            let ratio = aspectRatio ?? 1
             Image(decorative: image, scale: 1)
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(minHeight: QSize.cardImageMinHeight)
-                .clipped()
+                .aspectRatio(ratio, contentMode: .fit)
 
         case .none:
             Rectangle()
                 .fill(QColors.surfaceSubtle)
-                .frame(height: QSize.cardImageMinHeight)
-                .overlay {
-                    ProgressView()
-                }
+                .aspectRatio(computedAspectRatio, contentMode: .fit)
+                .overlay { ProgressView() }
         }
     }
 
-    private var overlayInfo: some View {
-        VStack(alignment: .leading, spacing: QSpacing.xxxs) {
-            Text(photo.resolution)
-                .font(QTypography.numericTiny)
-            formattedDate
+    private var computedAspectRatio: CGFloat {
+        guard photo.pixelWidth > 0, photo.pixelHeight > 0 else { return 1 }
+        return CGFloat(photo.pixelWidth) / CGFloat(photo.pixelHeight)
+    }
+
+    private var dateOverlay: some View {
+        Group {
+            switch photo.creationDate {
+            case .some(let date):
+                Text(date, style: .date)
+                    .font(QTypography.captionSmall)
+            case .none:
+                Text(L10n.unknownDate)
+                    .font(QTypography.captionSmall)
+                    .foregroundStyle(QColors.textTertiary)
+            }
         }
-        .padding(QSpacing.xs)
+        .padding(.horizontal, QSpacing.xs)
+        .padding(.vertical, QSpacing.xxs)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: QRadius.sm))
         .padding(QSpacing.xs)
-    }
-
-    @ViewBuilder
-    private var formattedDate: some View {
-        switch photo.creationDate {
-        case .some(let date):
-            Text(date, style: .date)
-                .font(QTypography.captionSmall)
-        case .none:
-            Text(L10n.unknownDate)
-                .font(QTypography.captionSmall)
-                .foregroundStyle(QColors.textTertiary)
-        }
     }
 
     @ViewBuilder
@@ -92,12 +91,34 @@ struct PhotoCardView: View {
         }
     }
 
+    private var fullscreenButton: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Button {
+                    onFullscreen()
+                } label: {
+                    Image(systemName: QIcons.fullscreen)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(QSpacing.xs)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+                .padding(QSpacing.xs)
+            }
+        }
+    }
+
     private func loadThumbnail() async {
         let fetchResult = PHAsset.fetchAssets(
             withLocalIdentifiers: [photo.assetId],
             options: nil
         )
         guard let phAsset = fetchResult.firstObject else { return }
+        let ratio = CGFloat(phAsset.pixelWidth) / max(CGFloat(phAsset.pixelHeight), 1)
+        self.aspectRatio = ratio
         do {
             let image = try await loadCGImage(
                 for: phAsset,
@@ -105,7 +126,7 @@ struct PhotoCardView: View {
             )
             self.thumbnail = image
         } catch {
-            // Thumbnail loading is best-effort
+            // best-effort
         }
     }
 }

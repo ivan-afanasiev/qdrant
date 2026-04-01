@@ -44,6 +44,7 @@
 		CC000002000000000000CC06 /* QAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC06 /* QAnimation.swift */; };
 		CC000002000000000000CC07 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC07 /* L10n.swift */; };
 		CC000002000000000000CC08 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC08 /* Localizable.xcstrings */; };
+		DD000002000000000000DD01 /* FullscreenPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000001000000000000DD01 /* FullscreenPhotoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -85,6 +86,7 @@
 		CC000001000000000000CC06 /* QAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAnimation.swift; sourceTree = "<group>"; };
 		CC000001000000000000CC07 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		CC000001000000000000CC08 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		DD000001000000000000DD01 /* FullscreenPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPhotoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +153,7 @@
 		633CBB67449E4A30A78FC467 /* Review */ = {
 			isa = PBXGroup;
 			children = (
+				DD000001000000000000DD01 /* FullscreenPhotoView.swift */,
 				8497EB9E29044F8FBF186D51 /* GroupComparisonView.swift */,
 				0A5BC3198237482883CD8F5F /* PhotoCardView.swift */,
 				B3283E85DE294FD5A1B5DCC7 /* ReviewState.swift */,
@@ -391,6 +394,7 @@
 				CC000002000000000000CC05 /* QComponents.swift in Sources */,
 				CC000002000000000000CC06 /* QAnimation.swift in Sources */,
 				CC000002000000000000CC07 /* L10n.swift in Sources */,
+				DD000002000000000000DD01 /* FullscreenPhotoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

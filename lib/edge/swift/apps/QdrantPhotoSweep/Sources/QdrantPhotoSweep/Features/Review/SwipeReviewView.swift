@@ -3,6 +3,7 @@ import SwiftUI
 struct SwipeReviewView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var state = ReviewState()
+    @State private var fullscreenPhoto: PhotoReference?
 
     let groups: [DuplicateGroup]
     let onFinished: () -> Void
@@ -32,6 +33,11 @@ struct SwipeReviewView: View {
         .navigationTitle(L10n.reviewDuplicates)
         .task {
             state.reduce(.didLoadGroups(groups))
+        }
+        .fullScreenCover(item: $fullscreenPhoto) { photo in
+            FullscreenPhotoView(photo: photo) {
+                fullscreenPhoto = nil
+            }
         }
     }
 
@@ -71,6 +77,8 @@ struct SwipeReviewView: View {
 
             cardStack
 
+            confirmGroupButton
+
             Text(L10n.tapToKeepHint)
                 .font(QTypography.caption)
                 .foregroundStyle(QColors.textTertiary)
@@ -84,13 +92,39 @@ struct SwipeReviewView: View {
         if let group = state.currentGroup {
             GroupComparisonView(
                 group: group,
-                selectedKeepId: state.keepSelections[group.id],
-                onSelectKeep: { photo in
+                keptIds: state.keptIds(for: group),
+                onToggleKeep: { photo in
                     withAnimation(QAnimation.springDefault) {
-                        state.reduce(.didSelectKeep(photo))
+                        state.reduce(.didToggleKeep(photo))
                     }
+                },
+                onFullscreen: { photo in
+                    fullscreenPhoto = photo
                 }
             )
+        }
+    }
+
+    @ViewBuilder
+    private var confirmGroupButton: some View {
+        if let group = state.currentGroup {
+            let kept = state.keptIds(for: group)
+            let deleteCount = group.photos.count - kept.count
+
+            Button {
+                withAnimation {
+                    state.reduce(.didConfirmGroup)
+                }
+            } label: {
+                switch deleteCount > 0 {
+                case true:
+                    Label(L10n.deleteNPhotos(deleteCount), systemImage: QIcons.delete)
+                case false:
+                    Text(L10n.skip)
+                }
+            }
+            .buttonStyle(deleteCount > 0 ? .qDestructive : .qGhost)
+            .padding(.horizontal)
         }
     }
 

@@ -47,3 +47,37 @@ func loadCGImage(for asset: PHAsset, targetSize: CGSize) async throws(AppError) 
         throw .photoLibrary("Image load failed: \(error.localizedDescription)")
     }
 }
+
+func loadHighQualityCGImage(for asset: PHAsset, targetSize: CGSize) async throws(AppError) -> CGImage {
+    let options = PHImageRequestOptions()
+    options.deliveryMode = .highQualityFormat
+    options.resizeMode = .exact
+    options.isSynchronous = false
+    options.isNetworkAccessAllowed = true
+
+    do {
+        return try await withCheckedThrowingContinuation { continuation in
+            PHImageManager.default().requestImage(
+                for: asset,
+                targetSize: targetSize,
+                contentMode: .aspectFit,
+                options: options
+            ) { image, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: AppError.photoLibrary("Image load failed: \(error.localizedDescription)"))
+                    return
+                }
+
+                guard let cgImage = image?.cgImage else {
+                    continuation.resume(throwing: AppError.photoLibrary("Failed to load full-res image"))
+                    return
+                }
+                continuation.resume(returning: cgImage)
+            }
+        }
+    } catch let error as AppError {
+        throw error
+    } catch {
+        throw .photoLibrary("Image load failed: \(error.localizedDescription)")
+    }
+}
