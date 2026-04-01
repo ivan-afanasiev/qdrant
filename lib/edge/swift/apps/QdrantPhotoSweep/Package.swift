@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "PhotoSweep",
+    name: "QdrantPhotoSweep",
     platforms: [
         .iOS(.v17),
     ],
@@ -11,9 +11,9 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "PhotoSweep",
+            name: "QdrantPhotoSweep",
             dependencies: ["QdrantEdge"],
-            path: "Sources/PhotoSweep"
+            path: "Sources/QdrantPhotoSweep"
         ),
     ]
 )

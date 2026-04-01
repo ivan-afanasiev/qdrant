@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct PhotoSweepApp: App {
+struct QdrantPhotoSweepApp: App {
     @State private var dependencies: Dependencies?
     @Environment(\.scenePhase) private var scenePhase
     @State private var authorizationError: AppError?

@@ -16,6 +16,10 @@ actor QdrantVectorStore: VectorStoring {
             return existing
         }
         do {
+            try FileManager.default.createDirectory(
+                atPath: path,
+                withIntermediateDirectories: true
+            )
             let config = EdgeConfig(
                 vectorData: [
                     "": VectorDataConfig(

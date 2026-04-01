@@ -16,7 +16,7 @@ struct DateRangePickerView: View {
             }
             .padding()
         }
-        .navigationTitle("PhotoSweep")
+        .navigationTitle("Qdrant PhotoSweep")
         .task {
             guard let deps = dependencies else { return }
             await state.loadCount(using: deps.photoLibrary)

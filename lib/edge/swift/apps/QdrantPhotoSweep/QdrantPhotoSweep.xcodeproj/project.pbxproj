@@ -1,0 +1,481 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		027BACD70E5645A6B9D04CA1 /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A1AC59236445E6813F6526 /* PhotoLibraryService.swift */; };
+		2336FE3AEE844BB4BD88BB1E /* PHAssetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2012ED68D2D94284A3F8930B /* PHAssetExtensions.swift */; };
+		26D2F8CA78784F41BC091424 /* QdrantEdge in Frameworks */ = {isa = PBXBuildFile; productRef = B26FCC80CED0434C80ACA8E8 /* QdrantEdge */; };
+		29384F9C6036431E965F4617 /* QdrantVectorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A40A86FA0884FC9B8586BFA /* QdrantVectorStore.swift */; };
+		2AA41263E1B74D4AA20FC07E /* PhotoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5BC3198237482883CD8F5F /* PhotoCardView.swift */; };
+		2D36ED523AD844768B4E05CF /* ScanPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4088E28D8F844CC0861B643C /* ScanPipeline.swift */; };
+		3299E775A4B848449BA7BED9 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C42E37D15054ADE9475E7F2 /* ScanView.swift */; };
+		358784090B77434FBDE4BBAD /* DuplicateGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BBC66F5CAF04D12AEDFE39F /* DuplicateGroup.swift */; };
+		40D224F159F547748CC8AE71 /* VectorStoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A40051ADDB491CA30C031D /* VectorStoring.swift */; };
+		451FCD038C2D4CCD831540D3 /* DuplicateDetectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F03CC699AF43E8BB87122D /* DuplicateDetectionState.swift */; };
+		4A026C8261B849D79C77DD12 /* VisionEmbeddingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DDFECB87C54435AFB49515 /* VisionEmbeddingService.swift */; };
+		58AE6925DE444B20A5795094 /* SettingsState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F544A1BECD7B4D3983C2AA26 /* SettingsState.swift */; };
+		5EC18848D9B646D7A2D71A4D /* DateRangePickerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E6F92997954DD39BB2ACEA /* DateRangePickerState.swift */; };
+		7B0B16B647DE404A9C27DE25 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8AF84C0CDDC4062BEF59CFF /* AppRoute.swift */; };
+		80FD233458BE46C8B225779C /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06F46B9E4E424E0097095374 /* App.swift */; };
+		8B507B417B30453EB5EA25E8 /* DateRangePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE0A8283E564647A68F498D /* DateRangePickerView.swift */; };
+		8CD47748EECA48C6A8B13996 /* RootNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A471DA188C5B450EB008F112 /* RootNavigationView.swift */; };
+		8EB763FC09CA4FF79D4102BD /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE6001E34844439BA9E7C8B /* AppError.swift */; };
+		909CA03AA7EB44B4B148484C /* ScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6FA2EC63D1D4E7CA69BABBA /* ScanState.swift */; };
+		AA000001000000000000AAAA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000002000000000000AAAA /* Assets.xcassets */; };
+		AA6BC82D20734DA58BF6D091 /* UnionFind.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2574F1678E4D378FE25E30 /* UnionFind.swift */; };
+		ABAF686F38CF4099829DB7F4 /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8932E9BE1CDF4B77A06ABB99 /* Dependencies.swift */; };
+		ACCFF4620C094E7D85074642 /* SwipeReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBBA22B0505F4FAFB7984F87 /* SwipeReviewView.swift */; };
+		CCE62FAEAAEE46D5B1B5E1C3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C708CB6092454715B9F695F1 /* SettingsView.swift */; };
+		D704A061C6C54758AD3E7354 /* GroupComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8497EB9E29044F8FBF186D51 /* GroupComparisonView.swift */; };
+		D868969FDE124F49A7BC3BB9 /* ReviewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3283E85DE294FD5A1B5DCC7 /* ReviewState.swift */; };
+		EA57C5AF73C44A949593EBBF /* UUIDHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE99759B4BFC46A8824136EA /* UUIDHelpers.swift */; };
+		F2D72A1F25C24B7AA51911E6 /* EmbeddingProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29F307BB5EB4303AC64634F /* EmbeddingProviding.swift */; };
+		F97CD8F8007A4FFD8AA9395F /* PhotoLibraryProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49FAB8A9944F30938A9DCC /* PhotoLibraryProviding.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		06F46B9E4E424E0097095374 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		0A5BC3198237482883CD8F5F /* PhotoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCardView.swift; sourceTree = "<group>"; };
+		2012ED68D2D94284A3F8930B /* PHAssetExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHAssetExtensions.swift; sourceTree = "<group>"; };
+		4088E28D8F844CC0861B643C /* ScanPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPipeline.swift; sourceTree = "<group>"; };
+		4C42E37D15054ADE9475E7F2 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		53A40051ADDB491CA30C031D /* VectorStoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorStoring.swift; sourceTree = "<group>"; };
+		5BBC66F5CAF04D12AEDFE39F /* DuplicateGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateGroup.swift; sourceTree = "<group>"; };
+		63E6F92997954DD39BB2ACEA /* DateRangePickerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangePickerState.swift; sourceTree = "<group>"; };
+		6A40A86FA0884FC9B8586BFA /* QdrantVectorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QdrantVectorStore.swift; sourceTree = "<group>"; };
+		7AE0A8283E564647A68F498D /* DateRangePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangePickerView.swift; sourceTree = "<group>"; };
+		7F49FAB8A9944F30938A9DCC /* PhotoLibraryProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryProviding.swift; sourceTree = "<group>"; };
+		8497EB9E29044F8FBF186D51 /* GroupComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupComparisonView.swift; sourceTree = "<group>"; };
+		84DDFECB87C54435AFB49515 /* VisionEmbeddingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionEmbeddingService.swift; sourceTree = "<group>"; };
+		8932E9BE1CDF4B77A06ABB99 /* Dependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dependencies.swift; sourceTree = "<group>"; };
+		8EE6001E34844439BA9E7C8B /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
+		A471DA188C5B450EB008F112 /* RootNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootNavigationView.swift; sourceTree = "<group>"; };
+		AA000002000000000000AAAA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B3283E85DE294FD5A1B5DCC7 /* ReviewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewState.swift; sourceTree = "<group>"; };
+		B583F606A9024581BBDB2C6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B8AF84C0CDDC4062BEF59CFF /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		C6FA2EC63D1D4E7CA69BABBA /* ScanState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanState.swift; sourceTree = "<group>"; };
+		C708CB6092454715B9F695F1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CE99759B4BFC46A8824136EA /* UUIDHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUIDHelpers.swift; sourceTree = "<group>"; };
+		D9A1AC59236445E6813F6526 /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
+		DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QdrantPhotoSweep.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF2574F1678E4D378FE25E30 /* UnionFind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnionFind.swift; sourceTree = "<group>"; };
+		EBBA22B0505F4FAFB7984F87 /* SwipeReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeReviewView.swift; sourceTree = "<group>"; };
+		F29F307BB5EB4303AC64634F /* EmbeddingProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddingProviding.swift; sourceTree = "<group>"; };
+		F3F03CC699AF43E8BB87122D /* DuplicateDetectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionState.swift; sourceTree = "<group>"; };
+		F544A1BECD7B4D3983C2AA26 /* SettingsState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsState.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D78134D34030485C923B12F2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				26D2F8CA78784F41BC091424 /* QdrantEdge in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0639BF94D3A9402E8DB3C180 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				2012ED68D2D94284A3F8930B /* PHAssetExtensions.swift */,
+				CE99759B4BFC46A8824136EA /* UUIDHelpers.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		212F038BAB754BF0A5BEC7EB /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				B8AF84C0CDDC4062BEF59CFF /* AppRoute.swift */,
+				A471DA188C5B450EB008F112 /* RootNavigationView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		25E8CD44D0454EA4A2AC957C /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				F544A1BECD7B4D3983C2AA26 /* SettingsState.swift */,
+				C708CB6092454715B9F695F1 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		28937C807007442595855304 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				91BF22286D5A424CA9F354A4 /* DateRangePicker */,
+				3D53D6C2BC834E11802C35EE /* DuplicateDetection */,
+				633CBB67449E4A30A78FC467 /* Review */,
+				D8A4459305C34EB9993F2DD9 /* Scan */,
+				25E8CD44D0454EA4A2AC957C /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		3D53D6C2BC834E11802C35EE /* DuplicateDetection */ = {
+			isa = PBXGroup;
+			children = (
+				F3F03CC699AF43E8BB87122D /* DuplicateDetectionState.swift */,
+				5BBC66F5CAF04D12AEDFE39F /* DuplicateGroup.swift */,
+				DF2574F1678E4D378FE25E30 /* UnionFind.swift */,
+			);
+			path = DuplicateDetection;
+			sourceTree = "<group>";
+		};
+		633CBB67449E4A30A78FC467 /* Review */ = {
+			isa = PBXGroup;
+			children = (
+				8497EB9E29044F8FBF186D51 /* GroupComparisonView.swift */,
+				0A5BC3198237482883CD8F5F /* PhotoCardView.swift */,
+				B3283E85DE294FD5A1B5DCC7 /* ReviewState.swift */,
+				EBBA22B0505F4FAFB7984F87 /* SwipeReviewView.swift */,
+			);
+			path = Review;
+			sourceTree = "<group>";
+		};
+		6B002DF6CC3D4EDEA3AB65F8 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				8F08B519333D4732AC5790DF /* QdrantPhotoSweep */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		6D47939F097641369B8C2033 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6DA7CBDCB65543BC8E8D125D = {
+			isa = PBXGroup;
+			children = (
+				B583F606A9024581BBDB2C6A /* Info.plist */,
+				AA000002000000000000AAAA /* Assets.xcassets */,
+				6B002DF6CC3D4EDEA3AB65F8 /* Sources */,
+				6D47939F097641369B8C2033 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		76108DCD6CF64A5593569E52 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				F29F307BB5EB4303AC64634F /* EmbeddingProviding.swift */,
+				7F49FAB8A9944F30938A9DCC /* PhotoLibraryProviding.swift */,
+				53A40051ADDB491CA30C031D /* VectorStoring.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		8F08B519333D4732AC5790DF /* QdrantPhotoSweep */ = {
+			isa = PBXGroup;
+			children = (
+				06F46B9E4E424E0097095374 /* App.swift */,
+				A112065D88F0412E85AAAF17 /* Core */,
+				28937C807007442595855304 /* Features */,
+				212F038BAB754BF0A5BEC7EB /* Navigation */,
+				FF0D2116393B421BAEB08E7F /* Services */,
+				0639BF94D3A9402E8DB3C180 /* Utilities */,
+			);
+			path = QdrantPhotoSweep;
+			sourceTree = "<group>";
+		};
+		91BF22286D5A424CA9F354A4 /* DateRangePicker */ = {
+			isa = PBXGroup;
+			children = (
+				63E6F92997954DD39BB2ACEA /* DateRangePickerState.swift */,
+				7AE0A8283E564647A68F498D /* DateRangePickerView.swift */,
+			);
+			path = DateRangePicker;
+			sourceTree = "<group>";
+		};
+		A112065D88F0412E85AAAF17 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				8EE6001E34844439BA9E7C8B /* AppError.swift */,
+				8932E9BE1CDF4B77A06ABB99 /* Dependencies.swift */,
+				76108DCD6CF64A5593569E52 /* Protocols */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		D8A4459305C34EB9993F2DD9 /* Scan */ = {
+			isa = PBXGroup;
+			children = (
+				4088E28D8F844CC0861B643C /* ScanPipeline.swift */,
+				C6FA2EC63D1D4E7CA69BABBA /* ScanState.swift */,
+				4C42E37D15054ADE9475E7F2 /* ScanView.swift */,
+			);
+			path = Scan;
+			sourceTree = "<group>";
+		};
+		FF0D2116393B421BAEB08E7F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D9A1AC59236445E6813F6526 /* PhotoLibraryService.swift */,
+				6A40A86FA0884FC9B8586BFA /* QdrantVectorStore.swift */,
+				84DDFECB87C54435AFB49515 /* VisionEmbeddingService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EDCD1D55ECED461796CF09C6 /* QdrantPhotoSweep */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5BA2ED47FAB4523A740DC07 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweep" */;
+			buildPhases = (
+				DAA87EF65FD44163AA369BE8 /* Sources */,
+				D78134D34030485C923B12F2 /* Frameworks */,
+				A236ADBAD1374A28A9BE2F60 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QdrantPhotoSweep;
+			packageProductDependencies = (
+				B26FCC80CED0434C80ACA8E8 /* QdrantEdge */,
+			);
+			productName = QdrantPhotoSweep;
+			productReference = DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3042E4B0EE994E2E9CF3C72F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = DA7BCE33DA714D6FB825A47B /* Build configuration list for PBXProject "QdrantPhotoSweep" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6DA7CBDCB65543BC8E8D125D;
+			packageReferences = (
+				831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			productRefGroup = 6D47939F097641369B8C2033 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EDCD1D55ECED461796CF09C6 /* QdrantPhotoSweep */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A236ADBAD1374A28A9BE2F60 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000001000000000000AAAA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DAA87EF65FD44163AA369BE8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				80FD233458BE46C8B225779C /* App.swift in Sources */,
+				8EB763FC09CA4FF79D4102BD /* AppError.swift in Sources */,
+				ABAF686F38CF4099829DB7F4 /* Dependencies.swift in Sources */,
+				F2D72A1F25C24B7AA51911E6 /* EmbeddingProviding.swift in Sources */,
+				F97CD8F8007A4FFD8AA9395F /* PhotoLibraryProviding.swift in Sources */,
+				40D224F159F547748CC8AE71 /* VectorStoring.swift in Sources */,
+				5EC18848D9B646D7A2D71A4D /* DateRangePickerState.swift in Sources */,
+				8B507B417B30453EB5EA25E8 /* DateRangePickerView.swift in Sources */,
+				451FCD038C2D4CCD831540D3 /* DuplicateDetectionState.swift in Sources */,
+				358784090B77434FBDE4BBAD /* DuplicateGroup.swift in Sources */,
+				AA6BC82D20734DA58BF6D091 /* UnionFind.swift in Sources */,
+				D704A061C6C54758AD3E7354 /* GroupComparisonView.swift in Sources */,
+				2AA41263E1B74D4AA20FC07E /* PhotoCardView.swift in Sources */,
+				D868969FDE124F49A7BC3BB9 /* ReviewState.swift in Sources */,
+				ACCFF4620C094E7D85074642 /* SwipeReviewView.swift in Sources */,
+				2D36ED523AD844768B4E05CF /* ScanPipeline.swift in Sources */,
+				909CA03AA7EB44B4B148484C /* ScanState.swift in Sources */,
+				3299E775A4B848449BA7BED9 /* ScanView.swift in Sources */,
+				58AE6925DE444B20A5795094 /* SettingsState.swift in Sources */,
+				CCE62FAEAAEE46D5B1B5E1C3 /* SettingsView.swift in Sources */,
+				7B0B16B647DE404A9C27DE25 /* AppRoute.swift in Sources */,
+				8CD47748EECA48C6A8B13996 /* RootNavigationView.swift in Sources */,
+				027BACD70E5645A6B9D04CA1 /* PhotoLibraryService.swift in Sources */,
+				29384F9C6036431E965F4617 /* QdrantVectorStore.swift in Sources */,
+				4A026C8261B849D79C77DD12 /* VisionEmbeddingService.swift in Sources */,
+				2336FE3AEE844BB4BD88BB1E /* PHAssetExtensions.swift in Sources */,
+				EA57C5AF73C44A949593EBBF /* UUIDHelpers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		242D398349534B768EAE9D26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4X6Z72XC2U;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweep;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		3C4272C1FFB54EDB90097522 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D71ABB1C0AFB4D5D8FF4D549 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F35652DE5E5246499F05A933 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4X6Z72XC2U;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweep;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D5BA2ED47FAB4523A740DC07 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F35652DE5E5246499F05A933 /* Debug */,
+				242D398349534B768EAE9D26 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DA7BCE33DA714D6FB825A47B /* Build configuration list for PBXProject "QdrantPhotoSweep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D71ABB1C0AFB4D5D8FF4D549 /* Debug */,
+				3C4272C1FFB54EDB90097522 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B26FCC80CED0434C80ACA8E8 /* QdrantEdge */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */;
+			productName = QdrantEdge;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 3042E4B0EE994E2E9CF3C72F /* Project object */;
+}
