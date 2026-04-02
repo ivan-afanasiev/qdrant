@@ -12,7 +12,7 @@ actor QdrantVectorStore: VectorStoring {
     }
 
     func updateDimensions(_ dims: Int) {
-        guard shard == nil, dims > 0 else { return }
+        guard dims > 0 else { return }
 
         let marker = URL(fileURLWithPath: basePath)
             .deletingLastPathComponent()
@@ -21,11 +21,22 @@ actor QdrantVectorStore: VectorStoring {
             .flatMap(Int.init)
 
         if let prev = previousDims, prev != dims {
+            shard?.close()
+            shard = nil
             try? FileManager.default.removeItem(atPath: basePath)
         }
         try? String(dims).write(to: marker, atomically: true, encoding: .utf8)
 
         self.dimensions = dims
+    }
+
+    func restoreDimensionsFromDisk() {
+        let marker = URL(fileURLWithPath: basePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("qdrant-edge-dims")
+        if let stored = (try? String(contentsOf: marker, encoding: .utf8)).flatMap(Int.init), stored > 0 {
+            self.dimensions = stored
+        }
     }
 
     private func ensureShard() throws(AppError) -> EdgeShard {

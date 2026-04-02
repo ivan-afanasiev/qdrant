@@ -130,6 +130,7 @@ struct QdrantPhotoSweepApp: App {
             path: shardDir.path,
             dimensions: 0
         )
+        await vectorStore.restoreDimensionsFromDisk()
 
         let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
 

@@ -54,6 +54,7 @@ enum BackgroundScanService {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
         let vectorStore = QdrantVectorStore(path: shardDir.path, dimensions: 0)
+        await vectorStore.restoreDimensionsFromDisk()
 
         defer { Task { await vectorStore.close() } }
 
