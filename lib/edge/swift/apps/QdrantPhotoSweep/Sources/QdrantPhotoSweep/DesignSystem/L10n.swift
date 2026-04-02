@@ -84,6 +84,8 @@ enum L10n {
     static let scanNewPhotos: LocalizedStringKey = "home.newPhotos.scanButton"
     static let continueReview: LocalizedStringKey = "home.pendingGroups.continueReview"
     static let resumeScan: LocalizedStringKey = "home.interruptedScan.resumeButton"
+    static let resumeGrouping: LocalizedStringKey = "home.groupingInterrupted.resumeButton"
+    static let groupingInterruptedBanner: LocalizedStringKey = "home.groupingInterrupted.banner"
 
     static func newPhotosSinceLastScan(_ count: Int) -> String {
         String(localized: "home.newPhotos.banner \(count)")

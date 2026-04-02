@@ -2,31 +2,45 @@ import SwiftUI
 
 struct SwipeReviewView: View {
     @Environment(\.dependencies) private var dependencies
-    @State private var detectionState = DuplicateDetectionState()
+    @State private var coordinator = ContinuousScanCoordinator()
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
+    @State private var loadedFromPersistence = false
 
     let threshold: Float
     let onFinished: () -> Void
 
     var body: some View {
         Group {
-            switch detectionState.status {
-            case .idle, .analyzing:
-                analyzingView
-
-            case .complete:
+            switch loadedFromPersistence {
+            case true:
                 reviewContent
+            case false:
+                switch coordinator.phase {
+                case .idle, .scanning, .grouping:
+                    analyzingView
 
-            case .failed(let error):
-                detectionFailedView(error: error)
+                case .completed(let groups):
+                    reviewContent
+                        .onAppear {
+                            if reviewState.status == .empty || reviewState.totalGroups == 0 {
+                                reviewState.reduce(.didLoadGroups(groups))
+                            }
+                        }
+
+                case .failed(let error):
+                    detectionFailedView(error: error)
+
+                case .cancelled:
+                    detectionFailedView(error: .unknown("Cancelled"))
+                }
             }
         }
         .navigationTitle(L10n.reviewDuplicates)
         .task {
-            await runDetection()
+            await loadOrDetect()
         }
         .fullScreenCover(item: $fullscreenPhoto) { photo in
             FullscreenPhotoView(photo: photo) {
@@ -39,7 +53,7 @@ struct SwipeReviewView: View {
 
     private var analyzingView: some View {
         VStack(spacing: QSpacing.lg) {
-            let progress = detectionProgress
+            let progress = coordinator.scanProgress
 
             ZStack {
                 Circle()
@@ -68,13 +82,6 @@ struct SwipeReviewView: View {
         .padding()
     }
 
-    private var detectionProgress: Double {
-        switch detectionState.status {
-        case .analyzing(let progress): progress
-        default: 0
-        }
-    }
-
     private func detectionFailedView(error: AppError) -> some View {
         VStack(spacing: QSpacing.md) {
             QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
@@ -86,7 +93,7 @@ struct SwipeReviewView: View {
                 .multilineTextAlignment(.center)
 
             Button(L10n.retry) {
-                Task { await runDetection() }
+                startGrouping()
             }
             .buttonStyle(.qPrimary)
 
@@ -98,31 +105,24 @@ struct SwipeReviewView: View {
         .padding()
     }
 
-    private func runDetection() async {
-        guard detectionState.status == .idle else { return }
+    private func loadOrDetect() async {
         guard let deps = dependencies else { return }
 
-        // Try loading persisted pending groups first
         if let pendingDTOs = try? await deps.scanStore.loadPendingGroups(), !pendingDTOs.isEmpty {
             let groups = pendingDTOs.compactMap { $0.toDuplicateGroup() }
             if !groups.isEmpty {
-                detectionState.reduce(.didFinishAnalysis(groups: groups))
                 reviewState.reduce(.didLoadGroups(groups))
+                loadedFromPersistence = true
                 return
             }
         }
 
-        await detectionState.findDuplicates(
-            vectorStore: deps.vectorStore,
-            threshold: threshold,
-            scanStore: deps.scanStore
-        )
-        switch detectionState.status {
-        case .complete(let groups):
-            reviewState.reduce(.didLoadGroups(groups))
-        default:
-            break
-        }
+        startGrouping()
+    }
+
+    private func startGrouping() {
+        guard let deps = dependencies else { return }
+        coordinator.startGrouping(deps: deps)
     }
 
     // MARK: - Review Phase

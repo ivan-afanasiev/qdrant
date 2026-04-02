@@ -5,6 +5,7 @@ protocol ScanSessionStoring: Sendable {
     func updateSessionStatus(_ sessionId: UUID, status: ScanSessionStatus, indexedPhotos: Int?) async throws
     func latestCompletedSession() async throws -> ScanSessionDTO?
     func latestInterruptedSession() async throws -> ScanSessionDTO?
+    func latestGroupingInterruptedSession() async throws -> ScanSessionDTO?
     func interruptActiveSessions() async throws
 
     func recordIndexedPhoto(sessionId: UUID, assetLocalId: String, vectorUUID: String, dimensions: Int) async throws

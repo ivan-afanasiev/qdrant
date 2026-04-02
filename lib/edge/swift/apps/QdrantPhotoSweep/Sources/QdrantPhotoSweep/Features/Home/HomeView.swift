@@ -32,6 +32,10 @@ struct HomeView: View {
             interruptedScanBanner(session: session)
         }
 
+        if state.groupingInterruptedSession != nil {
+            groupingInterruptedBanner
+        }
+
         if state.newPhotoCount > 0, let session = state.lastSession {
             newPhotosBanner(newCount: state.newPhotoCount, session: session)
         }
@@ -57,6 +61,28 @@ struct HomeView: View {
                 onResumeScan(range, session.id)
             } label: {
                 Label(L10n.resumeScan, systemImage: QIcons.search)
+            }
+            .buttonStyle(.qPrimary)
+        }
+        .padding()
+        .background(QColors.surfaceSubtle)
+        .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
+    }
+
+    private var groupingInterruptedBanner: some View {
+        VStack(spacing: QSpacing.sm) {
+            HStack(spacing: QSpacing.sm) {
+                Image(systemName: QIcons.warningFill)
+                    .foregroundStyle(QColors.warning)
+                Text(L10n.groupingInterruptedBanner)
+                    .font(QTypography.bodyMedium)
+                Spacer()
+            }
+
+            Button {
+                onReviewPending()
+            } label: {
+                Label(L10n.resumeGrouping, systemImage: QIcons.search)
             }
             .buttonStyle(.qPrimary)
         }

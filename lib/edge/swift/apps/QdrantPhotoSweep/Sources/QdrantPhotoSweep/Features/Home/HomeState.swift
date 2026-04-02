@@ -14,6 +14,7 @@ final class HomeState {
         case didLoadStats(Stats)
         case didLoadBannerData(
             interruptedSession: ScanSessionDTO?,
+            groupingInterruptedSession: ScanSessionDTO?,
             newPhotoCount: Int,
             lastSession: ScanSessionDTO?,
             pendingGroupCount: Int
@@ -22,6 +23,7 @@ final class HomeState {
 
     var stats = Stats()
     var interruptedSession: ScanSessionDTO?
+    var groupingInterruptedSession: ScanSessionDTO?
     var newPhotoCount: Int = 0
     var lastSession: ScanSessionDTO?
     var pendingGroupCount: Int = 0
@@ -31,8 +33,9 @@ final class HomeState {
         case .didLoadStats(let stats):
             self.stats = stats
 
-        case .didLoadBannerData(let interrupted, let newCount, let last, let pending):
+        case .didLoadBannerData(let interrupted, let groupingInterrupted, let newCount, let last, let pending):
             interruptedSession = interrupted
+            groupingInterruptedSession = groupingInterrupted
             newPhotoCount = newCount
             lastSession = last
             pendingGroupCount = pending
@@ -66,6 +69,7 @@ final class HomeState {
     private func loadBannerData(scanStore: any ScanSessionStoring, photoLibrary: any PhotoLibraryProviding) async {
         do {
             let interrupted = try await scanStore.latestInterruptedSession()
+            let groupingInterrupted = try await scanStore.latestGroupingInterruptedSession()
             var newCount = 0
             let lastCompleted = try await scanStore.latestCompletedSession()
             let pending = try await scanStore.loadPendingGroups()
@@ -81,6 +85,7 @@ final class HomeState {
 
             reduce(.didLoadBannerData(
                 interruptedSession: interrupted,
+                groupingInterruptedSession: groupingInterrupted,
                 newPhotoCount: newCount,
                 lastSession: lastCompleted,
                 pendingGroupCount: pending.count

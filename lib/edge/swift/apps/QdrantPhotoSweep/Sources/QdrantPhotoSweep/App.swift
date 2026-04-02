@@ -28,6 +28,7 @@ struct QdrantPhotoSweepApp: App {
             fatalError("Failed to create ModelContainer: \(error)")
         }
         BackgroundScanService.register(modelContainer: modelContainer)
+        ContinuousScanCoordinator.register()
     }
 
     var body: some Scene {
@@ -144,11 +145,11 @@ struct QdrantPhotoSweepApp: App {
     private func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .background:
-            guard case .ready(let deps) = bootstrapStatus else { return }
-            BackgroundScanService.interruptActiveSessions(scanStore: deps.scanStore)
-            Task { await deps.vectorStore.close() }
+            guard case .ready = bootstrapStatus else { return }
             BackgroundScanService.schedule()
-        case .active, .inactive:
+        case .active:
+            break
+        case .inactive:
             break
         @unknown default:
             break

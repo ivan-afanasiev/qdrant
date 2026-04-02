@@ -41,4 +41,6 @@ enum ScanSessionStatus: String {
     case completed
     case interrupted
     case failed
+    case grouping
+    case groupingInterrupted
 }

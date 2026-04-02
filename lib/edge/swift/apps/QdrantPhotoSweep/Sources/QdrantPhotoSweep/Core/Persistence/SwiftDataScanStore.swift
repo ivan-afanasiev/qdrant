@@ -45,12 +45,31 @@ actor SwiftDataScanStore: ScanSessionStoring {
         return try modelContext.fetch(descriptor).first?.toDTO()
     }
 
+    func latestGroupingInterruptedSession() throws -> ScanSessionDTO? {
+        let status = ScanSessionStatus.groupingInterrupted.rawValue
+        let predicate = #Predicate<ScanSessionEntity> { $0.status == status }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.sortBy = [SortDescriptor(\.scannedAt, order: .reverse)]
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first?.toDTO()
+    }
+
     func interruptActiveSessions() throws {
         let scanningStatus = ScanSessionStatus.scanning.rawValue
-        let predicate = #Predicate<ScanSessionEntity> { $0.status == scanningStatus }
+        let groupingStatus = ScanSessionStatus.grouping.rawValue
+        let predicate = #Predicate<ScanSessionEntity> {
+            $0.status == scanningStatus || $0.status == groupingStatus
+        }
         let sessions = try modelContext.fetch(FetchDescriptor(predicate: predicate))
         for session in sessions {
-            session.status = ScanSessionStatus.interrupted.rawValue
+            switch session.status {
+            case scanningStatus:
+                session.status = ScanSessionStatus.interrupted.rawValue
+            case groupingStatus:
+                session.status = ScanSessionStatus.groupingInterrupted.rawValue
+            default:
+                session.status = ScanSessionStatus.interrupted.rawValue
+            }
         }
         if !sessions.isEmpty {
             try modelContext.save()

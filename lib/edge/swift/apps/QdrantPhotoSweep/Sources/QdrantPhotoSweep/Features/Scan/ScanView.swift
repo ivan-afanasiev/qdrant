@@ -2,8 +2,7 @@ import SwiftUI
 
 struct ScanView: View {
     @Environment(\.dependencies) private var dependencies
-    @State private var state = ScanState()
-    @State private var scanTask: Task<Void, Never>?
+    @State private var coordinator = ContinuousScanCoordinator()
 
     let dateRange: DateRange
     let resumeSessionId: UUID?
@@ -17,15 +16,18 @@ struct ScanView: View {
 
     var body: some View {
         VStack(spacing: QSpacing.xl) {
-            switch state.status {
+            switch coordinator.phase {
             case .idle:
                 idleView
 
             case .scanning(let processed, let total):
                 scanningView(processed: processed, total: total)
 
-            case .completed(let indexed):
-                completedView(indexed: indexed)
+            case .grouping(let progress):
+                groupingView(progress: progress)
+
+            case .completed(let groups):
+                completedView(groupCount: groups.count)
 
             case .failed(let error):
                 failedView(error: error)
@@ -36,23 +38,20 @@ struct ScanView: View {
         }
         .padding()
         .navigationTitle(L10n.scanning)
-        .navigationBarBackButtonHidden(isScanActive)
+        .navigationBarBackButtonHidden(coordinator.isActive)
         .task {
-            startScan()
+            startPipeline()
         }
         .onDisappear {
-            scanTask?.cancel()
             UIApplication.shared.isIdleTimerDisabled = false
         }
-        .onChange(of: isScanActive) { _, active in
+        .onChange(of: coordinator.isActive) { _, active in
             UIApplication.shared.isIdleTimerDisabled = active
         }
-    }
-
-    private var isScanActive: Bool {
-        switch state.status {
-        case .scanning: true
-        default: false
+        .onChange(of: coordinator.phase) { _, newPhase in
+            if case .completed = newPhase {
+                onComplete()
+            }
         }
     }
 
@@ -66,25 +65,7 @@ struct ScanView: View {
 
     private func scanningView(processed: Int, total: Int) -> some View {
         VStack(spacing: QSpacing.lg) {
-            ZStack {
-                Circle()
-                    .stroke(lineWidth: QSize.progressStroke)
-                    .foregroundStyle(QColors.surfaceMuted)
-                Circle()
-                    .trim(from: 0, to: state.progress)
-                    .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
-                    .foregroundStyle(QColors.primary)
-                    .rotationEffect(.degrees(-90))
-                    .animation(QAnimation.smooth, value: state.progress)
-                VStack {
-                    Text("\(Int(state.progress * 100))%")
-                        .font(QTypography.numericLarge)
-                    Text("\(processed) / \(total)")
-                        .font(QTypography.numericSmall)
-                        .foregroundStyle(QColors.textTertiary)
-                }
-            }
-            .frame(width: QSize.progressRing, height: QSize.progressRing)
+            progressRing(value: coordinator.scanProgress)
 
             Text(L10n.embeddingPhotos)
                 .font(QTypography.bodyLarge)
@@ -94,8 +75,7 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
 
             Button(role: .destructive) {
-                scanTask?.cancel()
-                state.reduce(.didTapCancel)
+                coordinator.cancel()
             } label: {
                 Text(L10n.cancel)
             }
@@ -103,19 +83,25 @@ struct ScanView: View {
         }
     }
 
-    private func completedView(indexed: Int) -> some View {
+    private func groupingView(progress: Double) -> some View {
+        VStack(spacing: QSpacing.lg) {
+            progressRing(value: progress)
+
+            Text(L10n.findingDuplicates)
+                .font(QTypography.bodyLarge)
+            Text(L10n.findingDuplicatesSubtitle)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private func completedView(groupCount: Int) -> some View {
         VStack(spacing: QSpacing.lg) {
             QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
 
             Text(L10n.scanComplete)
                 .font(QTypography.titleMedium)
-            Text(L10n.photosIndexed(indexed))
-                .foregroundStyle(QColors.textTertiary)
-        }
-        .task {
-            try? await Task.sleep(for: .seconds(1.5))
-            guard !Task.isCancelled else { return }
-            onComplete()
         }
     }
 
@@ -130,7 +116,7 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
 
             Button(L10n.retry) {
-                startScan()
+                startPipeline()
             }
             .buttonStyle(.qPrimary)
         }
@@ -143,38 +129,38 @@ struct ScanView: View {
                 .font(QTypography.titleMedium)
 
             Button(L10n.retry) {
-                startScan()
+                startPipeline()
             }
             .buttonStyle(.qPrimary)
         }
     }
 
-    private func startScan() {
-        switch state.status {
-        case .scanning, .completed:
-            return
-        case .idle, .cancelled, .failed:
-            break
+    private func progressRing(value: Double) -> some View {
+        ZStack {
+            Circle()
+                .stroke(lineWidth: QSize.progressStroke)
+                .foregroundStyle(QColors.surfaceMuted)
+            Circle()
+                .trim(from: 0, to: value)
+                .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
+                .foregroundStyle(QColors.primary)
+                .rotationEffect(.degrees(-90))
+                .animation(QAnimation.smooth, value: value)
+            VStack {
+                Text("\(Int(value * 100))%")
+                    .font(QTypography.numericLarge)
+            }
         }
+        .frame(width: QSize.progressRing, height: QSize.progressRing)
+    }
+
+    private func startPipeline() {
+        guard !coordinator.isActive else { return }
         guard let deps = dependencies else { return }
-        scanTask?.cancel()
-        scanTask = Task {
-            let pipeline = ScanPipeline(
-                photoLibrary: deps.photoLibrary,
-                embeddingService: deps.embeddingService,
-                vectorStore: deps.vectorStore,
-                scanStore: deps.scanStore,
-                configureDimensions: { dims in
-                    if let store = deps.vectorStore as? QdrantVectorStore {
-                        await store.updateDimensions(dims)
-                    }
-                }
-            )
-            await pipeline.run(
-                dateRange: dateRange,
-                state: state,
-                resumeSessionId: resumeSessionId
-            )
-        }
+        coordinator.startFullPipeline(
+            dateRange: dateRange,
+            resumeSessionId: resumeSessionId,
+            deps: deps
+        )
     }
 }

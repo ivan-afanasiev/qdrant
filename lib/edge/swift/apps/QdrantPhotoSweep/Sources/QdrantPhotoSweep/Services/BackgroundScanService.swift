@@ -79,6 +79,30 @@ enum BackgroundScanService {
             }
         }
 
+        // Priority 1.5: Resume interrupted grouping
+        if let groupingInterrupted = try? await scanStore.latestGroupingInterruptedSession() {
+            try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .grouping, indexedPhotos: nil)
+
+            let detectionState = await DuplicateDetectionState()
+            await detectionState.findDuplicates(
+                vectorStore: vectorStore,
+                threshold: AppSettings.defaultSimilarityThreshold,
+                scanStore: scanStore
+            )
+
+            if Task.isCancelled {
+                try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .groupingInterrupted, indexedPhotos: nil)
+                return -1
+            }
+
+            try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .completed, indexedPhotos: nil)
+
+            if case .complete(let groups) = await detectionState.status, groups.count > 0 {
+                await postLocalNotification(groupCount: groups.count)
+                return groups.count
+            }
+        }
+
         // Priority 2: Incremental scan for new photos since last completed session
         if let session = try? await scanStore.latestCompletedSession() {
             let newCount = (try? await scanStore.countNewPhotosSince(
