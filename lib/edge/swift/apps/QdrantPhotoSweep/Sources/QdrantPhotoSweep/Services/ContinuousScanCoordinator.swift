@@ -52,8 +52,24 @@ final class ContinuousScanCoordinator {
                 return
             }
             Task { @MainActor in
-                PendingContinuousWork.shared.start(continuedTask)
+                ContinuousScanCoordinator.attachBgTask(continuedTask)
             }
+        }
+    }
+
+    @available(iOS 26.0, *)
+    private static var activeCoordinator: ContinuousScanCoordinator?
+
+    @available(iOS 26.0, *)
+    private static func attachBgTask(_ task: BGContinuedProcessingTask) {
+        if let coordinator = activeCoordinator {
+            coordinator.bgTaskHandle = task
+            task.progress.totalUnitCount = 100
+            task.expirationHandler = { [weak coordinator] in
+                coordinator?.workTask?.cancel()
+            }
+        } else {
+            task.setTaskCompleted(success: false)
         }
     }
 
@@ -67,13 +83,8 @@ final class ContinuousScanCoordinator {
         guard !isActive else { return }
         phase = .scanning(processed: 0, total: 0)
 
-        submitOrFallback { [weak self] in
-            self?.runFullPipeline(
-                dateRange: dateRange,
-                resumeSessionId: resumeSessionId,
-                deps: deps
-            )
-        }
+        requestBackgroundSupport()
+        runFullPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
     }
 
     // MARK: - Standalone grouping
@@ -82,47 +93,38 @@ final class ContinuousScanCoordinator {
         guard !isActive else { return }
         phase = .grouping(progress: 0)
 
-        submitOrFallback { [weak self] in
-            self?.runGrouping(deps: deps, sessionId: sessionId)
-        }
+        requestBackgroundSupport()
+        runGrouping(deps: deps, sessionId: sessionId)
     }
 
     func cancel() {
         workTask?.cancel()
         workTask = nil
         completeBgTask(success: false)
+        clearActiveCoordinator()
         phase = .cancelled
     }
 
-    // MARK: - BGTask submission with fallback
+    // MARK: - Background support (optional, iOS 26+)
 
-    private func submitOrFallback(work: @escaping @MainActor () -> Void) {
-        if #available(iOS 26.0, *) {
-            let pendingWork = PendingContinuousWork.shared
-            pendingWork.prepare { [weak self] continuedTask in
-                self?.bgTaskHandle = continuedTask
-                continuedTask.progress.totalUnitCount = 100
-                continuedTask.expirationHandler = { [weak self] in
-                    self?.workTask?.cancel()
-                }
-                work()
-            }
-
-            do {
-                let request = BGContinuedProcessingTaskRequest(
-                    identifier: Self.taskIdentifier,
-                    title: String(localized: "continuousTask.scan.title"),
-                    subtitle: String(localized: "continuousTask.scan.subtitle")
-                )
-                try BGTaskScheduler.shared.submit(request)
-            } catch {
-                pendingWork.clear()
-                bgTaskHandle = nil
-                work()
-            }
-        } else {
-            work()
+    private func requestBackgroundSupport() {
+        guard #available(iOS 26.0, *) else { return }
+        Self.activeCoordinator = self
+        do {
+            let request = BGContinuedProcessingTaskRequest(
+                identifier: Self.taskIdentifier,
+                title: String(localized: "continuousTask.scan.title"),
+                subtitle: String(localized: "continuousTask.scan.subtitle")
+            )
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            Self.activeCoordinator = nil
         }
+    }
+
+    private func clearActiveCoordinator() {
+        guard #available(iOS 26.0, *) else { return }
+        Self.activeCoordinator = nil
     }
 
     // MARK: - BGTask helpers
@@ -199,6 +201,7 @@ final class ContinuousScanCoordinator {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
                 self.completeBgTask(success: false)
+                self.clearActiveCoordinator()
                 return
             }
 
@@ -207,10 +210,12 @@ final class ContinuousScanCoordinator {
             case .failed(let error):
                 await MainActor.run { self.phase = .failed(error) }
                 self.completeBgTask(success: false)
+                self.clearActiveCoordinator()
                 return
             case .cancelled:
                 await MainActor.run { self.phase = .cancelled }
                 self.completeBgTask(success: false)
+                self.clearActiveCoordinator()
                 return
             default:
                 break
@@ -235,12 +240,14 @@ final class ContinuousScanCoordinator {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
                 self.completeBgTask(success: false)
+                self.clearActiveCoordinator()
                 return
             }
 
             self.updateBgProgress(100)
             await MainActor.run { self.phase = .completed(groups: groups) }
             self.completeBgTask(success: true)
+            self.clearActiveCoordinator()
         }
     }
 
@@ -271,12 +278,14 @@ final class ContinuousScanCoordinator {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
                 self.completeBgTask(success: false)
+                self.clearActiveCoordinator()
                 return
             }
 
             self.updateBgProgress(100)
             await MainActor.run { self.phase = .completed(groups: groups) }
             self.completeBgTask(success: true)
+            self.clearActiveCoordinator()
         }
     }
 
@@ -329,33 +338,5 @@ final class ContinuousScanCoordinator {
         case .complete(let groups): return groups
         default: return []
         }
-    }
-}
-
-// MARK: - Pending work bridge (iOS 26+)
-
-@MainActor
-final class PendingContinuousWork {
-    static let shared = PendingContinuousWork()
-
-    private var handler: Any?
-
-    @available(iOS 26.0, *)
-    func prepare(handler: @escaping @MainActor (BGContinuedProcessingTask) -> Void) {
-        self.handler = handler
-    }
-
-    @available(iOS 26.0, *)
-    func start(_ task: BGContinuedProcessingTask) {
-        if let handler = self.handler as? (@MainActor (BGContinuedProcessingTask) -> Void) {
-            handler(task)
-            self.handler = nil
-        } else {
-            task.setTaskCompleted(success: false)
-        }
-    }
-
-    func clear() {
-        handler = nil
     }
 }
