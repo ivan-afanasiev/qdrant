@@ -50,6 +50,7 @@ struct SettingsView: View {
                         .foregroundStyle(presetFg(for: preset, settings: settings))
                         .clipShape(RoundedRectangle(cornerRadius: QRadius.sm))
                 }
+                .buttonStyle(.plain)
             }
         }
         .listRowInsets(EdgeInsets(top: QSpacing.sm, leading: QSpacing.md, bottom: QSpacing.sm, trailing: QSpacing.md))
@@ -129,6 +130,7 @@ struct SettingsView: View {
                 } label: {
                     Label(L10n.clearDatabase, systemImage: QIcons.delete)
                 }
+                .buttonStyle(.borderless)
                 .disabled(count == 0)
 
             case .clearing:
