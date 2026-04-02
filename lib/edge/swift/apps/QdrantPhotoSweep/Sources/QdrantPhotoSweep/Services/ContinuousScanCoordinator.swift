@@ -17,6 +17,7 @@ final class ContinuousScanCoordinator {
 
     private(set) var phase: Phase = .idle
     private var workTask: Task<Void, Never>?
+    private var bgTaskHandle: AnyObject?
 
     var scanProgress: Double {
         switch phase {
@@ -38,9 +39,10 @@ final class ContinuousScanCoordinator {
         }
     }
 
-    // MARK: - Registration
+    // MARK: - Registration (iOS 26+ only)
 
     nonisolated static func register() {
+        guard #available(iOS 26.0, *) else { return }
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: taskIdentifier,
             using: nil
@@ -65,12 +67,11 @@ final class ContinuousScanCoordinator {
         guard !isActive else { return }
         phase = .scanning(processed: 0, total: 0)
 
-        submitOrFallback { [weak self] bgTask in
+        submitOrFallback { [weak self] in
             self?.runFullPipeline(
                 dateRange: dateRange,
                 resumeSessionId: resumeSessionId,
-                deps: deps,
-                bgTask: bgTask
+                deps: deps
             )
         }
     }
@@ -81,34 +82,68 @@ final class ContinuousScanCoordinator {
         guard !isActive else { return }
         phase = .grouping(progress: 0)
 
-        submitOrFallback { [weak self] bgTask in
-            self?.runGrouping(deps: deps, sessionId: sessionId, bgTask: bgTask)
+        submitOrFallback { [weak self] in
+            self?.runGrouping(deps: deps, sessionId: sessionId)
         }
     }
 
     func cancel() {
         workTask?.cancel()
         workTask = nil
+        completeBgTask(success: false)
         phase = .cancelled
     }
 
     // MARK: - BGTask submission with fallback
 
-    private func submitOrFallback(work: @escaping @MainActor (BGContinuedProcessingTask?) -> Void) {
-        let pendingWork = PendingContinuousWork.shared
-        pendingWork.prepare(handler: work)
+    private func submitOrFallback(work: @escaping @MainActor () -> Void) {
+        if #available(iOS 26.0, *) {
+            let pendingWork = PendingContinuousWork.shared
+            pendingWork.prepare { [weak self] continuedTask in
+                self?.bgTaskHandle = continuedTask
+                continuedTask.progress.totalUnitCount = 100
+                continuedTask.expirationHandler = { [weak self] in
+                    self?.workTask?.cancel()
+                }
+                work()
+            }
 
-        do {
-            let request = BGContinuedProcessingTaskRequest(
-                identifier: Self.taskIdentifier,
-                title: String(localized: "continuousTask.scan.title"),
-                subtitle: String(localized: "continuousTask.scan.subtitle")
-            )
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            pendingWork.clear()
-            work(nil)
+            do {
+                let request = BGContinuedProcessingTaskRequest(
+                    identifier: Self.taskIdentifier,
+                    title: String(localized: "continuousTask.scan.title"),
+                    subtitle: String(localized: "continuousTask.scan.subtitle")
+                )
+                try BGTaskScheduler.shared.submit(request)
+            } catch {
+                pendingWork.clear()
+                bgTaskHandle = nil
+                work()
+            }
+        } else {
+            work()
         }
+    }
+
+    // MARK: - BGTask helpers
+
+    private func updateBgProgress(_ units: Int64) {
+        guard #available(iOS 26.0, *),
+              let task = bgTaskHandle as? BGContinuedProcessingTask else { return }
+        task.progress.completedUnitCount = units
+    }
+
+    private func updateBgTitle(_ title: String, subtitle: String) {
+        guard #available(iOS 26.0, *),
+              let task = bgTaskHandle as? BGContinuedProcessingTask else { return }
+        task.updateTitle(title, subtitle: subtitle)
+    }
+
+    private func completeBgTask(success: Bool) {
+        guard #available(iOS 26.0, *),
+              let task = bgTaskHandle as? BGContinuedProcessingTask else { return }
+        task.setTaskCompleted(success: success)
+        bgTaskHandle = nil
     }
 
     // MARK: - Full pipeline execution
@@ -116,18 +151,11 @@ final class ContinuousScanCoordinator {
     private func runFullPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
-        deps: Dependencies,
-        bgTask: BGContinuedProcessingTask?
+        deps: Dependencies
     ) {
-        bgTask?.progress.totalUnitCount = 100
-
         workTask?.cancel()
         workTask = Task { [weak self] in
             guard let self else { return }
-
-            bgTask?.expirationHandler = { [weak self] in
-                self?.workTask?.cancel()
-            }
 
             let scanState = ScanState()
             let scanObservation = Task { @MainActor [weak self] in
@@ -139,7 +167,7 @@ final class ContinuousScanCoordinator {
                     case .scanning(let processed, let total):
                         self.phase = .scanning(processed: processed, total: total)
                         if total > 0 {
-                            bgTask?.progress.completedUnitCount = Int64(Double(processed) / Double(total) * 50)
+                            self.updateBgProgress(Int64(Double(processed) / Double(total) * 50))
                         }
                     default:
                         break
@@ -170,7 +198,7 @@ final class ContinuousScanCoordinator {
             if Task.isCancelled {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
-                bgTask?.setTaskCompleted(success: false)
+                self.completeBgTask(success: false)
                 return
             }
 
@@ -178,17 +206,21 @@ final class ContinuousScanCoordinator {
             switch scanStatus {
             case .failed(let error):
                 await MainActor.run { self.phase = .failed(error) }
-                bgTask?.setTaskCompleted(success: false)
+                self.completeBgTask(success: false)
                 return
             case .cancelled:
                 await MainActor.run { self.phase = .cancelled }
-                bgTask?.setTaskCompleted(success: false)
+                self.completeBgTask(success: false)
                 return
             default:
                 break
             }
 
-            bgTask?.progress.completedUnitCount = 50
+            self.updateBgProgress(50)
+            self.updateBgTitle(
+                String(localized: "continuousTask.grouping.title"),
+                subtitle: String(localized: "continuousTask.grouping.subtitle")
+            )
 
             await MainActor.run { self.phase = .grouping(progress: 0) }
 
@@ -196,20 +228,19 @@ final class ContinuousScanCoordinator {
             let groups = await self.performGrouping(
                 deps: deps,
                 sessionId: sessionDTO?.id,
-                bgTask: bgTask,
                 progressBase: 50
             )
 
             if Task.isCancelled {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
-                bgTask?.setTaskCompleted(success: false)
+                self.completeBgTask(success: false)
                 return
             }
 
-            bgTask?.progress.completedUnitCount = 100
+            self.updateBgProgress(100)
             await MainActor.run { self.phase = .completed(groups: groups) }
-            bgTask?.setTaskCompleted(success: true)
+            self.completeBgTask(success: true)
         }
     }
 
@@ -217,18 +248,11 @@ final class ContinuousScanCoordinator {
 
     private func runGrouping(
         deps: Dependencies,
-        sessionId: UUID?,
-        bgTask: BGContinuedProcessingTask?
+        sessionId: UUID?
     ) {
-        bgTask?.progress.totalUnitCount = 100
-
         workTask?.cancel()
         workTask = Task { [weak self] in
             guard let self else { return }
-
-            bgTask?.expirationHandler = { [weak self] in
-                self?.workTask?.cancel()
-            }
 
             let resolvedSessionId: UUID?
             if let sid = sessionId {
@@ -240,20 +264,19 @@ final class ContinuousScanCoordinator {
             let groups = await self.performGrouping(
                 deps: deps,
                 sessionId: resolvedSessionId,
-                bgTask: bgTask,
                 progressBase: 0
             )
 
             if Task.isCancelled {
                 try? await deps.scanStore.interruptActiveSessions()
                 await MainActor.run { self.phase = .cancelled }
-                bgTask?.setTaskCompleted(success: false)
+                self.completeBgTask(success: false)
                 return
             }
 
-            bgTask?.progress.completedUnitCount = 100
+            self.updateBgProgress(100)
             await MainActor.run { self.phase = .completed(groups: groups) }
-            bgTask?.setTaskCompleted(success: true)
+            self.completeBgTask(success: true)
         }
     }
 
@@ -262,7 +285,6 @@ final class ContinuousScanCoordinator {
     private func performGrouping(
         deps: Dependencies,
         sessionId: UUID?,
-        bgTask: BGContinuedProcessingTask?,
         progressBase: Int64
     ) async -> [DuplicateGroup] {
         if let sessionId {
@@ -279,7 +301,7 @@ final class ContinuousScanCoordinator {
                 if case .analyzing(let p) = detectionState.status {
                     self.phase = .grouping(progress: p)
                     let remaining = 100 - progressBase
-                    bgTask?.progress.completedUnitCount = progressBase + Int64(p * Double(remaining))
+                    self.updateBgProgress(progressBase + Int64(p * Double(remaining)))
                 }
             }
         }
@@ -310,18 +332,22 @@ final class ContinuousScanCoordinator {
     }
 }
 
+// MARK: - Pending work bridge (iOS 26+)
+
 @MainActor
 final class PendingContinuousWork {
     static let shared = PendingContinuousWork()
 
-    private var handler: (@MainActor (BGContinuedProcessingTask?) -> Void)?
+    private var handler: Any?
 
-    func prepare(handler: @escaping @MainActor (BGContinuedProcessingTask?) -> Void) {
+    @available(iOS 26.0, *)
+    func prepare(handler: @escaping @MainActor (BGContinuedProcessingTask) -> Void) {
         self.handler = handler
     }
 
+    @available(iOS 26.0, *)
     func start(_ task: BGContinuedProcessingTask) {
-        if let handler {
+        if let handler = self.handler as? (@MainActor (BGContinuedProcessingTask) -> Void) {
             handler(task)
             self.handler = nil
         } else {
