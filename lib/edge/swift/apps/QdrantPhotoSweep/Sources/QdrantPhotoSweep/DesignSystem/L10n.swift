@@ -101,6 +101,7 @@ enum L10n {
 
     static let scanningWithInlineDetection: LocalizedStringKey = "scan.inlineDetection.subtitle"
     static let waitingForMoreGroups: LocalizedStringKey = "scan.waitingForMoreGroups"
+    static let loadingGroup: LocalizedStringKey = "scan.loadingGroup"
 
     static func scanProgressStatus(_ processed: Int, _ total: Int) -> String {
         String(localized: "scan.progress.status \(processed) \(total)")

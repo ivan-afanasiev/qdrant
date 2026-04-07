@@ -10,15 +10,19 @@ struct ReviewStats: Equatable, Sendable {
 @MainActor
 final class ReviewState {
     enum Status: Equatable {
-        case empty
+        case idle
+        case loading
         case reviewing
         case deletingGroup
+        case noMoreGroups
         case allReviewed
         case failed(AppError)
     }
 
     enum Action {
-        case didLoadGroups([DuplicateGroup])
+        case didStartLoading
+        case didLoadGroup(DuplicateGroup, pendingCount: Int)
+        case didLoadEmpty
         case didToggleKeep(PhotoReference)
         case didSkipGroup
         case didConfirmGroup
@@ -26,18 +30,14 @@ final class ReviewState {
         case didFail(AppError)
     }
 
-    private(set) var status: Status = .empty
+    private(set) var status: Status = .idle
     private(set) var keepSelections: [String: Set<String>] = [:]
     private(set) var stats = ReviewStats(groupsReviewed: 0, photosDeleted: 0, photosKept: 0)
-    private(set) var groups: [DuplicateGroup] = []
-    private(set) var currentIndex: Int = 0
+    private(set) var currentGroup: DuplicateGroup?
+    private(set) var pendingCount: Int = 0
+    private(set) var reviewedInSession: Int = 0
 
-    var currentGroup: DuplicateGroup? {
-        guard case .reviewing = status, currentIndex < groups.count else { return nil }
-        return groups[currentIndex]
-    }
-
-    var totalGroups: Int { groups.count }
+    var totalGroups: Int { reviewedInSession + pendingCount }
 
     func keptIds(for group: DuplicateGroup) -> Set<String> {
         keepSelections[group.id] ?? [group.bestCandidate.id]
@@ -53,24 +53,30 @@ final class ReviewState {
 
     func reduce(_ action: Action) {
         switch action {
-        case .didLoadGroups(let loadedGroups):
-            guard !loadedGroups.isEmpty else {
-                status = .empty
-                return
-            }
-            groups = loadedGroups
-            currentIndex = 0
-            keepSelections = [:]
-            stats = ReviewStats(groupsReviewed: 0, photosDeleted: 0, photosKept: 0)
+        case .didStartLoading:
+            status = .loading
+
+        case .didLoadGroup(let group, let count):
+            currentGroup = group
+            pendingCount = count
+            keepSelections = [group.id: [group.bestCandidate.id]]
             status = .reviewing
+
+        case .didLoadEmpty:
+            currentGroup = nil
+            pendingCount = 0
+            if reviewedInSession > 0 {
+                status = .allReviewed
+            } else {
+                status = .noMoreGroups
+            }
 
         case .didToggleKeep(let photo):
             guard case .reviewing = status, let group = currentGroup else { return }
             var kept = keptIds(for: group)
-            switch kept.contains(photo.id) {
-            case true:
+            if kept.contains(photo.id) {
                 kept.remove(photo.id)
-            case false:
+            } else {
                 kept.insert(photo.id)
             }
             keepSelections[group.id] = kept
@@ -81,30 +87,39 @@ final class ReviewState {
 
         case .didSkipGroup:
             guard case .reviewing = status else { return }
-            let group = groups[currentIndex]
-            keepSelections.removeValue(forKey: group.id)
+            reviewedInSession += 1
             stats.groupsReviewed += 1
-            advanceToNext()
+            currentGroup = nil
+            status = .loading
 
         case .didFinishGroupDeletion(let deleted, let kept):
             guard case .deletingGroup = status else { return }
+            reviewedInSession += 1
             stats.groupsReviewed += 1
             stats.photosDeleted += deleted
             stats.photosKept += kept
-            advanceToNext()
+            currentGroup = nil
+            status = .loading
 
         case .didFail(let error):
             status = .failed(error)
         }
     }
 
-    private func advanceToNext() {
-        let next = currentIndex + 1
-        guard next < groups.count else {
-            status = .allReviewed
-            return
+    func loadNextGroup(from scanStore: any ScanSessionStoring) async {
+        reduce(.didStartLoading)
+        do {
+            let count = try await scanStore.pendingGroupCount()
+            guard let dto = try await scanStore.loadNextPendingGroup(),
+                  let group = dto.toDuplicateGroup() else {
+                reduce(.didLoadEmpty)
+                return
+            }
+            reduce(.didLoadGroup(group, pendingCount: count))
+        } catch let error as AppError {
+            reduce(.didFail(error))
+        } catch {
+            reduce(.didFail(.unknown(error.localizedDescription)))
         }
-        currentIndex = next
-        status = .reviewing
     }
 }

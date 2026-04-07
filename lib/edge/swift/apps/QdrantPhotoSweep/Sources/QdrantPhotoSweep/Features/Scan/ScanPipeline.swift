@@ -7,7 +7,7 @@ struct ScanPipeline {
     let vectorStore: any VectorStoring
     let scanStore: any ScanSessionStoring
     let configureDimensions: @Sendable (Int) async -> Void
-    let onGroupsUpdated: (@Sendable ([DuplicateGroup]) -> Void)?
+    let onGroupCountChanged: (@Sendable (Int) -> Void)?
     let similarityThreshold: Float
     let upsertBatchSize: Int = 20
 
@@ -18,7 +18,7 @@ struct ScanPipeline {
         scanStore: any ScanSessionStoring,
         configureDimensions: @Sendable @escaping (Int) async -> Void,
         similarityThreshold: Float = AppSettings.defaultSimilarityThreshold,
-        onGroupsUpdated: (@Sendable ([DuplicateGroup]) -> Void)? = nil
+        onGroupCountChanged: (@Sendable (Int) -> Void)? = nil
     ) {
         self.photoLibrary = photoLibrary
         self.embeddingService = embeddingService
@@ -26,7 +26,7 @@ struct ScanPipeline {
         self.scanStore = scanStore
         self.configureDimensions = configureDimensions
         self.similarityThreshold = similarityThreshold
-        self.onGroupsUpdated = onGroupsUpdated
+        self.onGroupCountChanged = onGroupCountChanged
     }
 
     private struct BatchEntry {
@@ -159,10 +159,10 @@ struct ScanPipeline {
             }
         }
 
-        if foundEdges, let callback = onGroupsUpdated {
+        if foundEdges, let callback = onGroupCountChanged {
             let groups = try? await scanStore.computeGroupsFromEdges(sessionId: sessionId)
             if let groups, !groups.isEmpty {
-                callback(groups)
+                callback(groups.count)
             }
         }
     }

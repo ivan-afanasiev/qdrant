@@ -284,18 +284,41 @@ Step 6: Return sorted groups (largest first)
 
 ## 7. Review & Deletion Flow
 
-### Inline Review (during scanning)
+### Database-Driven Review (one group at a time)
 
-The unified `ScanView` embeds a `ReviewState` and displays Tinder-style group cards as they are discovered:
+The review UI is completely decoupled from the scanning pipeline. Groups are never held in memory as an array — instead, `ReviewState` fetches **one group at a time** from SwiftData:
+
+```
+1. ReviewState.loadNextGroup(from: scanStore)
+   → scanStore.loadNextPendingGroup()  (fetch first pending DuplicateGroupEntity)
+   → scanStore.pendingGroupCount()     (count remaining for progress display)
+
+2. User reviews the group (select photos to keep)
+
+3. On skip/delete:
+   → Mark group as reviewed/deleted in SwiftData
+   → ReviewState transitions to .loading
+   → .loading triggers another loadNextGroup() fetch
+
+4. When no pending groups remain:
+   → .allReviewed if any were reviewed, .noMoreGroups otherwise
+```
+
+This ensures the UI **never shifts** when new groups are discovered during scanning — the pipeline writes to the database, and the review UI reads one-at-a-time on user action.
+
+### Inline Review (during scanning — ScanView)
+
+The unified `ScanView` embeds a `ReviewState` and displays Tinder-style group cards:
 
 - **Progress bar** at top shows scan progress and groups-found count
-- **Group cards** appear below as soon as the first duplicate pair is found
+- When `coordinator.groupsFoundCount` increases and the review is idle, a DB fetch is triggered
+- **Group cards** are stable — only replaced when the user explicitly skips/deletes
 - **When scan finishes**: progress bar disappears, remaining groups can still be reviewed
 - **If all groups reviewed before scan ends**: shows "waiting for more groups" placeholder
 
 ### Persistence Resume Review
 
-`SwipeReviewView` loads pending groups from SwiftData — used when returning to review from a Home banner.
+`SwipeReviewView` uses the same DB-driven `ReviewState` — used when returning to review from a Home banner.
 
 ### Review UI State Machine (`ReviewState`)
 
@@ -384,19 +407,52 @@ DTOs (`ScanSessionDTO`, `DuplicateGroupDTO`) are plain `Sendable` structs used t
 
 ## 9. Background Processing
 
-### 9.1 ContinuousScanCoordinator (foreground + optional iOS 26 enhancement)
+### 9.1 Three Layers of Background Execution
+
+When a scan is active and the user locks the screen or switches apps, three mechanisms work together:
+
+```
+Layer 1: UIApplication.beginBackgroundTask (all iOS versions)
+         → ~30 seconds of extended execution after backgrounding
+         → Enough to finish the current batch and persist progress
+
+Layer 2: BGProcessingTask with earliestBeginDate=now (all iOS versions)
+         → Scheduled urgently when backgrounding during active scan
+         → System grants it when conditions allow (plugged in, idle, etc.)
+         → Resumes the interrupted scan from SwiftData checkpoint
+
+Layer 3: BGContinuedProcessingTask (iOS 26+ only)
+         → Work runs INSIDE the launch handler (Apple's required pattern)
+         → Register → submit → system calls launch handler → pipeline runs there
+         → Shows Live Activity with progress, user can cancel from there
+         → Foreground work transparently continues in background
+```
+
+### 9.2 ContinuousScanCoordinator
 
 - Created as `@State` on `ScanView`
-- Always starts work immediately via `Task`
-- On iOS 26+: also submits `BGContinuedProcessingTaskRequest` for Live Activity support
-- If the system grants the background task, attaches it to the running coordinator for progress updates and expiration handling
-- On iOS < 26: plain foreground `Task` only
+- On iOS 26+:
+  1. `startPipeline()` → `startWithContinuedTask()`
+  2. Registers the task handler with `BGTaskScheduler.shared.register(...)`
+  3. Submits `BGContinuedProcessingTaskRequest` with `.queue` strategy
+  4. System invokes the launch handler immediately → pipeline runs inside it
+  5. Progress is reported via `task.progress` and `task.updateTitle()`
+  6. Work continues even when the app is backgrounded (Live Activity shown)
+  7. If submission fails, falls back to plain `Task` (same as iOS < 26)
+- On iOS < 26:
+  - Runs pipeline in a plain Swift `Task`
+  - When app goes to background:
+    - `ScanView` observes scene phase → calls `coordinator.beginExtendedBackgroundExecution()`
+    - `ScanView` schedules `BackgroundScanService.schedule(urgent: true)` as fallback
+    - Extended execution buys ~30s to finish the current batch and save state
+    - If the scan doesn't finish in time, it's marked `.interrupted` and resumed later
 - Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groups:)` / `failed` / `cancelled`
 
-### 9.2 BackgroundScanService (BGProcessingTask fallback)
+### 9.3 BackgroundScanService (BGProcessingTask)
 
 - Registered in `App.init()`, scheduled when app enters background
-- Runs with 15-minute earliest begin date
+- **Urgent mode** (`earliestBeginDate = now`): scheduled from `ScanView` when backgrounding during active scan
+- **Deferred mode** (`earliestBeginDate = 15 min`): default fallback from `App.swift` scene phase handler
 - Creates fresh service instances (no access to Environment)
 - Priority order:
   1. Resume interrupted scan session (with inline detection)
@@ -404,13 +460,15 @@ DTOs (`ScanSessionDTO`, `DuplicateGroupDTO`) are plain `Sendable` structs used t
 - Posts local notification when duplicates found
 - Re-schedules itself after completion
 
-### 9.3 Scene Phase Handling
+### 9.4 Scene Phase Handling
 
 ```
-.background → BackgroundScanService.schedule()
-             (Does NOT close vector store or interrupt sessions —
-              ContinuousScanCoordinator may still be running)
-.active     → No-op
+ScanView (when scan is active):
+  .background → coordinator.beginExtendedBackgroundExecution() (iOS < 26 safety net)
+              + BackgroundScanService.schedule(urgent: true)
+
+App.swift (always):
+  .background → BackgroundScanService.schedule()  (deferred, 15 min)
 ```
 
 ---

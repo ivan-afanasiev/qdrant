@@ -16,11 +16,11 @@ enum BackgroundScanService {
         }
     }
 
-    static func schedule() {
+    static func schedule(urgent: Bool = false) {
         let request = BGProcessingTaskRequest(identifier: taskIdentifier)
         request.requiresExternalPower = false
         request.requiresNetworkConnectivity = false
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+        request.earliestBeginDate = urgent ? Date() : Date(timeIntervalSinceNow: 15 * 60)
         try? BGTaskScheduler.shared.submit(request)
     }
 
@@ -68,8 +68,8 @@ enum BackgroundScanService {
             configureDimensions: { dims in
                 await vectorStore.updateDimensions(dims)
             },
-            onGroupsUpdated: { groups in
-                groupCount = groups.count
+            onGroupCountChanged: { count in
+                groupCount = count
             }
         )
 

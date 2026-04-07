@@ -6,50 +6,16 @@ struct SwipeReviewView: View {
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
-    @State private var loaded = false
 
     let onFinished: () -> Void
 
     var body: some View {
         Group {
-            switch loaded {
-            case false:
+            switch reviewState.status {
+            case .idle, .loading:
                 ProgressView()
 
-            case true:
-                reviewContent
-            }
-        }
-        .navigationTitle(L10n.reviewDuplicates)
-        .task {
-            await loadFromPersistence()
-        }
-        .fullScreenCover(item: $fullscreenPhoto) { photo in
-            FullscreenPhotoView(photo: photo) {
-                fullscreenPhoto = nil
-            }
-        }
-    }
-
-    private func loadFromPersistence() async {
-        guard let deps = dependencies else { return }
-
-        if let pendingDTOs = try? await deps.scanStore.loadPendingGroups(), !pendingDTOs.isEmpty {
-            let groups = pendingDTOs.compactMap { $0.toDuplicateGroup() }
-            if !groups.isEmpty {
-                reviewState.reduce(.didLoadGroups(groups))
-            }
-        }
-        loaded = true
-    }
-
-    // MARK: - Review Phase
-
-    @ViewBuilder
-    private var reviewContent: some View {
-        VStack {
-            switch reviewState.status {
-            case .empty:
+            case .noMoreGroups:
                 emptyView
 
             case .reviewing:
@@ -65,7 +31,33 @@ struct SwipeReviewView: View {
                 failedView(error: error)
             }
         }
+        .navigationTitle(L10n.reviewDuplicates)
+        .task {
+            await loadInitial()
+        }
+        .onChange(of: reviewState.status) { _, newStatus in
+            if newStatus == .loading {
+                Task { await loadNext() }
+            }
+        }
+        .fullScreenCover(item: $fullscreenPhoto) { photo in
+            FullscreenPhotoView(photo: photo) {
+                fullscreenPhoto = nil
+            }
+        }
     }
+
+    private func loadInitial() async {
+        guard let deps = dependencies else { return }
+        await reviewState.loadNextGroup(from: deps.scanStore)
+    }
+
+    private func loadNext() async {
+        guard let deps = dependencies else { return }
+        await reviewState.loadNextGroup(from: deps.scanStore)
+    }
+
+    // MARK: - Review Phase
 
     private var emptyView: some View {
         VStack(spacing: QSpacing.md) {
@@ -86,9 +78,11 @@ struct SwipeReviewView: View {
         VStack(spacing: QSpacing.md) {
             headerBar
 
-            ProgressView(value: Double(reviewState.currentIndex), total: Double(reviewState.totalGroups))
-                .tint(QColors.primary)
-                .padding(.horizontal)
+            if reviewState.totalGroups > 0 {
+                ProgressView(value: Double(reviewState.reviewedInSession), total: Double(reviewState.totalGroups))
+                    .tint(QColors.primary)
+                    .padding(.horizontal)
+            }
 
             swipeableCardStack
 
@@ -104,8 +98,10 @@ struct SwipeReviewView: View {
 
     private var headerBar: some View {
         HStack {
-            Text(L10n.groupNofTotal(reviewState.currentIndex + 1, reviewState.totalGroups))
+            Text(L10n.groupNofTotal(reviewState.reviewedInSession + 1, reviewState.totalGroups))
                 .font(QTypography.bodyLarge)
+                .contentTransition(.numericText())
+                .animation(.default, value: reviewState.reviewedInSession)
             Spacer()
             Button(L10n.skip) {
                 animateSkip()
@@ -133,7 +129,7 @@ struct SwipeReviewView: View {
                             fullscreenPhoto = photo
                         }
                     )
-                    .id(reviewState.currentIndex)
+                    .id(group.id)
                     .offset(x: dragOffset)
                     .rotationEffect(.degrees(Double(dragOffset) / 30), anchor: .bottom)
                     .opacity(swipeOpacity)
@@ -151,7 +147,7 @@ struct SwipeReviewView: View {
                     .allowsHitTesting(isDragging)
             }
             .simultaneousGesture(swipeDetectionGesture(screenWidth: geo.size.width))
-            .animation(QAnimation.springDefault, value: reviewState.currentIndex)
+            .animation(QAnimation.springDefault, value: reviewState.currentGroup?.id)
         }
     }
 
@@ -369,8 +365,8 @@ struct SwipeReviewView: View {
     private func skipCurrentGroup() {
         guard let deps = dependencies, let group = reviewState.currentGroup else { return }
         let allIds = Set(group.photos.map(\.id))
-        reviewState.reduce(.didSkipGroup)
         guard let groupUUID = UUID(uuidString: group.id) else { return }
+        reviewState.reduce(.didSkipGroup)
         Task {
             try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: allIds)
         }

@@ -2882,6 +2882,35 @@
         }
       }
     },
+    "scan.loadingGroup": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe wird geladen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading group…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando grupo…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка группы…"
+          }
+        }
+      }
+    },
     "scan.waitingForMoreGroups": {
       "extractionState": "manual",
       "localizations": {

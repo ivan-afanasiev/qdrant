@@ -2,11 +2,14 @@ import SwiftUI
 
 struct ScanView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
     @State private var coordinator = ContinuousScanCoordinator()
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
+
+    @State private var showCompletedBadge = false
 
     let dateRange: DateRange
     let resumeSessionId: UUID?
@@ -54,9 +57,33 @@ struct ScanView: View {
         .onChange(of: coordinator.isActive) { _, active in
             UIApplication.shared.isIdleTimerDisabled = active
         }
-        .onChange(of: coordinator.discoveredGroups) { _, groups in
-            guard !groups.isEmpty else { return }
-            reviewState.reduce(.didLoadGroups(groups))
+        .onChange(of: scenePhase) { _, newPhase in
+            guard coordinator.isActive else { return }
+            if newPhase == .background {
+                coordinator.beginExtendedBackgroundExecution()
+                BackgroundScanService.schedule(urgent: true)
+            }
+        }
+        .onChange(of: coordinator.groupsFoundCount) { _, count in
+            guard count > 0, reviewState.status == .idle || reviewState.status == .noMoreGroups else { return }
+            loadNextGroupFromDB()
+        }
+        .onChange(of: reviewState.status) { _, newStatus in
+            if newStatus == .loading {
+                loadNextGroupFromDB()
+            }
+        }
+        .onChange(of: coordinator.phase) { _, newPhase in
+            if case .completed = newPhase {
+                withAnimation { showCompletedBadge = true }
+                Task {
+                    try? await Task.sleep(for: .seconds(3))
+                    withAnimation { showCompletedBadge = false }
+                }
+                if reviewState.status == .idle || reviewState.status == .noMoreGroups {
+                    loadNextGroupFromDB()
+                }
+            }
         }
         .fullScreenCover(item: $fullscreenPhoto) { photo in
             FullscreenPhotoView(photo: photo) {
@@ -86,6 +113,10 @@ struct ScanView: View {
             switch reviewState.status {
             case .reviewing:
                 reviewingSection
+            case .loading:
+                loadingGroupView
+            case .noMoreGroups, .idle:
+                scanningPlaceholder
             case .allReviewed:
                 waitingForMoreGroups
             default:
@@ -139,6 +170,17 @@ struct ScanView: View {
         .padding()
     }
 
+    private var loadingGroupView: some View {
+        VStack(spacing: QSpacing.lg) {
+            Spacer()
+            ProgressView()
+            Text(L10n.loadingGroup)
+                .font(QTypography.bodyMedium)
+                .foregroundStyle(QColors.textTertiary)
+            Spacer()
+        }
+    }
+
     private var waitingForMoreGroups: some View {
         VStack(spacing: QSpacing.lg) {
             Spacer()
@@ -155,13 +197,16 @@ struct ScanView: View {
     private var completedContent: some View {
         Group {
             switch reviewState.status {
-            case .empty:
+            case .idle, .noMoreGroups:
                 completedEmptyView
+            case .loading:
+                VStack(spacing: 0) {
+                    if showCompletedBadge { completedBadge.padding(.horizontal).padding(.top, QSpacing.sm).transition(.move(edge: .top).combined(with: .opacity)) }
+                    loadingGroupView
+                }
             case .reviewing:
                 VStack(spacing: 0) {
-                    completedBadge
-                        .padding(.horizontal)
-                        .padding(.top, QSpacing.sm)
+                    if showCompletedBadge { completedBadge.padding(.horizontal).padding(.top, QSpacing.sm).transition(.move(edge: .top).combined(with: .opacity)) }
                     reviewingSection
                 }
             case .deletingGroup:
@@ -205,14 +250,27 @@ struct ScanView: View {
 
     // MARK: - Review Section (shared between scanning and completed)
 
+    private var reviewGroupCounter: String {
+        let reviewed = reviewState.reviewedInSession
+        let total = max(reviewed + reviewState.pendingCount, coordinator.groupsFoundCount)
+        return L10n.groupNofTotal(reviewed + 1, total)
+    }
+
+    private var reviewProgressTotal: Double {
+        let total = max(reviewState.totalGroups, coordinator.groupsFoundCount)
+        return Double(total)
+    }
+
     private var reviewingSection: some View {
         VStack(spacing: QSpacing.md) {
             headerBar
                 .padding(.top, QSpacing.sm)
 
-            ProgressView(value: Double(reviewState.currentIndex), total: Double(reviewState.totalGroups))
-                .tint(QColors.primary)
-                .padding(.horizontal)
+            if reviewProgressTotal > 0 {
+                ProgressView(value: Double(reviewState.reviewedInSession), total: reviewProgressTotal)
+                    .tint(QColors.primary)
+                    .padding(.horizontal)
+            }
 
             swipeableCardStack
 
@@ -229,8 +287,10 @@ struct ScanView: View {
 
     private var headerBar: some View {
         HStack {
-            Text(L10n.groupNofTotal(reviewState.currentIndex + 1, reviewState.totalGroups))
+            Text(reviewGroupCounter)
                 .font(QTypography.bodyLarge)
+                .contentTransition(.numericText())
+                .animation(.default, value: reviewGroupCounter)
             Spacer()
             Button(L10n.skip) {
                 animateSkip()
@@ -258,7 +318,7 @@ struct ScanView: View {
                             fullscreenPhoto = photo
                         }
                     )
-                    .id(reviewState.currentIndex)
+                    .id(group.id)
                     .offset(x: dragOffset)
                     .rotationEffect(.degrees(Double(dragOffset) / 30), anchor: .bottom)
                     .opacity(swipeOpacity)
@@ -276,7 +336,7 @@ struct ScanView: View {
                     .allowsHitTesting(isDragging)
             }
             .simultaneousGesture(swipeDetectionGesture(screenWidth: geo.size.width))
-            .animation(QAnimation.springDefault, value: reviewState.currentIndex)
+            .animation(QAnimation.springDefault, value: reviewState.currentGroup?.id)
         }
     }
 
@@ -515,6 +575,13 @@ struct ScanView: View {
         )
     }
 
+    private func loadNextGroupFromDB() {
+        guard let deps = dependencies else { return }
+        Task {
+            await reviewState.loadNextGroup(from: deps.scanStore)
+        }
+    }
+
     private func deleteCurrentGroup() {
         guard let deps = dependencies, let group = reviewState.currentGroup else { return }
         let idsToDelete = reviewState.deletionIdsForCurrentGroup()
@@ -559,8 +626,8 @@ struct ScanView: View {
     private func skipCurrentGroup() {
         guard let deps = dependencies, let group = reviewState.currentGroup else { return }
         let allIds = Set(group.photos.map(\.id))
-        reviewState.reduce(.didSkipGroup)
         guard let groupUUID = UUID(uuidString: group.id) else { return }
+        reviewState.reduce(.didSkipGroup)
         Task {
             try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: allIds)
         }
