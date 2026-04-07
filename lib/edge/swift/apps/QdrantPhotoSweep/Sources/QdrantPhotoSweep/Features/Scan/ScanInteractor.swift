@@ -46,7 +46,7 @@ final class ScanInteractor {
 
     // MARK: - Dependencies (injected once)
 
-    private var deps: Dependencies?
+    private var deps: (any DependencyProviding)?
 
     private var scanUseCases: ScanFeature.UseCases? {
         guard let deps else { return nil }
@@ -71,7 +71,7 @@ final class ScanInteractor {
 
     // MARK: - Public API
 
-    func configure(deps: Dependencies) {
+    func configure(deps: any DependencyProviding) {
         guard self.deps == nil else { return }
         self.deps = deps
         startObservationLoops()

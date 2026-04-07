@@ -117,7 +117,7 @@ final class ReviewState {
     }
 }
 
-extension Dependencies {
+extension DependencyProviding {
     var reviewUseCases: ReviewFeature.UseCases {
         ReviewFeature.UseCases(
             deleteGroup: DeleteGroupUseCase(

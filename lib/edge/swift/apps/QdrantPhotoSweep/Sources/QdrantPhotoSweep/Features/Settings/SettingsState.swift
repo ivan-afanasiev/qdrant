@@ -41,7 +41,7 @@ final class SettingsState {
     }
 }
 
-extension Dependencies {
+extension DependencyProviding {
     var settingsUseCases: SettingsFeature.UseCases {
         SettingsFeature.UseCases(
             clearDatabase: ClearDatabaseUseCase(vectorStore: vectorStore),

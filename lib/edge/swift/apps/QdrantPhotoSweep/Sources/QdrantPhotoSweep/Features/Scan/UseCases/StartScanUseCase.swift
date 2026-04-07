@@ -7,7 +7,7 @@ struct StartScanInput: Sendable {
 
 struct StartScanUseCase: UseCase {
     let coordinator: ContinuousScanCoordinator
-    let deps: Dependencies
+    let deps: any DependencyProviding
 
     @MainActor
     func execute(_ input: StartScanInput) async throws -> Void {

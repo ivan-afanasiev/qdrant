@@ -50,27 +50,22 @@ enum BackgroundScanService {
             return 0
         }
 
-        let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
-        let photoLibrary = PhotoLibraryService()
-        let embeddingService = VisionEmbeddingService()
+        let deps = await AppDependencies.forBackground(modelContainer: modelContainer)
 
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
-        let vectorStore = QdrantVectorStore(path: shardDir.path, dimensions: 0)
-        await vectorStore.restoreDimensionsFromDisk()
-
-        defer { Task { await vectorStore.close() } }
+        defer { Task { await deps.vectorStore.close() } }
 
         let bgScanState = await ScanState()
         var groupCount = 0
 
         let pipeline = ScanPipeline(
-            photoLibrary: photoLibrary,
-            embeddingService: embeddingService,
-            vectorStore: vectorStore,
-            scanStore: scanStore,
+            photoLibrary: deps.photoLibrary,
+            embeddingService: deps.embeddingService,
+            vectorStore: deps.vectorStore,
+            scanStore: deps.scanStore,
             configureDimensions: { dims in
-                await vectorStore.updateDimensions(dims)
+                if let qdrantStore = deps.vectorStore as? QdrantVectorStore {
+                    await qdrantStore.updateDimensions(dims)
+                }
             },
             onGroupCountChanged: { count in
                 groupCount = count
@@ -78,22 +73,22 @@ enum BackgroundScanService {
         )
 
         // Priority 1: Resume an interrupted session
-        if let interrupted = try? await scanStore.latestInterruptedSession() {
+        if let interrupted = try? await deps.scanStore.latestInterruptedSession() {
             let range = DateRange(start: interrupted.rangeStart, end: interrupted.rangeEnd)
             await pipeline.run(dateRange: range, state: bgScanState, resumeSessionId: interrupted.id)
 
             if Task.isCancelled {
-                try? await scanStore.interruptActiveSessions()
+                try? await deps.scanStore.interruptActiveSessions()
                 return -1
             }
         }
 
         // Priority 2: Incremental scan for new photos since last completed session
-        if let session = try? await scanStore.latestCompletedSession() {
-            let newCount = (try? await scanStore.countNewPhotosSince(
+        if let session = try? await deps.scanStore.latestCompletedSession() {
+            let newCount = (try? await deps.scanStore.countNewPhotosSince(
                 date: session.scannedAt,
                 in: DateRange(start: session.rangeStart, end: session.rangeEnd),
-                using: photoLibrary
+                using: deps.photoLibrary
             )) ?? 0
 
             if newCount > 0 {
@@ -101,7 +96,7 @@ enum BackgroundScanService {
                 await pipeline.run(dateRange: incrementalRange, state: bgScanState)
 
                 if Task.isCancelled {
-                    try? await scanStore.interruptActiveSessions()
+                    try? await deps.scanStore.interruptActiveSessions()
                     return -1
                 }
             }

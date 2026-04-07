@@ -7,7 +7,7 @@ struct QdrantPhotoSweepApp: App {
     enum BootstrapStatus {
         case loading
         case onboarding(AppSettings)
-        case ready(Dependencies)
+        case ready(any DependencyProviding)
         case failed(AppError)
     }
 
@@ -46,7 +46,7 @@ struct QdrantPhotoSweepApp: App {
         .modelContainer(modelContainer)
     }
 
-    private var activeDependencies: Dependencies? {
+    private var activeDependencies: (any DependencyProviding)? {
         switch bootstrapStatus {
         case .ready(let deps): deps
         default: nil
@@ -135,7 +135,7 @@ struct QdrantPhotoSweepApp: App {
 
         let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
 
-        bootstrapStatus = .ready(Dependencies(
+        bootstrapStatus = .ready(AppDependencies(
             vectorStore: vectorStore,
             embeddingService: embeddingService,
             photoLibrary: photoLibrary,

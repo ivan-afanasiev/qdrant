@@ -60,7 +60,8 @@ Sources/QdrantPhotoSweep/
 ├── Core/
 │   ├── AppError.swift                 # Unified error enum
 │   ├── DatePreset.swift               # Date range presets (last week, month, etc.)
-│   ├── Dependencies.swift             # DI container + AppSettings + EnvironmentKey
+│   ├── Dependencies.swift             # DependencyProviding protocol, AppDependencies, EnvironmentKey
+│   ├── TestDependencies.swift         # #if DEBUG: TestDependencies + mock implementations
 │   ├── UseCase.swift                  # UseCase<Input, Output> protocol
 │   ├── Persistence/
 │   │   ├── ScanSessionEntity.swift    # @Model: scan session + ScanSessionStatus enum
@@ -150,10 +151,28 @@ Sources/QdrantPhotoSweep/
 
 ## 3. Dependency Injection
 
-All services are created once in `App.swift → bootstrapDependencies()` and bundled into a `Dependencies` struct:
+### Protocol-Based DI
+
+All services are defined behind protocols (`VectorStoring`, `EmbeddingProviding`, `PhotoLibraryProviding`, `ScanSessionStoring`). A `DependencyProviding` protocol bundles them into a single contract:
 
 ```swift
-struct Dependencies {
+protocol DependencyProviding {
+    var vectorStore: any VectorStoring { get }
+    var embeddingService: any EmbeddingProviding { get }
+    var photoLibrary: any PhotoLibraryProviding { get }
+    var scanStore: any ScanSessionStoring { get }
+    var settings: AppSettings { get }
+}
+```
+
+This protocol is the **single source of truth** for all dependencies. Every layer in the app — views, interactors, use cases, background services — consumes `any DependencyProviding` rather than concrete types. Adding a new dependency to the protocol produces compile errors in every conforming type, ensuring nothing is missed.
+
+### Live Implementation
+
+`AppDependencies` is the live conformance, created once in `App.swift → bootstrapDependencies()`:
+
+```swift
+final class AppDependencies: DependencyProviding {
     let vectorStore: any VectorStoring       // QdrantVectorStore (actor)
     let embeddingService: any EmbeddingProviding  // VisionEmbeddingService (actor)
     let photoLibrary: any PhotoLibraryProviding   // PhotoLibraryService
@@ -162,13 +181,35 @@ struct Dependencies {
 }
 ```
 
-This is injected into the SwiftUI environment via a custom `EnvironmentKey`:
+For background tasks, `AppDependencies.forBackground(modelContainer:)` is a static factory that creates a fresh set of services from a `ModelContainer` — eliminating the duplicated construction logic that previously lived in `BackgroundScanService`.
+
+### SwiftUI Environment Injection
+
+The container is injected into the SwiftUI view hierarchy via a custom `EnvironmentKey`:
 
 ```
-App.swift → .environment(\.dependencies, deps) → every child view reads @Environment(\.dependencies)
+App.swift → .environment(\.dependencies, appDependencies) → child views read @Environment(\.dependencies)
 ```
 
-**Important**: `Dependencies` is only non-nil when `bootstrapStatus == .ready`. Views guard on `dependencies != nil` before doing anything.
+**Important**: The environment value is `(any DependencyProviding)?` — only non-nil when `bootstrapStatus == .ready`. Views guard on `dependencies != nil` before doing anything. Non-view code (interactors, coordinators) receives the container via `configure(deps:)` or init injection.
+
+### Test Implementation
+
+`TestDependencies` (`#if DEBUG`) provides a test conformance with default mock implementations for all protocols:
+
+```swift
+final class TestDependencies: DependencyProviding {
+    init(
+        vectorStore: any VectorStoring = MockVectorStore(),
+        embeddingService: any EmbeddingProviding = MockEmbeddingService(),
+        photoLibrary: any PhotoLibraryProviding = MockPhotoLibrary(),
+        scanStore: any ScanSessionStoring = MockScanStore(),
+        settings: AppSettings = AppSettings()
+    )
+}
+```
+
+Each mock (`MockVectorStore`, `MockEmbeddingService`, `MockPhotoLibrary`, `MockScanStore`) has configurable properties for test setup and no-op default behavior.
 
 ### UseCase Pattern
 
@@ -182,10 +223,10 @@ protocol UseCase<Input, Output>: Sendable {
 }
 ```
 
-Each feature defines a `UseCases` bundle, constructed via a factory extension on `Dependencies`:
+Each feature defines a `UseCases` bundle, constructed via a factory extension on `DependencyProviding`:
 
 ```swift
-extension Dependencies {
+extension DependencyProviding {
     var reviewUseCases: ReviewFeature.UseCases { ... }
     var groupGridUseCases: GroupGridFeature.UseCases { ... }
     var settingsUseCases: SettingsFeature.UseCases { ... }
@@ -584,7 +625,7 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 - **Skips work** when `ContinuousScanCoordinator.isForegroundScanActive` is true — avoids double-opening the Qdrant WAL
 - **Urgent mode** (`earliestBeginDate = now`): scheduled from `ScanView` when backgrounding during active scan
 - **Deferred mode** (`earliestBeginDate = 15 min`): default fallback from `App.swift` scene phase handler
-- Creates fresh service instances (no access to Environment)
+- Uses `AppDependencies.forBackground(modelContainer:)` to create services — same factory as the foreground path, eliminating duplicated construction logic
 - Priority order:
   1. Resume interrupted scan session (with inline detection)
   2. Incremental scan for new photos since last completed session (with inline detection)

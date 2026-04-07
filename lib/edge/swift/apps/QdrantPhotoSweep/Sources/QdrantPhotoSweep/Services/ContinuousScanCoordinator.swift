@@ -31,7 +31,7 @@ final class ContinuousScanCoordinator {
     private var backgroundTaskManager = BackgroundTaskManager()
     private var lastDateRange: DateRange?
     private var lastResumeSessionId: UUID?
-    private var lastDeps: Dependencies?
+    private var lastDeps: (any DependencyProviding)?
 
     var scanProgress: Double {
         switch phase {
@@ -146,7 +146,7 @@ final class ContinuousScanCoordinator {
     func startPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
-        deps: Dependencies
+        deps: any DependencyProviding
     ) {
         guard !isActive else { return }
 
@@ -199,7 +199,7 @@ final class ContinuousScanCoordinator {
 
     // MARK: - Pipeline builder
 
-    private func makePipeline(deps: Dependencies) -> ScanPipeline {
+    private func makePipeline(deps: any DependencyProviding) -> ScanPipeline {
         ScanPipeline(
             photoLibrary: deps.photoLibrary,
             embeddingService: deps.embeddingService,
@@ -224,7 +224,7 @@ final class ContinuousScanCoordinator {
     private func runPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
-        deps: Dependencies
+        deps: any DependencyProviding
     ) {
         workTask?.cancel()
         workTask = Task { [weak self] in
