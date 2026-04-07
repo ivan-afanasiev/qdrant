@@ -87,7 +87,8 @@ Sources/QdrantPhotoSweep/
 │   ├── Scan/
 │   │   ├── ScanPipeline.swift         # Core logic: embed → upsert → search → persist edges → groups
 │   │   ├── ScanState.swift            # ScanFeature namespace + ScanState (scan progress state machine)
-│   │   ├── ScanView.swift             # Root screen: auto-detect, scan + review + grid toggle
+│   │   ├── ScanInteractor.swift       # @Observable orchestrator: owns coordinator/review/grid state, handles intents
+│   │   ├── ScanView.swift             # Pure rendering layer: reads interactor state, forwards intents
 │   │   └── UseCases/
 │   │       ├── LoadInitialStateUseCase.swift
 │   │       ├── StartScanUseCase.swift
@@ -204,7 +205,8 @@ enum ReviewFeature {
 
 Data flow for every user action:
 ```
-View → UseCase.execute() → async side effect → Action → State.reduce() → pure state update → View re-renders
+Simple features: View → UseCase.execute() → async side effect → Action → State.reduce() → pure state update → View re-renders
+Complex features: View → interactor.send(intent) → Interactor calls UseCase → Action → State.reduce() → View re-renders (via @Observable)
 ```
 
 No View ever calls a service directly. No `State.reduce()` ever performs side effects.
@@ -247,7 +249,7 @@ Navigation uses `NavigationStack(path:)` with `AppRoute` enum (currently only `.
 
 The group grid is displayed **inline** as an alternative view mode (toggled via toolbar), not as a sheet. Both cards and grid views share the same `GroupGridState` which persists across toggles.
 
-**Rescan from Settings**: `AppSettings` exposes a `rescanRequestId: UUID` signal. When the user taps "Rescan with New Period" in `SettingsScanPeriodSectionView`, it bumps the ID and dismisses Settings. `ScanView`'s `ScanEventHandlers` modifier observes this via `.onChange`, cancels any active scan, resets review/grid state, and starts a fresh scan with the updated date range.
+**Rescan from Settings**: `AppSettings` exposes a `rescanRequestId: UUID` signal. When the user taps "Rescan with New Period" in `SettingsScanPeriodSectionView`, it bumps the ID and dismisses Settings. `ScanInteractor` internally observes this property via `withObservationTracking`, cancels any active scan, resets review/grid state, and starts a fresh scan with the updated date range.
 
 ---
 
@@ -255,7 +257,7 @@ The group grid is displayed **inline** as an alternative view mode (toggled via 
 
 ### Single Unified Phase: Scan with Inline Detection
 
-**Entry point**: App launches → `ScanView` `.task` calls `LoadInitialStateUseCase` → determines action → `ContinuousScanCoordinator.startPipeline()` (for new/resumed scans) or `loadNextGroupFromDB()` (for pending review).
+**Entry point**: App launches → `ScanView` `.task` → `ScanInteractor.send(.launched)` → `autoDetectAndLaunch()` calls `LoadInitialStateUseCase` → determines action → `ContinuousScanCoordinator.startPipeline()` (for new/resumed scans) or `loadNextGroupFromDB()` (for pending review).
 
 **Coordinator role**: The `ContinuousScanCoordinator` is a thin orchestration layer. It:
 1. Sets `phase = .scanning(processed: 0, total: 0, groupsFound: 0)`
@@ -392,20 +394,22 @@ The review UI is completely decoupled from the scanning pipeline. Groups are nev
 
 This ensures the UI **never shifts** when new groups are discovered during scanning — the pipeline writes to the database, and the review UI reads one-at-a-time on user action.
 
-### Inline Review (during scanning — ScanView)
+### Inline Review (during scanning — ScanView + ScanInteractor)
 
-The `ScanView` is the **permanent root screen** and a **database-driven UI** fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the UI reads from it. The user never sees error or failure screens from the pipeline.
+The `ScanView` is the **permanent root screen** and a **pure rendering layer**. All orchestration logic lives in `ScanInteractor` — an `@Observable @MainActor` class that owns the coordinator, review state, and grid state.
 
-- **On launch**: `LoadInitialStateUseCase` queries the DB to auto-detect the right action (resume/review/new scan)
+The `ScanInteractor` acts as a **database-driven controller** fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the interactor reads from it. The user never sees error or failure screens from the pipeline.
+
+- **On launch**: `ScanInteractor` receives `.launched` intent → calls `LoadInitialStateUseCase` to auto-detect the right action (resume/review/new scan)
 - **Scanning**: Progress bar at top shows scan progress and groups-found count. Cancel button in toolbar.
 - **Interrupted**: A subtle "Resuming scan…" banner replaces the progress bar. The pipeline auto-resumes.
-- **Completed**: Brief "Scan complete" badge, then only the review UI remains.
+- **Completed**: Brief "Scan complete" badge (interactor manages 3-second timer), then only the review UI remains.
 - In **all three states**, the review section is visible and functional:
-  - When `coordinator.groupsFoundCount` increases and the review is idle, a DB fetch is triggered
+  - When `coordinator.groupsFoundCount` increases and the review is idle, the interactor triggers a DB fetch (via internal observation loop)
   - **Group cards** are stable — only replaced when the user explicitly skips/deletes
   - If all groups reviewed before scan ends: shows scanning placeholder
   - If scan completes with no groups: shows "No duplicates found"
-- **View mode toggle**: Toolbar button switches between cards (one-at-a-time review) and grid (browse all groups)
+- **View mode toggle**: Toolbar button sends `.switchViewMode` intent to interactor
 
 ### Persistence Resume Review
 
@@ -422,7 +426,7 @@ InlineGroupGridView (2-column LazyVGrid, paginated from DB)
        └── Grid scroll position and loaded pages are preserved
 ```
 
-The grid uses the parent's `NavigationStack` for drill-down (no separate NavigationStack). `GroupGridState` is owned by `ScanView` so it persists across view mode toggles.
+The grid uses the parent's `NavigationStack` for drill-down (no separate NavigationStack). `GroupGridState` is owned by `ScanInteractor` so it persists across view mode toggles.
 
 ```
 GroupGridFeature.UseCases:
@@ -552,7 +556,7 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 
 ### 9.2 ContinuousScanCoordinator
 
-- Created as `@State` on `ScanView` (the permanent root screen)
+- Created as a property of `ScanInteractor` (which is `@State` on `ScanView`)
 - Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/interrupted)
 - Delegates background task management to `BackgroundTaskManager`
 - On iOS 26+:
@@ -566,8 +570,8 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 - On iOS < 26:
   - Runs pipeline in a plain Swift `Task`
   - When app goes to background:
-    - `ScanView` observes scene phase → calls `coordinator.beginExtendedBackgroundExecution()`
-    - `ScanView` schedules `BackgroundScanService.schedule(urgent: true)` as fallback
+    - `ScanView` forwards `scenePhase` → `ScanInteractor` → calls `coordinator.beginExtendedBackgroundExecution()`
+    - `ScanInteractor` schedules `BackgroundScanService.schedule(urgent: true)` as fallback
     - Extended execution buys ~30s to finish the current batch and save state
     - If the scan doesn't finish in time, it's marked `.interrupted` and auto-resumes when the app returns to foreground
 - Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groupsFound:)` / `interrupted(processed:total:)`
@@ -590,10 +594,10 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 ### 9.4 Scene Phase Handling
 
 ```
-ScanView (when scan is active):
-  .background → coordinator.beginExtendedBackgroundExecution()
+ScanView (forwards scenePhase to ScanInteractor):
+  .background → interactor handles: coordinator.beginExtendedBackgroundExecution()
               + BackgroundScanService.schedule(urgent: true)
-  .active    → coordinator.endExtendedBackgroundExecution()
+  .active    → interactor handles: coordinator.endExtendedBackgroundExecution()
               + coordinator.resumeIfInterrupted() (auto-restarts pipeline if it was interrupted)
 
 App.swift (always):
@@ -649,16 +653,36 @@ private func deleteCurrentGroup() {
 }
 ```
 
+### Interactor Pattern (ScanView)
+
+For complex features with multiple state objects and cross-state reactions, an **Interactor** (`@Observable @MainActor class`) sits between the View and the UseCases/State. This keeps the View as a pure rendering layer:
+
+```
+View → interactor.send(.intent) → Interactor calls UseCases → Interactor dispatches Actions → States.reduce() → View re-renders (via @Observable)
+```
+
+**ScanInteractor** owns `ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`, and all derived properties. It exposes a single `send(_ intent: Intent)` method. The View never calls use cases or dispatches actions directly.
+
+Internal observation loops (via `withObservationTracking`) replace all `.onChange` handlers:
+- `coordinator.groupsFoundCount` changes → triggers DB fetch for next group
+- `reviewState.isLoading` becomes true → triggers DB fetch
+- `coordinator.phase` completes → triggers `showCompletedBadge` timer and DB fetch
+- `coordinator.isActive` changes → toggles idle timer
+- `viewMode` changes to `.grid` → reloads grid if idle
+- `settings.rescanRequestId` changes → cancels scan, resets state, starts new scan
+
+The only `.onChange` remaining on `ScanView` is for `scenePhase` (a SwiftUI `@Environment` value that cannot be observed outside a View).
+
 ### Rules
 
 - State is read-only from outside (`private(set)`)
 - All mutations go through `reduce(_:)` with explicit actions
 - `reduce(_:)` is **pure** — no async, no service calls, no side effects
 - Views never call services directly — all business logic lives in `UseCase` structs
+- For complex features, an **Interactor** sits between View and UseCases/State (see above)
 - Shared UI components (like `ReviewCardStack`, `ReviewConfirmButton`) accept data + callbacks, never hold state
 - `ContinuousScanCoordinator` also follows the `Action/reduce` pattern for its phase transitions
 - **Large views split into sections**: `SettingsView` is a thin composition root; each `Sections/` view handles one concern (stats, scan period, detection, database, about). Database section owns its own `SettingsState`; others receive data as props.
-- **ViewModifier for event handlers**: `ScanView` extracts all `.onChange` / `.onDisappear` / `.fullScreenCover` modifiers into a `ScanEventHandlers: ViewModifier` to help the Swift type-checker with long modifier chains
 
 ### Use Cases
 
@@ -675,6 +699,8 @@ struct DeleteGroupUseCase: UseCase {
 ```
 
 **State classes**: `ScanState`, `ReviewState`, `GroupGridState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
+
+**Interactors**: `ScanInteractor` (orchestrates `ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`).
 
 **Feature namespaces**: `ScanFeature`, `ReviewFeature`, `GroupGridFeature`, `OnboardingFeature`, `SettingsFeature`.
 
@@ -738,7 +764,7 @@ struct DeleteGroupUseCase: UseCase {
 ### Group Grid as inline view mode
 - `ScanView` offers a toolbar toggle between cards (one-at-a-time review) and grid (browse all groups)
 - The grid view is **inline** in the root screen, not a separate sheet
-- `GroupGridState` is owned by `ScanView` so it persists across view mode toggles
+- `GroupGridState` is owned by `ScanInteractor` so it persists across view mode toggles
 - Grid cells use `NavigationLink` for drill-down to `SingleGroupReviewView`
 - After reviewing a group, the user pops back to the same scroll position with the reviewed group removed
 - Grid loads groups in pages of 20 from SwiftData (`loadPendingGroupsPage`)
@@ -762,12 +788,14 @@ struct DeleteGroupUseCase: UseCase {
 
 ### Rescan via signal (AppSettings.rescanRequestId)
 - When the user taps "Rescan with New Period" in Settings, `AppSettings.requestRescan()` bumps a `UUID`
-- `ScanView`'s `ScanEventHandlers` modifier observes this via `.onChange(of: settings.rescanRequestId)`
+- `ScanInteractor` internally observes this property via `withObservationTracking`
 - On change: cancel current scan → reset review/grid state → start fresh scan with `settings.currentDateRange`
 - No callback threading through navigation — the shared `@Observable AppSettings` acts as the signal bus
 
-### ScanEventHandlers ViewModifier
-- `ScanView` had 8+ chained `.onChange` modifiers that caused Swift type-checker timeouts
-- All event-handling modifiers are extracted into a `ScanEventHandlers: ViewModifier`
-- This breaks the modifier chain into two independent type-checking units
-- Private helper functions (`handleScenePhaseChange`, `handleGroupsFound`, `handlePhaseChange`) keep the modifier body clean
+### ScanInteractor (replaces ScanEventHandlers ViewModifier)
+- `ScanView` previously had 8+ chained `.onChange` modifiers (later extracted into a `ScanEventHandlers: ViewModifier`)
+- The Interactor pattern eliminates ALL `.onChange` handlers from the view (except `scenePhase`, which is SwiftUI-only)
+- `ScanInteractor` uses `withObservationTracking` loops to internally observe: `coordinator.phase`, `coordinator.groupsFoundCount`, `coordinator.isActive`, `reviewState.isLoading`, `viewMode`, `settings.rescanRequestId`
+- This keeps the view as a pure rendering layer: it reads state and forwards user intents via `interactor.send(_:)`
+- The interactor owns all state objects (`ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`) and all derived properties (`hasGroups`, `reviewGroupCounter`, `reviewProgressTotal`)
+- Intent enum provides a type-safe contract for all user actions (`launched`, `scenePhaseChanged`, `cancelScan`, `skipGroup`, `deleteGroup`, `toggleKeep`, `switchViewMode`, etc.)
