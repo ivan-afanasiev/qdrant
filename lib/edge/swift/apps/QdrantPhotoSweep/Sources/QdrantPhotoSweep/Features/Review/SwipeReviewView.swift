@@ -2,45 +2,27 @@ import SwiftUI
 
 struct SwipeReviewView: View {
     @Environment(\.dependencies) private var dependencies
-    @State private var coordinator = ContinuousScanCoordinator()
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
-    @State private var loadedFromPersistence = false
+    @State private var loaded = false
 
-    let threshold: Float
     let onFinished: () -> Void
 
     var body: some View {
         Group {
-            switch loadedFromPersistence {
+            switch loaded {
+            case false:
+                ProgressView()
+
             case true:
                 reviewContent
-            case false:
-                switch coordinator.phase {
-                case .idle, .scanning, .grouping:
-                    analyzingView
-
-                case .completed(let groups):
-                    reviewContent
-                        .onAppear {
-                            if reviewState.status == .empty || reviewState.totalGroups == 0 {
-                                reviewState.reduce(.didLoadGroups(groups))
-                            }
-                        }
-
-                case .failed(let error):
-                    detectionFailedView(error: error)
-
-                case .cancelled:
-                    detectionFailedView(error: .unknown("Cancelled"))
-                }
             }
         }
         .navigationTitle(L10n.reviewDuplicates)
         .task {
-            await loadOrDetect()
+            await loadFromPersistence()
         }
         .fullScreenCover(item: $fullscreenPhoto) { photo in
             FullscreenPhotoView(photo: photo) {
@@ -49,80 +31,16 @@ struct SwipeReviewView: View {
         }
     }
 
-    // MARK: - Detection Phase
-
-    private var analyzingView: some View {
-        VStack(spacing: QSpacing.lg) {
-            let progress = coordinator.scanProgress
-
-            ZStack {
-                Circle()
-                    .stroke(lineWidth: QSize.progressStroke)
-                    .foregroundStyle(QColors.surfaceMuted)
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
-                    .foregroundStyle(QColors.primary)
-                    .rotationEffect(.degrees(-90))
-                    .animation(QAnimation.smooth, value: progress)
-                VStack {
-                    Text("\(Int(progress * 100))%")
-                        .font(QTypography.numericLarge)
-                }
-            }
-            .frame(width: QSize.progressRing, height: QSize.progressRing)
-
-            Text(L10n.findingDuplicates)
-                .font(QTypography.bodyLarge)
-            Text(L10n.findingDuplicatesSubtitle)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-    }
-
-    private func detectionFailedView(error: AppError) -> some View {
-        VStack(spacing: QSpacing.md) {
-            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
-            Text(L10n.error)
-                .font(QTypography.titleMedium)
-            Text(error.localizedDescription)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-                .multilineTextAlignment(.center)
-
-            Button(L10n.retry) {
-                startGrouping()
-            }
-            .buttonStyle(.qPrimary)
-
-            Button(L10n.done) {
-                onFinished()
-            }
-            .buttonStyle(.qGhost)
-        }
-        .padding()
-    }
-
-    private func loadOrDetect() async {
+    private func loadFromPersistence() async {
         guard let deps = dependencies else { return }
 
         if let pendingDTOs = try? await deps.scanStore.loadPendingGroups(), !pendingDTOs.isEmpty {
             let groups = pendingDTOs.compactMap { $0.toDuplicateGroup() }
             if !groups.isEmpty {
                 reviewState.reduce(.didLoadGroups(groups))
-                loadedFromPersistence = true
-                return
             }
         }
-
-        startGrouping()
-    }
-
-    private func startGrouping() {
-        guard let deps = dependencies else { return }
-        coordinator.startGrouping(deps: deps)
+        loaded = true
     }
 
     // MARK: - Review Phase
@@ -246,8 +164,6 @@ struct SwipeReviewView: View {
         dragOffset != 0
     }
 
-    /// Detects whether the initial gesture direction is horizontal;
-    /// if so, locks into swipe mode and tracks the finger.
     private func swipeDetectionGesture(screenWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 20)
             .onChanged { value in

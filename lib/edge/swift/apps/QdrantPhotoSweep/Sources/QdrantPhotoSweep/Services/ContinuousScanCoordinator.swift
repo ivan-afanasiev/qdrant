@@ -8,23 +8,21 @@ final class ContinuousScanCoordinator {
 
     enum Phase: Equatable {
         case idle
-        case scanning(processed: Int, total: Int)
-        case grouping(progress: Double)
+        case scanning(processed: Int, total: Int, groupsFound: Int)
         case completed(groups: [DuplicateGroup])
         case failed(AppError)
         case cancelled
     }
 
     private(set) var phase: Phase = .idle
+    private(set) var discoveredGroups: [DuplicateGroup] = []
     private var workTask: Task<Void, Never>?
     private var bgTaskHandle: AnyObject?
 
     var scanProgress: Double {
         switch phase {
-        case .scanning(let processed, let total) where total > 0:
+        case .scanning(let processed, let total, _) where total > 0:
             Double(processed) / Double(total)
-        case .grouping(let progress):
-            progress
         case .completed:
             1.0
         default:
@@ -33,9 +31,15 @@ final class ContinuousScanCoordinator {
     }
 
     var isActive: Bool {
+        if case .scanning = phase { return true }
+        return false
+    }
+
+    var groupsFoundCount: Int {
         switch phase {
-        case .scanning, .grouping: true
-        default: false
+        case .scanning(_, _, let count): count
+        case .completed(let groups): groups.count
+        default: discoveredGroups.count
         }
     }
 
@@ -73,28 +77,19 @@ final class ContinuousScanCoordinator {
         }
     }
 
-    // MARK: - Full pipeline: scan + detect
+    // MARK: - Start Pipeline
 
-    func startFullPipeline(
+    func startPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
         deps: Dependencies
     ) {
         guard !isActive else { return }
-        phase = .scanning(processed: 0, total: 0)
+        phase = .scanning(processed: 0, total: 0, groupsFound: 0)
+        discoveredGroups = []
 
         requestBackgroundSupport()
-        runFullPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
-    }
-
-    // MARK: - Standalone grouping
-
-    func startGrouping(deps: Dependencies, sessionId: UUID? = nil) {
-        guard !isActive else { return }
-        phase = .grouping(progress: 0)
-
-        requestBackgroundSupport()
-        runGrouping(deps: deps, sessionId: sessionId)
+        runPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
     }
 
     func cancel() {
@@ -135,12 +130,6 @@ final class ContinuousScanCoordinator {
         task.progress.completedUnitCount = units
     }
 
-    private func updateBgTitle(_ title: String, subtitle: String) {
-        guard #available(iOS 26.0, *),
-              let task = bgTaskHandle as? BGContinuedProcessingTask else { return }
-        task.updateTitle(title, subtitle: subtitle)
-    }
-
     private func completeBgTask(success: Bool) {
         guard #available(iOS 26.0, *),
               let task = bgTaskHandle as? BGContinuedProcessingTask else { return }
@@ -148,9 +137,9 @@ final class ContinuousScanCoordinator {
         bgTaskHandle = nil
     }
 
-    // MARK: - Full pipeline execution
+    // MARK: - Pipeline execution
 
-    private func runFullPipeline(
+    private func runPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
         deps: Dependencies
@@ -167,9 +156,10 @@ final class ContinuousScanCoordinator {
                     let status = scanState.status
                     switch status {
                     case .scanning(let processed, let total):
-                        self.phase = .scanning(processed: processed, total: total)
+                        let groupCount = self.discoveredGroups.count
+                        self.phase = .scanning(processed: processed, total: total, groupsFound: groupCount)
                         if total > 0 {
-                            self.updateBgProgress(Int64(Double(processed) / Double(total) * 50))
+                            self.updateBgProgress(Int64(Double(processed) / Double(total) * 100))
                         }
                     default:
                         break
@@ -185,6 +175,16 @@ final class ContinuousScanCoordinator {
                 configureDimensions: { dims in
                     if let store = deps.vectorStore as? QdrantVectorStore {
                         await store.updateDimensions(dims)
+                    }
+                },
+                similarityThreshold: deps.settings.similarityThreshold,
+                onGroupsUpdated: { [weak self] groups in
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        self.discoveredGroups = groups
+                        if case .scanning(let p, let t, _) = self.phase {
+                            self.phase = .scanning(processed: p, total: t, groupsFound: groups.count)
+                        }
                     }
                 }
             )
@@ -221,122 +221,11 @@ final class ContinuousScanCoordinator {
                 break
             }
 
-            self.updateBgProgress(50)
-            self.updateBgTitle(
-                String(localized: "continuousTask.grouping.title"),
-                subtitle: String(localized: "continuousTask.grouping.subtitle")
-            )
-
-            await MainActor.run { self.phase = .grouping(progress: 0) }
-
-            let sessionDTO = try? await deps.scanStore.latestCompletedSession()
-            let groups = await self.performGrouping(
-                deps: deps,
-                sessionId: sessionDTO?.id,
-                progressBase: 50
-            )
-
-            if Task.isCancelled {
-                try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run { self.phase = .cancelled }
-                self.completeBgTask(success: false)
-                self.clearActiveCoordinator()
-                return
-            }
-
             self.updateBgProgress(100)
-            await MainActor.run { self.phase = .completed(groups: groups) }
+            let finalGroups = await MainActor.run { self.discoveredGroups }
+            await MainActor.run { self.phase = .completed(groups: finalGroups) }
             self.completeBgTask(success: true)
             self.clearActiveCoordinator()
-        }
-    }
-
-    // MARK: - Standalone grouping execution
-
-    private func runGrouping(
-        deps: Dependencies,
-        sessionId: UUID?
-    ) {
-        workTask?.cancel()
-        workTask = Task { [weak self] in
-            guard let self else { return }
-
-            let resolvedSessionId: UUID?
-            if let sid = sessionId {
-                resolvedSessionId = sid
-            } else {
-                resolvedSessionId = try? await deps.scanStore.latestCompletedSession()?.id
-            }
-
-            let groups = await self.performGrouping(
-                deps: deps,
-                sessionId: resolvedSessionId,
-                progressBase: 0
-            )
-
-            if Task.isCancelled {
-                try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run { self.phase = .cancelled }
-                self.completeBgTask(success: false)
-                self.clearActiveCoordinator()
-                return
-            }
-
-            self.updateBgProgress(100)
-            await MainActor.run { self.phase = .completed(groups: groups) }
-            self.completeBgTask(success: true)
-            self.clearActiveCoordinator()
-        }
-    }
-
-    // MARK: - Shared grouping logic
-
-    private func performGrouping(
-        deps: Dependencies,
-        sessionId: UUID?,
-        progressBase: Int64
-    ) async -> [DuplicateGroup] {
-        if let sessionId {
-            try? await deps.scanStore.updateSessionStatus(sessionId, status: .grouping, indexedPhotos: nil)
-        }
-
-        let detectionState = DuplicateDetectionState()
-        let threshold = deps.settings.similarityThreshold
-
-        let observation = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(200))
-                guard let self else { return }
-                if case .analyzing(let p) = detectionState.status {
-                    self.phase = .grouping(progress: p)
-                    let remaining = 100 - progressBase
-                    self.updateBgProgress(progressBase + Int64(p * Double(remaining)))
-                }
-            }
-        }
-
-        await detectionState.findDuplicates(
-            vectorStore: deps.vectorStore,
-            threshold: threshold,
-            scanStore: deps.scanStore
-        )
-
-        observation.cancel()
-
-        if Task.isCancelled {
-            if let sessionId {
-                try? await deps.scanStore.updateSessionStatus(sessionId, status: .groupingInterrupted, indexedPhotos: nil)
-            }
-            return []
-        }
-
-        if let sessionId {
-            try? await deps.scanStore.updateSessionStatus(sessionId, status: .completed, indexedPhotos: nil)
-        }
-
-        switch await detectionState.status {
-        case .complete(let groups): return groups
-        default: return []
         }
     }
 }

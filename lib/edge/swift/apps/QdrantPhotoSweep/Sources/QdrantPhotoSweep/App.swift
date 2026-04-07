@@ -22,7 +22,8 @@ struct QdrantPhotoSweepApp: App {
                 ScanSessionEntity.self,
                 PhotoPointEntity.self,
                 DuplicateGroupEntity.self,
-                GroupMemberEntity.self
+                GroupMemberEntity.self,
+                SimilarityEdgeEntity.self
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")

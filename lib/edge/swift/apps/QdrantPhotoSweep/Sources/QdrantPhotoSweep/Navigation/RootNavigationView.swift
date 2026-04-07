@@ -14,20 +14,18 @@ struct RootNavigationView: View {
                     path.append(.scan(dateRange, resumeSessionId: sessionId))
                 },
                 onReviewPending: {
-                    let threshold = dependencies?.settings.similarityThreshold ?? AppSettings.defaultSimilarityThreshold
-                    path.append(.review(threshold: threshold))
+                    path.append(.review)
                 }
             )
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
                 case .scan(let dateRange, let resumeSessionId):
                     ScanView(dateRange: dateRange, resumeSessionId: resumeSessionId) {
-                        let threshold = dependencies?.settings.similarityThreshold ?? AppSettings.defaultSimilarityThreshold
-                        path = [.review(threshold: threshold)]
+                        path.removeAll()
                     }
 
-                case .review(let threshold):
-                    SwipeReviewView(threshold: threshold, onFinished: {
+                case .review:
+                    SwipeReviewView(onFinished: {
                         path.removeAll()
                     })
 

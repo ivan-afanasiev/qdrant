@@ -2,7 +2,7 @@ import Foundation
 
 enum AppRoute: Hashable {
     case scan(DateRange, resumeSessionId: UUID? = nil)
-    case review(threshold: Float)
+    case review
     case settings
 }
 

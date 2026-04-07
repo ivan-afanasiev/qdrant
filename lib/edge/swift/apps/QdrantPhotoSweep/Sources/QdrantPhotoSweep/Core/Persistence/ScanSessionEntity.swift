@@ -17,6 +17,9 @@ final class ScanSessionEntity {
     @Relationship(deleteRule: .cascade, inverse: \DuplicateGroupEntity.session)
     var duplicateGroups: [DuplicateGroupEntity] = []
 
+    @Relationship(deleteRule: .cascade, inverse: \SimilarityEdgeEntity.session)
+    var similarityEdges: [SimilarityEdgeEntity] = []
+
     init(
         id: UUID = UUID(),
         rangeStart: Date,
@@ -41,6 +44,4 @@ enum ScanSessionStatus: String {
     case completed
     case interrupted
     case failed
-    case grouping
-    case groupingInterrupted
 }

@@ -24,7 +24,6 @@ enum BackgroundScanService {
         try? BGTaskScheduler.shared.submit(request)
     }
 
-    /// Mark any in-progress sessions as interrupted and flush pending work.
     static func interruptActiveSessions(scanStore: any ScanSessionStoring) {
         Task { try? await scanStore.interruptActiveSessions() }
     }
@@ -59,6 +58,8 @@ enum BackgroundScanService {
         defer { Task { await vectorStore.close() } }
 
         let bgScanState = await ScanState()
+        var groupCount = 0
+
         let pipeline = ScanPipeline(
             photoLibrary: photoLibrary,
             embeddingService: embeddingService,
@@ -66,6 +67,9 @@ enum BackgroundScanService {
             scanStore: scanStore,
             configureDimensions: { dims in
                 await vectorStore.updateDimensions(dims)
+            },
+            onGroupsUpdated: { groups in
+                groupCount = groups.count
             }
         )
 
@@ -77,30 +81,6 @@ enum BackgroundScanService {
             if Task.isCancelled {
                 try? await scanStore.interruptActiveSessions()
                 return -1
-            }
-        }
-
-        // Priority 1.5: Resume interrupted grouping
-        if let groupingInterrupted = try? await scanStore.latestGroupingInterruptedSession() {
-            try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .grouping, indexedPhotos: nil)
-
-            let detectionState = await DuplicateDetectionState()
-            await detectionState.findDuplicates(
-                vectorStore: vectorStore,
-                threshold: AppSettings.defaultSimilarityThreshold,
-                scanStore: scanStore
-            )
-
-            if Task.isCancelled {
-                try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .groupingInterrupted, indexedPhotos: nil)
-                return -1
-            }
-
-            try? await scanStore.updateSessionStatus(groupingInterrupted.id, status: .completed, indexedPhotos: nil)
-
-            if case .complete(let groups) = await detectionState.status, groups.count > 0 {
-                await postLocalNotification(groupCount: groups.count)
-                return groups.count
             }
         }
 
@@ -123,23 +103,7 @@ enum BackgroundScanService {
             }
         }
 
-        // Run duplicate detection
         guard !Task.isCancelled else { return -1 }
-
-        let detectionState = await DuplicateDetectionState()
-        let threshold = AppSettings.defaultSimilarityThreshold
-        await detectionState.findDuplicates(
-            vectorStore: vectorStore,
-            threshold: threshold,
-            scanStore: scanStore
-        )
-
-        guard !Task.isCancelled else { return -1 }
-
-        var groupCount = 0
-        if case .complete(let groups) = await detectionState.status {
-            groupCount = groups.count
-        }
 
         if groupCount > 0 {
             await postLocalNotification(groupCount: groupCount)

@@ -84,8 +84,6 @@ enum L10n {
     static let scanNewPhotos: LocalizedStringKey = "home.newPhotos.scanButton"
     static let continueReview: LocalizedStringKey = "home.pendingGroups.continueReview"
     static let resumeScan: LocalizedStringKey = "home.interruptedScan.resumeButton"
-    static let resumeGrouping: LocalizedStringKey = "home.groupingInterrupted.resumeButton"
-    static let groupingInterruptedBanner: LocalizedStringKey = "home.groupingInterrupted.banner"
 
     static func newPhotosSinceLastScan(_ count: Int) -> String {
         String(localized: "home.newPhotos.banner \(count)")
@@ -97,6 +95,19 @@ enum L10n {
 
     static func interruptedScanBanner(_ remaining: Int) -> String {
         String(localized: "home.interruptedScan.banner \(remaining)")
+    }
+
+    // MARK: - Scan Progress (inline detection)
+
+    static let scanningWithInlineDetection: LocalizedStringKey = "scan.inlineDetection.subtitle"
+    static let waitingForMoreGroups: LocalizedStringKey = "scan.waitingForMoreGroups"
+
+    static func scanProgressStatus(_ processed: Int, _ total: Int) -> String {
+        String(localized: "scan.progress.status \(processed) \(total)")
+    }
+
+    static func groupsFoundSoFar(_ count: Int) -> String {
+        String(localized: "scan.progress.groupsFound \(count)")
     }
 
     // MARK: - Home Stats
