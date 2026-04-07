@@ -63,12 +63,34 @@ actor QdrantVectorStore: VectorStoring {
                 ],
                 sparseVectorData: [:]
             )
-            let loaded = try EdgeShard.load(path: basePath, config: config)
+            let loaded = try loadShardWithRetry(config: config, maxAttempts: 3)
             shard = loaded
             return loaded
+        } catch let error as AppError {
+            throw error
         } catch {
             throw .vectorStore("Failed to load shard: \(error.localizedDescription)")
         }
+    }
+
+    private func loadShardWithRetry(config: EdgeConfig, maxAttempts: Int) throws -> EdgeShard {
+        var lastError: Error?
+        for attempt in 0..<maxAttempts {
+            do {
+                return try EdgeShard.load(path: basePath, config: config)
+            } catch {
+                let message = error.localizedDescription
+                let isTransientLock = message.contains("WouldBlock") || message.contains("Resource temporarily unavailable")
+                guard isTransientLock, attempt < maxAttempts - 1 else {
+                    lastError = error
+                    break
+                }
+                lastError = error
+                let delayMs = UInt32((attempt + 1) * 500)
+                Thread.sleep(forTimeInterval: Double(delayMs) / 1000.0)
+            }
+        }
+        throw AppError.vectorStore("Failed to load shard: \(lastError?.localizedDescription ?? "unknown")")
     }
 
     nonisolated func exists(id: String) async throws(AppError) -> Bool {

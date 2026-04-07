@@ -37,8 +37,7 @@ enum L10n {
     static let cancel: LocalizedStringKey = "scan.cancel"
     static let scanComplete: LocalizedStringKey = "scan.complete"
     static let findDuplicates: LocalizedStringKey = "scan.findDuplicates"
-    static let scanFailed: LocalizedStringKey = "scan.failed"
-    static let scanCancelled: LocalizedStringKey = "scan.cancelled"
+    static let scanResuming: LocalizedStringKey = "scan.resuming"
     static let retry: LocalizedStringKey = "scan.retry"
 
     static func photosIndexed(_ count: Int) -> String {

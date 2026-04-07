@@ -7,7 +7,6 @@ struct ScanView: View {
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
-    @State private var swipeDirection: SwipeDirection = .none
     @State private var showCompletedBadge = false
     @State private var showGroupGrid = false
 
@@ -45,32 +44,28 @@ struct ScanView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            switch coordinator.phase {
-            case .idle:
+            if case .idle = coordinator.phase {
                 Spacer()
                 idleView
                 Spacer()
-
-            case .scanning:
-                scanningContent
-
-            case .completed:
-                completedContent
-
-            case .failed(let error):
-                Spacer()
-                failedView(error: error)
-                Spacer()
-
-            case .cancelled:
-                Spacer()
-                cancelledView
-                Spacer()
+            } else {
+                scanContent
             }
         }
         .navigationTitle(L10n.scanning)
         .navigationBarBackButtonHidden(coordinator.isActive)
         .toolbar {
+            if coordinator.isActive {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive) {
+                        Task { try? await scanUseCases?.cancelScan.execute(()) }
+                    } label: {
+                        Text(L10n.cancel)
+                            .font(QTypography.caption)
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
             if canShowGroupGrid {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -101,8 +96,15 @@ struct ScanView: View {
             UIApplication.shared.isIdleTimerDisabled = active
         }
         .onChange(of: scenePhase) { _, newPhase in
-            guard coordinator.isActive, newPhase == .background else { return }
-            Task { try? await scanUseCases?.manageBackground.execute(()) }
+            switch newPhase {
+            case .background where coordinator.isActive:
+                Task { try? await scanUseCases?.manageBackground.execute(()) }
+            case .active:
+                coordinator.endExtendedBackgroundExecution()
+                coordinator.resumeIfInterrupted()
+            default:
+                break
+            }
         }
         .onChange(of: coordinator.groupsFoundCount) { _, count in
             guard count > 0, reviewState.status == .idle || reviewState.status == .noMoreGroups else { return }
@@ -114,7 +116,8 @@ struct ScanView: View {
             }
         }
         .onChange(of: coordinator.phase) { _, newPhase in
-            if case .completed = newPhase {
+            switch newPhase {
+            case .completed:
                 withAnimation { showCompletedBadge = true }
                 Task {
                     try? await Task.sleep(for: .seconds(3))
@@ -123,6 +126,10 @@ struct ScanView: View {
                 if reviewState.status == .idle || reviewState.status == .noMoreGroups {
                     loadNextGroupFromDB()
                 }
+            case .idle where reviewState.reviewedInSession > 0 || reviewState.stats.groupsReviewed > 0:
+                onFinished()
+            default:
+                break
             }
         }
         .fullScreenCover(item: $fullscreenPhoto) { photo in
@@ -142,25 +149,42 @@ struct ScanView: View {
         }
     }
 
-    // MARK: - Scanning (with inline groups)
+    // MARK: - Scan Content (unified for scanning / interrupted / completed)
 
-    private var scanningContent: some View {
+    private var scanContent: some View {
         VStack(spacing: 0) {
-            scanProgressBar
-                .padding(.horizontal)
-                .padding(.top, QSpacing.sm)
+            if coordinator.isActive {
+                scanProgressBar
+                    .padding(.horizontal)
+                    .padding(.top, QSpacing.sm)
+            } else if coordinator.isInterrupted {
+                interruptedBanner
+                    .padding(.horizontal)
+                    .padding(.top, QSpacing.sm)
+            } else if showCompletedBadge {
+                completedBadge
+                    .padding(.horizontal)
+                    .padding(.top, QSpacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
 
             switch reviewState.status {
             case .reviewing:
                 reviewingSection
             case .loading:
                 ReviewLoadingView()
-            case .noMoreGroups, .idle:
-                scanningPlaceholder
+            case .deletingGroup:
+                ReviewDeletingView()
             case .allReviewed:
-                ReviewWaitingView()
-            default:
-                scanningPlaceholder
+                ReviewAllDoneView(stats: reviewState.stats, onFinished: onFinished)
+            case .failed(let error):
+                ReviewFailedView(error: error, onDismiss: onFinished)
+            case .noMoreGroups, .idle:
+                if case .completed = coordinator.phase {
+                    completedEmptyView
+                } else {
+                    scanningPlaceholder
+                }
             }
         }
     }
@@ -183,15 +207,19 @@ struct ScanView: View {
                     }
                 }
             }
-
-            Button(role: .destructive) {
-                Task { try? await scanUseCases?.cancelScan.execute(()) }
-            } label: {
-                Text(L10n.cancel)
-                    .font(QTypography.caption)
-            }
-            .buttonStyle(.borderless)
         }
+    }
+
+    private var interruptedBanner: some View {
+        HStack(spacing: QSpacing.xs) {
+            ProgressView()
+                .controlSize(.small)
+            Text(L10n.scanResuming)
+                .font(QTypography.caption)
+                .foregroundStyle(QColors.textSecondary)
+            Spacer()
+        }
+        .padding(.vertical, QSpacing.xs)
     }
 
     private var scanningPlaceholder: some View {
@@ -210,32 +238,26 @@ struct ScanView: View {
         .padding()
     }
 
-    // MARK: - Completed
-
-    private var completedContent: some View {
-        Group {
-            switch reviewState.status {
-            case .idle, .noMoreGroups:
-                completedEmptyView
-            case .loading:
-                VStack(spacing: 0) {
-                    if showCompletedBadge { completedBadge.padding(.horizontal).padding(.top, QSpacing.sm).transition(.move(edge: .top).combined(with: .opacity)) }
-                    ReviewLoadingView()
-                }
-            case .reviewing:
-                VStack(spacing: 0) {
-                    if showCompletedBadge { completedBadge.padding(.horizontal).padding(.top, QSpacing.sm).transition(.move(edge: .top).combined(with: .opacity)) }
-                    reviewingSection
-                }
-            case .deletingGroup:
-                ReviewDeletingView()
-            case .allReviewed:
-                ReviewAllDoneView(stats: reviewState.stats, onFinished: onFinished)
-            case .failed(let error):
-                ReviewFailedView(error: error, onDismiss: onFinished)
+    private func progressRing(value: Double) -> some View {
+        ZStack {
+            Circle()
+                .stroke(lineWidth: QSize.progressStroke)
+                .foregroundStyle(QColors.surfaceMuted)
+            Circle()
+                .trim(from: 0, to: value)
+                .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
+                .foregroundStyle(QColors.primary)
+                .rotationEffect(.degrees(-90))
+                .animation(QAnimation.smooth, value: value)
+            VStack {
+                Text("\(Int(value * 100))%")
+                    .font(QTypography.numericLarge)
             }
         }
+        .frame(width: QSize.progressRing, height: QSize.progressRing)
     }
+
+    // MARK: - Completed
 
     private var completedBadge: some View {
         HStack(spacing: QSpacing.xs) {
@@ -332,57 +354,6 @@ struct ScanView: View {
             .buttonStyle(.qGhost)
         }
         .padding(.horizontal)
-    }
-
-    // MARK: - Status Views
-
-    private func failedView(error: AppError) -> some View {
-        VStack(spacing: QSpacing.md) {
-            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
-            Text(L10n.scanFailed)
-                .font(QTypography.titleMedium)
-            Text(error.localizedDescription)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-                .multilineTextAlignment(.center)
-
-            Button(L10n.retry) {
-                Task { try? await scanUseCases?.startScan.execute(StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)) }
-            }
-            .buttonStyle(.qPrimary)
-        }
-    }
-
-    private var cancelledView: some View {
-        VStack(spacing: QSpacing.md) {
-            QStatusIcon(QIcons.cancelFill, size: QSize.iconLarge, color: QColors.warning)
-            Text(L10n.scanCancelled)
-                .font(QTypography.titleMedium)
-
-            Button(L10n.retry) {
-                Task { try? await scanUseCases?.startScan.execute(StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)) }
-            }
-            .buttonStyle(.qPrimary)
-        }
-    }
-
-    private func progressRing(value: Double) -> some View {
-        ZStack {
-            Circle()
-                .stroke(lineWidth: QSize.progressStroke)
-                .foregroundStyle(QColors.surfaceMuted)
-            Circle()
-                .trim(from: 0, to: value)
-                .stroke(style: StrokeStyle(lineWidth: QSize.progressStroke, lineCap: .round))
-                .foregroundStyle(QColors.primary)
-                .rotationEffect(.degrees(-90))
-                .animation(QAnimation.smooth, value: value)
-            VStack {
-                Text("\(Int(value * 100))%")
-                    .font(QTypography.numericLarge)
-            }
-        }
-        .frame(width: QSize.progressRing, height: QSize.progressRing)
     }
 
     // MARK: - Swipe Animation

@@ -46,6 +46,10 @@ enum BackgroundScanService {
 
     @discardableResult
     private static func performBackgroundWork(modelContainer: ModelContainer) async -> Int {
+        if await ContinuousScanCoordinator.isForegroundScanActive {
+            return 0
+        }
+
         let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
         let photoLibrary = PhotoLibraryService()
         let embeddingService = VisionEmbeddingService()

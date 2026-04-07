@@ -48,6 +48,8 @@
 
 The app takes photos from the user's library, generates vector embeddings using Apple's Vision framework, stores them in an on-device Qdrant Edge vector database, and **detects duplicates inline** by searching for similar vectors immediately after each batch upsert. Discovered similarity edges are persisted in SwiftData and grouped via Union-Find. Groups stream to the UI as they are found, allowing the user to review duplicates while scanning continues.
 
+The **UI is fully decoupled from the pipeline**: it reads groups from SwiftData and never shows pipeline errors. If the scan is interrupted (background suspension, error, system cancel), it auto-resumes transparently when the app returns to the foreground.
+
 ---
 
 ## 2. Project Structure
@@ -105,7 +107,13 @@ Sources/QdrantPhotoSweep/
 │   │   └── UseCases/
 │   │       ├── DeleteGroupUseCase.swift
 │   │       ├── SkipGroupUseCase.swift
-│   │       └── LoadNextGroupUseCase.swift
+│   │       ├── LoadNextGroupUseCase.swift
+│   │       ├── LoadGroupsPageUseCase.swift  # Paginated group summaries for grid
+│   │       └── LoadGroupByIdUseCase.swift   # Single group fetch for grid → review
+│   ├── GroupGrid/
+│   │   ├── GroupGridState.swift       # GroupGridFeature namespace + GroupGridState (pure reducer)
+│   │   ├── GroupGridView.swift        # 2-column LazyVGrid with pagination + NavigationStack
+│   │   └── SingleGroupReviewView.swift# Self-contained single-group review (used inside grid sheet)
 │   ├── Home/
 │   │   ├── HomeView.swift             # Dashboard with banners + stats (delegates to use cases)
 │   │   ├── HomeState.swift            # HomeFeature namespace + HomeState (pure reducer)
@@ -178,6 +186,7 @@ Each feature defines a `UseCases` bundle, constructed via a factory extension on
 ```swift
 extension Dependencies {
     var reviewUseCases: ReviewFeature.UseCases { ... }
+    var groupGridUseCases: GroupGridFeature.UseCases { ... }
     var settingsUseCases: SettingsFeature.UseCases { ... }
     var homeUseCases: HomeFeature.UseCases { ... }
 }
@@ -219,9 +228,14 @@ App.swift
                              │    └── Settings gear icon         → .settings
                              │
                              ├── ScanView (unified scan + review)
+                             │    ├── Progress bar / interrupted banner / completed badge
+                             │    ├── Review cards always visible (DB-driven)
+                             │    ├── Cancel button (toolbar) → back to Home
+                             │    ├── Grid button (scan complete) → sheet: GroupGridView
                              │    └── On finished → clears path (back to Home)
                              │
                              ├── SwipeReviewView (persistence resume only)
+                             │    ├── Grid button → sheet: GroupGridView
                              │    └── On finished → clears path (back to Home)
                              │
                              └── SettingsView
@@ -229,7 +243,20 @@ App.swift
 
 Navigation uses `NavigationStack(path:)` with `AppRoute` enum.
 
-**Key change**: The `.scan` route now shows a **unified screen** that handles both scanning and reviewing. Groups appear as cards during the scan. The `.review` route is only used when resuming review of already-persisted pending groups (e.g., from a Home banner).
+**Key change**: The `.scan` route now shows a **unified screen** that handles both scanning and reviewing. Groups appear as cards during the scan. The review UI is always visible (DB-driven) regardless of the pipeline's state. The `.review` route is only used when resuming review of already-persisted pending groups (e.g., from a Home banner).
+
+### Group Grid Sheet
+
+Both `ScanView` (after scan completes) and `SwipeReviewView` show a toolbar button that opens a **Group Grid** sheet. The sheet owns its own `NavigationStack`:
+
+```
+GroupGridView (2-column LazyVGrid, paginated from DB)
+  └── Tap group → push SingleGroupReviewView
+       ├── Skip/delete → pop back to grid, group removed from list
+       └── Grid scroll position and loaded pages are preserved
+```
+
+This in-sheet navigation avoids destroying the grid state when reviewing a group. `SingleGroupReviewView` is a self-contained review screen that reuses `ReviewCardStack` and `ReviewConfirmButton` for a single group.
 
 ---
 
@@ -376,17 +403,46 @@ This ensures the UI **never shifts** when new groups are discovered during scann
 
 ### Inline Review (during scanning — ScanView)
 
-The unified `ScanView` embeds a `ReviewState` and displays Tinder-style group cards:
+The unified `ScanView` is a **database-driven UI** that is fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the UI reads from it. The user never sees error or failure screens from the pipeline.
 
-- **Progress bar** at top shows scan progress and groups-found count
-- When `coordinator.groupsFoundCount` increases and the review is idle, a DB fetch is triggered
-- **Group cards** are stable — only replaced when the user explicitly skips/deletes
-- **When scan finishes**: progress bar disappears, remaining groups can still be reviewed
-- **If all groups reviewed before scan ends**: shows "waiting for more groups" placeholder
+- **Scanning**: Progress bar at top shows scan progress and groups-found count. Cancel button in toolbar.
+- **Interrupted**: A subtle "Resuming scan…" banner replaces the progress bar. The pipeline auto-resumes.
+- **Completed**: Brief "Scan complete" badge, then only the review UI remains.
+- In **all three states**, the review section is visible and functional:
+  - When `coordinator.groupsFoundCount` increases and the review is idle, a DB fetch is triggered
+  - **Group cards** are stable — only replaced when the user explicitly skips/deletes
+  - If all groups reviewed before scan ends: shows scanning placeholder
+  - If scan completes with no groups: shows "No duplicates found" with Done button
 
 ### Persistence Resume Review
 
 `SwipeReviewView` uses the same DB-driven `ReviewState` — used when returning to review from a Home banner.
+
+### Group Grid (browse all groups)
+
+Both `ScanView` and `SwipeReviewView` offer a toolbar button to open a paginated grid of all pending groups:
+
+```
+GroupGridFeature.UseCases:
+  - LoadGroupsPageUseCase  → paginated loading via scanStore.loadPendingGroupsPage(offset:, limit:)
+  - LoadGroupByIdUseCase   → fetch full DuplicateGroup for a selected grid cell
+
+GroupGridState (pure reducer):
+  - Manages groups: [GroupSummary], totalCount, hasMore, status
+  - Actions: didStartLoading, didLoadPage, didFail, didRemoveGroup(UUID)
+
+GroupGridView:
+  - Owns its own NavigationStack with NavigationPath
+  - 2-column LazyVGrid with pagination (loads 20 groups per page)
+  - Tap → push GroupDetailLoader → SingleGroupReviewView
+  - On review complete → pop back, didRemoveGroup removes the group from grid in place
+
+SingleGroupReviewView:
+  - Self-contained review for one group (reuses ReviewCardStack + ReviewConfirmButton)
+  - Skip/delete → calls ReviewFeature.UseCases → notifies grid → pops via dismiss()
+```
+
+This preserves the grid's scroll position and loaded pages while the user reviews individual groups.
 
 ### Review UI State Machine (`ReviewState`)
 
@@ -469,7 +525,13 @@ GroupMemberEntity
 
 All persistence goes through the `ScanSessionStoring` protocol. The concrete `SwiftDataScanStore` is a `@ModelActor`, which gives it its own `ModelContext` on a background thread — safe for concurrent access from any actor.
 
-DTOs (`ScanSessionDTO`, `DuplicateGroupDTO`) are plain `Sendable` structs used to transport data across actor boundaries.
+DTOs (`ScanSessionDTO`, `DuplicateGroupDTO`, `GroupSummary`) are plain `Sendable` structs used to transport data across actor boundaries.
+
+Key query methods:
+- `loadNextPendingGroup()` — fetches the first pending group (used by sequential review)
+- `loadPendingGroupsPage(offset:limit:)` — paginated loading (used by GroupGridView)
+- `loadPendingGroup(id:)` — single group by ID (used when navigating from grid to review)
+- `pendingGroupCount()` — total count of pending groups
 
 ---
 
@@ -499,7 +561,7 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 ### 9.2 ContinuousScanCoordinator
 
 - Created as `@State` on `ScanView`
-- Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/failed/cancelled)
+- Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/interrupted)
 - Delegates background task management to `BackgroundTaskManager`
 - On iOS 26+:
   1. `startPipeline()` → `startWithContinuedTask()`
@@ -515,12 +577,15 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
     - `ScanView` observes scene phase → calls `coordinator.beginExtendedBackgroundExecution()`
     - `ScanView` schedules `BackgroundScanService.schedule(urgent: true)` as fallback
     - Extended execution buys ~30s to finish the current batch and save state
-    - If the scan doesn't finish in time, it's marked `.interrupted` and resumed later
-- Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groups:)` / `failed` / `cancelled`
+    - If the scan doesn't finish in time, it's marked `.interrupted` and auto-resumes when the app returns to foreground
+- Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groupsFound:)` / `interrupted(processed:total:)`
+- **Interrupted auto-resume**: When the pipeline is interrupted (background suspension, error, or system cancellation), the coordinator saves the `dateRange`, `resumeSessionId`, and `deps`. On return to foreground, `resumeIfInterrupted()` automatically restarts the pipeline — no user intervention needed.
+- **Explicit cancel** (user taps Cancel): Transitions to `.idle`, clears saved state — no auto-resume. ScanView navigates back to Home.
 
 ### 9.3 BackgroundScanService (BGProcessingTask)
 
 - Registered in `App.init()`, scheduled when app enters background
+- **Skips work** when `ContinuousScanCoordinator.isForegroundScanActive` is true — avoids double-opening the Qdrant WAL
 - **Urgent mode** (`earliestBeginDate = now`): scheduled from `ScanView` when backgrounding during active scan
 - **Deferred mode** (`earliestBeginDate = 15 min`): default fallback from `App.swift` scene phase handler
 - Creates fresh service instances (no access to Environment)
@@ -534,12 +599,16 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 
 ```
 ScanView (when scan is active):
-  .background → coordinator.beginExtendedBackgroundExecution() (iOS < 26 safety net)
+  .background → coordinator.beginExtendedBackgroundExecution()
               + BackgroundScanService.schedule(urgent: true)
+  .active    → coordinator.endExtendedBackgroundExecution()
+              + coordinator.resumeIfInterrupted() (auto-restarts pipeline if it was interrupted)
 
 App.swift (always):
   .background → BackgroundScanService.schedule()  (deferred, 15 min)
 ```
+
+The `beginExtendedBackgroundExecution` / `endExtendedBackgroundExecution` pair ensures the UIKit background task token has a proper lifecycle: created on backgrounding, ended on foregrounding (or when the pipeline finishes, whichever comes first). This prevents the "Background Task created over 30 seconds ago" warning.
 
 ---
 
@@ -611,9 +680,9 @@ struct DeleteGroupUseCase: UseCase {
 }
 ```
 
-**State classes**: `ScanState`, `ReviewState`, `HomeState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
+**State classes**: `ScanState`, `ReviewState`, `GroupGridState`, `HomeState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
 
-**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `HomeFeature`, `OnboardingFeature`, `SettingsFeature`.
+**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `GroupGridFeature`, `HomeFeature`, `OnboardingFeature`, `SettingsFeature`.
 
 ---
 
@@ -658,7 +727,25 @@ struct DeleteGroupUseCase: UseCase {
 - Resolution: always loads 224×224 thumbnails for embedding (model's expected input size)
 - The same 224×224 thumbnail is used regardless of the original photo's resolution
 
-### Unified scan + review screen
+### Unified scan + review screen (DB-driven, pipeline-decoupled)
 - `ScanView` combines scanning progress with Tinder-style group review
+- The UI is a **read-only projection of the database** — it never displays pipeline errors or failure screens
+- Pipeline interruptions (background suspension, errors, cancellation) are transparent to the user:
+  - Coordinator transitions to `.interrupted`, auto-resumes on return to foreground
+  - A small "Resuming scan…" banner shows while the pipeline restarts
+- Only an **explicit user cancel** (toolbar button) stops the scan and navigates back to Home
 - Users can review and delete duplicates while scanning is still in progress
 - `SwipeReviewView` is kept as a separate route only for persistence resume (opening from Home banner)
+
+### Group Grid with in-sheet navigation
+- Both `ScanView` and `SwipeReviewView` present a `GroupGridView` sheet for browsing all pending groups
+- The sheet owns its own `NavigationStack` so the grid stays alive when pushing to `SingleGroupReviewView`
+- After reviewing a group, the user pops back to the same scroll position with the reviewed group removed
+- Grid loads groups in pages of 20 from SwiftData (`loadPendingGroupsPage`)
+- Two-phase image loading in grid cells (fast thumbnail → higher-quality image) with correct aspect ratios
+
+### WAL lock resilience
+- Qdrant Edge uses a WAL (Write-Ahead Log) file that only one process can lock at a time
+- `QdrantVectorStore.ensureShard()` retries up to 3 times with 500ms/1s backoff on `WouldBlock` errors
+- `BackgroundScanService` checks `ContinuousScanCoordinator.isForegroundScanActive` and skips work if a foreground scan already holds the lock
+- This prevents the "Resource temporarily unavailable" crash when background and foreground tasks overlap

@@ -11,8 +11,9 @@ final class ContinuousScanCoordinator {
         case idle
         case scanning(processed: Int, total: Int, groupsFound: Int)
         case completed(groupsFound: Int)
-        case failed(AppError)
-        case cancelled
+        /// Pipeline was interrupted (background suspension, error, cancellation).
+        /// Holds the last known progress so UI can still show it.
+        case interrupted(processed: Int, total: Int)
     }
 
     enum Action {
@@ -20,7 +21,7 @@ final class ContinuousScanCoordinator {
         case didUpdateProgress(processed: Int, total: Int)
         case didFindGroups(count: Int)
         case didCompleteScan(groupsFound: Int)
-        case didFail(AppError)
+        case didInterrupt
         case didCancel
     }
 
@@ -28,10 +29,15 @@ final class ContinuousScanCoordinator {
     private(set) var groupsFoundCount: Int = 0
     private var workTask: Task<Void, Never>?
     private var backgroundTaskManager = BackgroundTaskManager()
+    private var lastDateRange: DateRange?
+    private var lastResumeSessionId: UUID?
+    private var lastDeps: Dependencies?
 
     var scanProgress: Double {
         switch phase {
         case .scanning(let processed, let total, _) where total > 0:
+            Double(processed) / Double(total)
+        case .interrupted(let processed, let total) where total > 0:
             Double(processed) / Double(total)
         case .completed:
             1.0
@@ -45,6 +51,21 @@ final class ContinuousScanCoordinator {
         return false
     }
 
+    var isInterrupted: Bool {
+        if case .interrupted = phase { return true }
+        return false
+    }
+
+    nonisolated static var isForegroundScanActive: Bool {
+        get async {
+            await MainActor.run {
+                _isForegroundScanActive
+            }
+        }
+    }
+
+    @MainActor private static var _isForegroundScanActive = false
+
     // MARK: - Reducer
 
     func reduce(_ action: Action) {
@@ -52,6 +73,7 @@ final class ContinuousScanCoordinator {
         case .didStartPipeline:
             phase = .scanning(processed: 0, total: 0, groupsFound: 0)
             groupsFoundCount = 0
+            Self._isForegroundScanActive = true
 
         case .didUpdateProgress(let processed, let total):
             if case .scanning(_, _, let groups) = phase {
@@ -66,13 +88,22 @@ final class ContinuousScanCoordinator {
 
         case .didCompleteScan(let groupsFound):
             phase = .completed(groupsFound: groupsFound)
+            Self._isForegroundScanActive = false
 
-        case .didFail(let error):
-            phase = .failed(error)
+        case .didInterrupt:
+            let (p, t) = lastProgress
+            phase = .interrupted(processed: p, total: t)
+            Self._isForegroundScanActive = false
 
         case .didCancel:
-            phase = .cancelled
+            phase = .idle
+            Self._isForegroundScanActive = false
         }
+    }
+
+    private var lastProgress: (processed: Int, total: Int) {
+        if case .scanning(let p, let t, _) = phase { return (p, t) }
+        return (0, 0)
     }
 
     // MARK: - Registration (called from App.init on iOS 26+)
@@ -118,8 +149,12 @@ final class ContinuousScanCoordinator {
         deps: Dependencies
     ) {
         guard !isActive else { return }
-        reduce(.didStartPipeline)
 
+        lastDateRange = dateRange
+        lastResumeSessionId = resumeSessionId
+        lastDeps = deps
+
+        reduce(.didStartPipeline)
         runPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
         backgroundTaskManager.requestContinuedTaskSupport(
             identifier: Self.continuedTaskIdentifier,
@@ -127,13 +162,25 @@ final class ContinuousScanCoordinator {
         )
     }
 
+    /// Explicit user cancel — goes to idle, no auto-resume.
     func cancel() {
         workTask?.cancel()
         workTask = nil
+        lastDateRange = nil
+        lastDeps = nil
         backgroundTaskManager.completeContinuedTask(success: false)
         clearActiveCoordinator()
         backgroundTaskManager.endUIBackgroundTask()
         reduce(.didCancel)
+    }
+
+    /// Auto-resume an interrupted scan when the app returns to foreground.
+    func resumeIfInterrupted() {
+        guard isInterrupted,
+              let dateRange = lastDateRange,
+              let deps = lastDeps else { return }
+        reduce(.didStartPipeline)
+        runPipeline(dateRange: dateRange, resumeSessionId: lastResumeSessionId, deps: deps)
     }
 
     // MARK: - Extended execution (all iOS versions)
@@ -144,6 +191,10 @@ final class ContinuousScanCoordinator {
                 self?.workTask?.cancel()
             }
         }
+    }
+
+    func endExtendedBackgroundExecution() {
+        backgroundTaskManager.endUIBackgroundTask()
     }
 
     // MARK: - Pipeline builder
@@ -204,23 +255,32 @@ final class ContinuousScanCoordinator {
 
             if Task.isCancelled {
                 try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run { self.reduce(.didCancel) }
-                self.finishBackgroundTasks(success: false)
+                await MainActor.run {
+                    self.reduce(.didInterrupt)
+                    self.finishBackgroundTasks(success: false)
+                }
                 return
             }
 
             let scanStatus = await scanState.status
             switch scanStatus {
-            case .failed(let error):
-                await MainActor.run { self.reduce(.didFail(error)) }
-                self.finishBackgroundTasks(success: false)
+            case .failed:
+                try? await deps.scanStore.interruptActiveSessions()
+                await MainActor.run {
+                    self.reduce(.didInterrupt)
+                    self.finishBackgroundTasks(success: false)
+                }
             case .cancelled:
-                await MainActor.run { self.reduce(.didCancel) }
-                self.finishBackgroundTasks(success: false)
+                try? await deps.scanStore.interruptActiveSessions()
+                await MainActor.run {
+                    self.reduce(.didInterrupt)
+                    self.finishBackgroundTasks(success: false)
+                }
             default:
-                let count = await MainActor.run { self.groupsFoundCount }
-                await MainActor.run { self.reduce(.didCompleteScan(groupsFound: count)) }
-                self.finishBackgroundTasks(success: true)
+                await MainActor.run {
+                    self.reduce(.didCompleteScan(groupsFound: self.groupsFoundCount))
+                    self.finishBackgroundTasks(success: true)
+                }
             }
         }
     }

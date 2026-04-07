@@ -2592,6 +2592,35 @@
         }
       }
     },
+    "scan.resuming": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan wird fortgesetzt…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resuming scan…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudando escaneo…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возобновление сканирования…"
+          }
+        }
+      }
+    },
     "scan.embedding": {
       "extractionState": "manual",
       "localizations": {
