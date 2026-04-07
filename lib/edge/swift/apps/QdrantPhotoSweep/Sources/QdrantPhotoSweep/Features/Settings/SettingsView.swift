@@ -4,6 +4,10 @@ struct SettingsView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var state = SettingsState()
 
+    private var useCases: SettingsFeature.UseCases? {
+        dependencies?.settingsUseCases
+    }
+
     var body: some View {
         Form {
             scanPeriodSection
@@ -12,9 +16,7 @@ struct SettingsView: View {
             aboutSection
         }
         .navigationTitle(L10n.settings)
-        .task {
-            await loadInfo()
-        }
+        .task { await loadInfo() }
     }
 
     // MARK: - Scan Period
@@ -145,7 +147,7 @@ struct SettingsView: View {
                     .foregroundStyle(QColors.success)
 
             case .failed(let error):
-                Label(error.localizedDescription, systemImage: QIcons.warning)
+                Label(error.localizedDescription, systemImage: QIcons.warningFill)
                     .foregroundStyle(QColors.error)
                     .font(QTypography.caption)
             }
@@ -173,35 +175,27 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Actions (use case delegation)
+
     private func loadInfo() async {
-        guard let deps = dependencies else { return }
+        guard let useCases else { return }
         do {
-            let count = try await deps.vectorStore.count()
-            state.reduce(.didLoadInfo(pointCount: count))
+            let output = try await useCases.loadDatabaseInfo.execute(())
+            state.reduce(.didLoadInfo(pointCount: output.pointCount))
         } catch {
-            state.reduce(.didFail(error))
+            state.reduce(.didFail(error as? AppError ?? .unknown(error.localizedDescription)))
         }
     }
 
     private func clearDatabase() {
-        guard let deps = dependencies else { return }
+        guard let useCases else { return }
         state.reduce(.didTapClearDatabase)
         Task {
             do {
-                var offset: String? = nil
-                while true {
-                    let page = try await deps.vectorStore.scroll(offset: offset, limit: 100)
-                    guard !page.records.isEmpty else { break }
-                    let ids = page.records.map(\.id)
-                    try await deps.vectorStore.delete(ids: ids)
-                    offset = page.nextOffset
-                    guard offset != nil else { break }
-                }
+                try await useCases.clearDatabase.execute(())
                 state.reduce(.didFinishClearing)
-            } catch let error as AppError {
-                state.reduce(.didFail(error))
             } catch {
-                state.reduce(.didFail(.unknown(error.localizedDescription)))
+                state.reduce(.didFail(error as? AppError ?? .unknown(error.localizedDescription)))
             }
         }
     }

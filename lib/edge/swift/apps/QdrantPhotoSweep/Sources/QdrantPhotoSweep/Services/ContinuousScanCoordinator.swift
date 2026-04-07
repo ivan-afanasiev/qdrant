@@ -15,11 +15,19 @@ final class ContinuousScanCoordinator {
         case cancelled
     }
 
+    enum Action {
+        case didStartPipeline
+        case didUpdateProgress(processed: Int, total: Int)
+        case didFindGroups(count: Int)
+        case didCompleteScan(groupsFound: Int)
+        case didFail(AppError)
+        case didCancel
+    }
+
     private(set) var phase: Phase = .idle
     private(set) var groupsFoundCount: Int = 0
     private var workTask: Task<Void, Never>?
-    private var uiBackgroundTaskId: UIBackgroundTaskIdentifier = .invalid
-    private var continuedTaskHandle: AnyObject?
+    private var backgroundTaskManager = BackgroundTaskManager()
 
     var scanProgress: Double {
         switch phase {
@@ -35,6 +43,36 @@ final class ContinuousScanCoordinator {
     var isActive: Bool {
         if case .scanning = phase { return true }
         return false
+    }
+
+    // MARK: - Reducer
+
+    func reduce(_ action: Action) {
+        switch action {
+        case .didStartPipeline:
+            phase = .scanning(processed: 0, total: 0, groupsFound: 0)
+            groupsFoundCount = 0
+
+        case .didUpdateProgress(let processed, let total):
+            if case .scanning(_, _, let groups) = phase {
+                phase = .scanning(processed: processed, total: total, groupsFound: groups)
+            }
+
+        case .didFindGroups(let count):
+            groupsFoundCount = count
+            if case .scanning(let p, let t, _) = phase {
+                phase = .scanning(processed: p, total: t, groupsFound: count)
+            }
+
+        case .didCompleteScan(let groupsFound):
+            phase = .completed(groupsFound: groupsFound)
+
+        case .didFail(let error):
+            phase = .failed(error)
+
+        case .didCancel:
+            phase = .cancelled
+        }
     }
 
     // MARK: - Registration (called from App.init on iOS 26+)
@@ -65,16 +103,11 @@ final class ContinuousScanCoordinator {
             task.setTaskCompleted(success: false)
             return
         }
-        coordinator.attachContinuedTask(task)
-    }
-
-    @available(iOS 26.0, *)
-    private func attachContinuedTask(_ task: BGContinuedProcessingTask) {
-        continuedTaskHandle = task
-        task.progress.totalUnitCount = 100
-        task.expirationHandler = { [weak self] in
-            self?.workTask?.cancel()
-        }
+        coordinator.backgroundTaskManager.attachContinuedTask(task, cancelWork: { [weak coordinator] in
+            Task { @MainActor in
+                coordinator?.workTask?.cancel()
+            }
+        })
     }
 
     // MARK: - Start Pipeline
@@ -85,76 +118,32 @@ final class ContinuousScanCoordinator {
         deps: Dependencies
     ) {
         guard !isActive else { return }
-        phase = .scanning(processed: 0, total: 0, groupsFound: 0)
-        groupsFoundCount = 0
+        reduce(.didStartPipeline)
 
         runPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
-        requestContinuedTaskSupport()
+        backgroundTaskManager.requestContinuedTaskSupport(
+            identifier: Self.continuedTaskIdentifier,
+            registerSelf: { self.setActiveCoordinator() }
+        )
     }
 
     func cancel() {
         workTask?.cancel()
         workTask = nil
-        completeContinuedTask(success: false)
+        backgroundTaskManager.completeContinuedTask(success: false)
         clearActiveCoordinator()
-        endUIBackgroundTask()
-        phase = .cancelled
+        backgroundTaskManager.endUIBackgroundTask()
+        reduce(.didCancel)
     }
 
     // MARK: - Extended execution (all iOS versions)
 
     func beginExtendedBackgroundExecution() {
-        guard uiBackgroundTaskId == .invalid else { return }
-        uiBackgroundTaskId = UIApplication.shared.beginBackgroundTask(
-            withName: "PhotoSweep.scan"
-        ) { [weak self] in
-            self?.workTask?.cancel()
-            self?.endUIBackgroundTask()
+        backgroundTaskManager.beginExtendedBackgroundExecution { [weak self] in
+            Task { @MainActor in
+                self?.workTask?.cancel()
+            }
         }
-    }
-
-    private func endUIBackgroundTask() {
-        guard uiBackgroundTaskId != .invalid else { return }
-        UIApplication.shared.endBackgroundTask(uiBackgroundTaskId)
-        uiBackgroundTaskId = .invalid
-    }
-
-    // MARK: - iOS 26+ Continued Task (optional enhancement)
-
-    private func requestContinuedTaskSupport() {
-        guard #available(iOS 26.0, *) else { return }
-        Self.activeCoordinator = self
-        do {
-            let request = BGContinuedProcessingTaskRequest(
-                identifier: Self.continuedTaskIdentifier,
-                title: String(localized: "continuousTask.scan.title"),
-                subtitle: String(localized: "continuousTask.scan.subtitle")
-            )
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            Self.activeCoordinator = nil
-        }
-    }
-
-    private func updateContinuedTaskProgress(_ processed: Int, _ total: Int) {
-        guard #available(iOS 26.0, *),
-              let task = continuedTaskHandle as? BGContinuedProcessingTask else { return }
-        if total > 0 {
-            let pct = Int64(Double(processed) / Double(total) * 100)
-            task.progress.completedUnitCount = pct
-        }
-    }
-
-    private func completeContinuedTask(success: Bool) {
-        guard #available(iOS 26.0, *),
-              let task = continuedTaskHandle as? BGContinuedProcessingTask else { return }
-        task.setTaskCompleted(success: success)
-        continuedTaskHandle = nil
-    }
-
-    private func clearActiveCoordinator() {
-        guard #available(iOS 26.0, *) else { return }
-        Self.activeCoordinator = nil
     }
 
     // MARK: - Pipeline builder
@@ -173,17 +162,13 @@ final class ContinuousScanCoordinator {
             similarityThreshold: deps.settings.similarityThreshold,
             onGroupCountChanged: { [weak self] count in
                 Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.groupsFoundCount = count
-                    if case .scanning(let p, let t, _) = self.phase {
-                        self.phase = .scanning(processed: p, total: t, groupsFound: count)
-                    }
+                    self?.reduce(.didFindGroups(count: count))
                 }
             }
         )
     }
 
-    // MARK: - Pipeline execution (always runs immediately)
+    // MARK: - Pipeline execution
 
     private func runPipeline(
         dateRange: DateRange,
@@ -201,9 +186,8 @@ final class ContinuousScanCoordinator {
                     guard let self else { return }
                     let status = scanState.status
                     if case .scanning(let processed, let total) = status {
-                        let groupCount = self.groupsFoundCount
-                        self.phase = .scanning(processed: processed, total: total, groupsFound: groupCount)
-                        self.updateContinuedTaskProgress(processed, total)
+                        self.reduce(.didUpdateProgress(processed: processed, total: total))
+                        self.backgroundTaskManager.updateContinuedTaskProgress(processed, total)
                     }
                 }
             }
@@ -220,32 +204,42 @@ final class ContinuousScanCoordinator {
 
             if Task.isCancelled {
                 try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run { self.phase = .cancelled }
-                self.completeContinuedTask(success: false)
-                self.clearActiveCoordinator()
-                self.endUIBackgroundTask()
+                await MainActor.run { self.reduce(.didCancel) }
+                self.finishBackgroundTasks(success: false)
                 return
             }
 
             let scanStatus = await scanState.status
             switch scanStatus {
             case .failed(let error):
-                await MainActor.run { self.phase = .failed(error) }
-                self.completeContinuedTask(success: false)
-                self.clearActiveCoordinator()
-                self.endUIBackgroundTask()
+                await MainActor.run { self.reduce(.didFail(error)) }
+                self.finishBackgroundTasks(success: false)
             case .cancelled:
-                await MainActor.run { self.phase = .cancelled }
-                self.completeContinuedTask(success: false)
-                self.clearActiveCoordinator()
-                self.endUIBackgroundTask()
+                await MainActor.run { self.reduce(.didCancel) }
+                self.finishBackgroundTasks(success: false)
             default:
                 let count = await MainActor.run { self.groupsFoundCount }
-                await MainActor.run { self.phase = .completed(groupsFound: count) }
-                self.completeContinuedTask(success: true)
-                self.clearActiveCoordinator()
-                self.endUIBackgroundTask()
+                await MainActor.run { self.reduce(.didCompleteScan(groupsFound: count)) }
+                self.finishBackgroundTasks(success: true)
             }
         }
+    }
+
+    private func finishBackgroundTasks(success: Bool) {
+        backgroundTaskManager.completeContinuedTask(success: success)
+        clearActiveCoordinator()
+        backgroundTaskManager.endUIBackgroundTask()
+    }
+
+    // MARK: - Active Coordinator Management
+
+    private func setActiveCoordinator() {
+        guard #available(iOS 26.0, *) else { return }
+        Self.activeCoordinator = self
+    }
+
+    private func clearActiveCoordinator() {
+        guard #available(iOS 26.0, *) else { return }
+        Self.activeCoordinator = nil
     }
 }

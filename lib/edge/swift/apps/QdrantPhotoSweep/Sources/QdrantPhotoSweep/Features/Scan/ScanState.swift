@@ -1,5 +1,13 @@
 import Foundation
 
+enum ScanFeature {
+    struct UseCases: @unchecked Sendable {
+        let startScan: StartScanUseCase
+        let cancelScan: CancelScanUseCase
+        let manageBackground: ManageBackgroundExecutionUseCase
+    }
+}
+
 @Observable
 @MainActor
 final class ScanState {

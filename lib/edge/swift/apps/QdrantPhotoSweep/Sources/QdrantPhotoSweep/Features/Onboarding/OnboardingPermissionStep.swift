@@ -3,6 +3,7 @@ import SwiftUI
 
 struct OnboardingPermissionStep: View {
     var state: OnboardingState
+    let useCases: OnboardingFeature.UseCases
 
     var body: some View {
         VStack(spacing: QSpacing.xxl) {
@@ -57,7 +58,7 @@ struct OnboardingPermissionStep: View {
         switch state.permissionStatus {
         case .notRequested:
             Button {
-                Task { await state.requestPhotoAccess() }
+                requestAccess()
             } label: {
                 Label(L10n.onboardingGrantAccess, systemImage: "lock.open.fill")
             }
@@ -88,6 +89,14 @@ struct OnboardingPermissionStep: View {
                 .buttonStyle(.qSecondary)
                 .padding(.horizontal, QSpacing.xl)
             }
+        }
+    }
+
+    private func requestAccess() {
+        state.reduce(.didRequestPermission)
+        Task {
+            let result = try await useCases.requestPhotoAccess.execute(())
+            state.reduce(.permissionResult(result))
         }
     }
 }

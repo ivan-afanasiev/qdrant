@@ -1,5 +1,10 @@
 import Foundation
-import Photos
+
+enum OnboardingFeature {
+    struct UseCases: Sendable {
+        let requestPhotoAccess: RequestPhotoAccessUseCase
+    }
+}
 
 @Observable
 @MainActor
@@ -10,7 +15,7 @@ final class OnboardingState {
         case scanPeriod = 2
     }
 
-    enum PermissionStatus: Equatable {
+    enum PermissionStatus: Equatable, Sendable {
         case notRequested
         case requesting
         case granted
@@ -24,6 +29,7 @@ final class OnboardingState {
         case permissionResult(PermissionStatus)
         case didSelectPreset(DatePreset)
         case didSetCustomRange(start: Date, end: Date)
+        case didApplyToSettings
     }
 
     var currentStep: Step = .welcome
@@ -32,6 +38,7 @@ final class OnboardingState {
     var customRangeStart: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     var customRangeEnd: Date = .now
     var isCustomRange: Bool = false
+    private(set) var isComplete: Bool = false
 
     var canAdvance: Bool {
         switch currentStep {
@@ -73,17 +80,9 @@ final class OnboardingState {
             selectedPreset = nil
             customRangeStart = start
             customRangeEnd = end
-        }
-    }
 
-    func requestPhotoAccess() async {
-        reduce(.didRequestPermission)
-        let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
-        switch status {
-        case .authorized, .limited:
-            reduce(.permissionResult(.granted))
-        default:
-            reduce(.permissionResult(.denied))
+        case .didApplyToSettings:
+            isComplete = true
         }
     }
 
@@ -96,5 +95,6 @@ final class OnboardingState {
         } else {
             settings.scanPreset = selectedPreset
         }
+        reduce(.didApplyToSettings)
     }
 }

@@ -59,6 +59,7 @@ Sources/QdrantPhotoSweep/
 │   ├── AppError.swift                 # Unified error enum
 │   ├── DatePreset.swift               # Date range presets (last week, month, etc.)
 │   ├── Dependencies.swift             # DI container + AppSettings + EnvironmentKey
+│   ├── UseCase.swift                  # UseCase<Input, Output> protocol
 │   ├── Persistence/
 │   │   ├── ScanSessionEntity.swift    # @Model: scan session + ScanSessionStatus enum
 │   │   ├── ScanSessionDTO.swift       # DTO for cross-actor transport
@@ -77,40 +78,62 @@ Sources/QdrantPhotoSweep/
 │   ├── QdrantVectorStore.swift        # Actor: Qdrant Edge shard management
 │   ├── VisionEmbeddingService.swift   # Actor: Apple Vision feature prints
 │   ├── PhotoLibraryService.swift      # Photos framework wrapper
-│   ├── ContinuousScanCoordinator.swift# Orchestrates unified scan pipeline, optional iOS 26 BG
+│   ├── ContinuousScanCoordinator.swift# Orchestrates unified scan pipeline (Action/reduce)
+│   ├── BackgroundTaskManager.swift    # BG task registration, extended execution, BGContinuedProcessingTask
 │   └── BackgroundScanService.swift    # BGProcessingTask fallback for background work
 ├── Features/
 │   ├── Scan/
 │   │   ├── ScanPipeline.swift         # Core logic: embed → upsert → search → persist edges → groups
-│   │   ├── ScanState.swift            # Scan progress state machine
-│   │   └── ScanView.swift             # Unified scan + review UI
+│   │   ├── ScanState.swift            # ScanFeature namespace + ScanState (scan progress state machine)
+│   │   ├── ScanView.swift             # Unified scan + review UI (delegates to use cases)
+│   │   └── UseCases/
+│   │       ├── StartScanUseCase.swift
+│   │       ├── CancelScanUseCase.swift
+│   │       └── ManageBackgroundExecutionUseCase.swift
 │   ├── DuplicateDetection/
 │   │   ├── DuplicateGroup.swift       # PhotoReference + DuplicateGroup models
 │   │   └── UnionFind.swift            # Generic union-find data structure
 │   ├── Review/
-│   │   ├── SwipeReviewView.swift      # Persistence-resume review (pending groups from DB)
-│   │   ├── ReviewState.swift          # Review state machine
+│   │   ├── SwipeReviewView.swift      # Persistence-resume review (delegates to use cases)
+│   │   ├── ReviewState.swift          # ReviewFeature namespace + ReviewState (pure reducer)
 │   │   ├── GroupComparisonView.swift  # Grid of photos in a group
 │   │   ├── PhotoCardView.swift        # Individual photo card with async loading
-│   │   └── FullscreenPhotoView.swift  # Fullscreen photo with zoom
+│   │   ├── FullscreenPhotoView.swift  # Fullscreen photo with zoom
+│   │   ├── Components/
+│   │   │   ├── ReviewCardStack.swift  # Shared swipe gesture + card rendering
+│   │   │   └── ReviewSubviews.swift   # Shared status views (deleting, all done, failed, etc.)
+│   │   └── UseCases/
+│   │       ├── DeleteGroupUseCase.swift
+│   │       ├── SkipGroupUseCase.swift
+│   │       └── LoadNextGroupUseCase.swift
 │   ├── Home/
-│   │   ├── HomeView.swift             # Dashboard with banners + stats
-│   │   ├── HomeState.swift            # Home data loading + state
-│   │   └── StatCard.swift             # Stat display component
+│   │   ├── HomeView.swift             # Dashboard with banners + stats (delegates to use cases)
+│   │   ├── HomeState.swift            # HomeFeature namespace + HomeState (pure reducer)
+│   │   ├── BannerCard.swift           # Reusable banner component
+│   │   ├── StatCard.swift             # Stat display component
+│   │   └── UseCases/
+│   │       └── LoadHomeDataUseCase.swift
 │   ├── Onboarding/
-│   │   ├── OnboardingState.swift      # Onboarding step management
+│   │   ├── OnboardingState.swift      # OnboardingFeature namespace + OnboardingState
+│   │   ├── OnboardingView.swift
 │   │   ├── OnboardingWelcomeStep.swift
 │   │   ├── OnboardingPermissionStep.swift
-│   │   └── OnboardingScanPeriodStep.swift
+│   │   ├── OnboardingScanPeriodStep.swift
+│   │   └── UseCases/
+│   │       └── RequestPhotoAccessUseCase.swift
 │   └── Settings/
-│       ├── SettingsView.swift         # Settings UI
-│       └── SettingsState.swift        # Settings state
+│       ├── SettingsView.swift         # Settings UI (delegates to use cases)
+│       ├── SettingsState.swift        # SettingsFeature namespace + SettingsState
+│       └── UseCases/
+│           ├── ClearDatabaseUseCase.swift
+│           └── LoadDatabaseInfoUseCase.swift
 ├── Navigation/
 │   ├── AppRoute.swift                 # Route enum (scan, review, settings)
 │   └── RootNavigationView.swift       # NavigationStack + destination routing
 ├── DesignSystem/                      # Colors, typography, icons, layout tokens, L10n
 └── Utilities/
     ├── UUIDHelpers.swift              # deterministicUUID(from:) for stable point IDs
+    ├── AppLog.swift                   # Structured os.Logger instances per feature
     └── PHAssetExtensions.swift        # PHAsset → PhotoAsset conversion
 ```
 
@@ -137,6 +160,46 @@ App.swift → .environment(\.dependencies, deps) → every child view reads @Env
 ```
 
 **Important**: `Dependencies` is only non-nil when `bootstrapStatus == .ready`. Views guard on `dependencies != nil` before doing anything.
+
+### UseCase Pattern
+
+All business logic lives in `UseCase` structs, never in Views:
+
+```swift
+protocol UseCase<Input, Output>: Sendable {
+    associatedtype Input: Sendable
+    associatedtype Output: Sendable
+    func execute(_ input: Input) async throws -> Output
+}
+```
+
+Each feature defines a `UseCases` bundle, constructed via a factory extension on `Dependencies`:
+
+```swift
+extension Dependencies {
+    var reviewUseCases: ReviewFeature.UseCases { ... }
+    var settingsUseCases: SettingsFeature.UseCases { ... }
+    var homeUseCases: HomeFeature.UseCases { ... }
+}
+```
+
+### Feature Namespaces
+
+Each feature is organized as a TCA-inspired namespace enum containing State, Action, reduce, and UseCases:
+
+```swift
+enum ReviewFeature {
+    struct UseCases: Sendable { ... }
+}
+// ReviewState, ReviewState.Action, ReviewState.Status defined alongside
+```
+
+Data flow for every user action:
+```
+View → UseCase.execute() → async side effect → Action → State.reduce() → pure state update → View re-renders
+```
+
+No View ever calls a service directly. No `State.reduce()` ever performs side effects.
 
 ---
 
@@ -286,21 +349,26 @@ Step 6: Return sorted groups (largest first)
 
 ### Database-Driven Review (one group at a time)
 
-The review UI is completely decoupled from the scanning pipeline. Groups are never held in memory as an array — instead, `ReviewState` fetches **one group at a time** from SwiftData:
+The review UI is completely decoupled from the scanning pipeline. Groups are never held in memory as an array — instead, `ReviewState` fetches **one group at a time** from SwiftData via `LoadNextGroupUseCase`:
 
 ```
-1. ReviewState.loadNextGroup(from: scanStore)
+1. useCases.loadNextGroup.execute(())
    → scanStore.loadNextPendingGroup()  (fetch first pending DuplicateGroupEntity)
    → scanStore.pendingGroupCount()     (count remaining for progress display)
+   → View dispatches: reviewState.reduce(.didLoadGroup(group, pendingCount: count))
 
 2. User reviews the group (select photos to keep)
 
-3. On skip/delete:
-   → Mark group as reviewed/deleted in SwiftData
-   → ReviewState transitions to .loading
-   → .loading triggers another loadNextGroup() fetch
+3. On skip:
+   → useCases.skipGroup.execute(group)
+   → reviewState.reduce(.didSkipGroup) → status = .loading → triggers next fetch
 
-4. When no pending groups remain:
+4. On delete:
+   → useCases.deleteGroup.execute(group, keptIds)
+   → Handles photoLibrary.deleteAssets, vectorStore.delete, scanStore.markGroupDeleted
+   → reviewState.reduce(.didFinishGroupDeletion) → status = .loading → triggers next fetch
+
+5. When no pending groups remain:
    → .allReviewed if any were reviewed, .noMoreGroups otherwise
 ```
 
@@ -431,6 +499,8 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 ### 9.2 ContinuousScanCoordinator
 
 - Created as `@State` on `ScanView`
+- Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/failed/cancelled)
+- Delegates background task management to `BackgroundTaskManager`
 - On iOS 26+:
   1. `startPipeline()` → `startWithContinuedTask()`
   2. Registers the task handler with `BGTaskScheduler.shared.register(...)`
@@ -475,29 +545,75 @@ App.swift (always):
 
 ## 10. State Management Pattern
 
-Every feature uses **unidirectional data flow** via `@Observable @MainActor` classes:
+Every feature uses **unidirectional data flow** with three key components:
+
+### Feature Namespace
 
 ```swift
-@Observable @MainActor
-final class SomeState {
-    enum Action { case didSomething, didFail(AppError) }
-    private(set) var status: Status = .idle
-
-    func reduce(_ action: Action) {
-        switch action {
-        case .didSomething: status = .done
-        case .didFail(let e): status = .failed(e)
-        }
+enum ReviewFeature {
+    struct UseCases: Sendable {
+        let deleteGroup: DeleteGroupUseCase
+        let skipGroup: SkipGroupUseCase
+        let loadNextGroup: LoadNextGroupUseCase
     }
 }
 ```
 
+### Pure State Reducer
+
+```swift
+@Observable @MainActor
+final class ReviewState {
+    enum Status: Equatable { ... }
+    enum Action { ... }
+    private(set) var status: Status = .idle
+
+    func reduce(_ action: Action) {
+        // Pure state transitions only — no async, no service calls
+    }
+}
+```
+
+### View as Orchestrator
+
+Views own `State` and `UseCases`, call use cases for side effects, and dispatch resulting actions through `reduce(_:)`:
+
+```swift
+private func deleteCurrentGroup() {
+    reviewState.reduce(.didConfirmGroup)
+    Task {
+        let result = try await useCases.deleteGroup.execute(input)
+        reviewState.reduce(.didFinishGroupDeletion(deleted: result.deleted, kept: result.kept))
+    }
+}
+```
+
+### Rules
+
 - State is read-only from outside (`private(set)`)
 - All mutations go through `reduce(_:)` with explicit actions
-- Views switch on state cases — no if/else for UI branches
-- Long-running work happens in `async` methods that call `reduce()` with results
+- `reduce(_:)` is **pure** — no async, no service calls, no side effects
+- Views never call services directly — all business logic lives in `UseCase` structs
+- Shared UI components (like `ReviewCardStack`, `ReviewConfirmButton`, `BannerCard`) accept data + callbacks, never hold state
+- `ContinuousScanCoordinator` also follows the `Action/reduce` pattern for its phase transitions
 
-**State classes in the app**: `ScanState`, `ReviewState`, `HomeState`, `OnboardingState`, `SettingsState`.
+### Use Cases
+
+Each business operation is a small `UseCase` struct conforming to the shared protocol:
+
+```swift
+struct DeleteGroupUseCase: UseCase {
+    let photoLibrary: any PhotoLibraryProviding
+    let vectorStore: any VectorStoring
+    let scanStore: any ScanSessionStoring
+
+    func execute(_ input: DeleteGroupInput) async throws -> DeleteGroupOutput { ... }
+}
+```
+
+**State classes**: `ScanState`, `ReviewState`, `HomeState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
+
+**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `HomeFeature`, `OnboardingFeature`, `SettingsFeature`.
 
 ---
 

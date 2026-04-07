@@ -8,7 +8,6 @@ struct ScanView: View {
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
-
     @State private var showCompletedBadge = false
 
     let dateRange: DateRange
@@ -19,6 +18,19 @@ struct ScanView: View {
         self.dateRange = dateRange
         self.resumeSessionId = resumeSessionId
         self.onFinished = onFinished
+    }
+
+    private var reviewUseCases: ReviewFeature.UseCases? {
+        dependencies?.reviewUseCases
+    }
+
+    private var scanUseCases: ScanFeature.UseCases? {
+        guard let dependencies else { return nil }
+        return ScanFeature.UseCases(
+            startScan: StartScanUseCase(coordinator: coordinator, deps: dependencies),
+            cancelScan: CancelScanUseCase(coordinator: coordinator),
+            manageBackground: ManageBackgroundExecutionUseCase(coordinator: coordinator)
+        )
     }
 
     var body: some View {
@@ -49,7 +61,9 @@ struct ScanView: View {
         .navigationTitle(L10n.scanning)
         .navigationBarBackButtonHidden(coordinator.isActive)
         .task {
-            startPipeline()
+            try? await scanUseCases?.startScan.execute(
+                StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)
+            )
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -58,11 +72,8 @@ struct ScanView: View {
             UIApplication.shared.isIdleTimerDisabled = active
         }
         .onChange(of: scenePhase) { _, newPhase in
-            guard coordinator.isActive else { return }
-            if newPhase == .background {
-                coordinator.beginExtendedBackgroundExecution()
-                BackgroundScanService.schedule(urgent: true)
-            }
+            guard coordinator.isActive, newPhase == .background else { return }
+            Task { try? await scanUseCases?.manageBackground.execute(()) }
         }
         .onChange(of: coordinator.groupsFoundCount) { _, count in
             guard count > 0, reviewState.status == .idle || reviewState.status == .noMoreGroups else { return }
@@ -114,11 +125,11 @@ struct ScanView: View {
             case .reviewing:
                 reviewingSection
             case .loading:
-                loadingGroupView
+                ReviewLoadingView()
             case .noMoreGroups, .idle:
                 scanningPlaceholder
             case .allReviewed:
-                waitingForMoreGroups
+                ReviewWaitingView()
             default:
                 scanningPlaceholder
             }
@@ -145,7 +156,7 @@ struct ScanView: View {
             }
 
             Button(role: .destructive) {
-                coordinator.cancel()
+                Task { try? await scanUseCases?.cancelScan.execute(()) }
             } label: {
                 Text(L10n.cancel)
                     .font(QTypography.caption)
@@ -170,28 +181,6 @@ struct ScanView: View {
         .padding()
     }
 
-    private var loadingGroupView: some View {
-        VStack(spacing: QSpacing.lg) {
-            Spacer()
-            ProgressView()
-            Text(L10n.loadingGroup)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-            Spacer()
-        }
-    }
-
-    private var waitingForMoreGroups: some View {
-        VStack(spacing: QSpacing.lg) {
-            Spacer()
-            ProgressView()
-            Text(L10n.waitingForMoreGroups)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-            Spacer()
-        }
-    }
-
     // MARK: - Completed
 
     private var completedContent: some View {
@@ -202,7 +191,7 @@ struct ScanView: View {
             case .loading:
                 VStack(spacing: 0) {
                     if showCompletedBadge { completedBadge.padding(.horizontal).padding(.top, QSpacing.sm).transition(.move(edge: .top).combined(with: .opacity)) }
-                    loadingGroupView
+                    ReviewLoadingView()
                 }
             case .reviewing:
                 VStack(spacing: 0) {
@@ -210,11 +199,11 @@ struct ScanView: View {
                     reviewingSection
                 }
             case .deletingGroup:
-                deletingView
+                ReviewDeletingView()
             case .allReviewed:
-                allReviewedView
+                ReviewAllDoneView(stats: reviewState.stats, onFinished: onFinished)
             case .failed(let error):
-                reviewFailedView(error: error)
+                ReviewFailedView(error: error, onDismiss: onFinished)
             }
         }
     }
@@ -248,7 +237,7 @@ struct ScanView: View {
         }
     }
 
-    // MARK: - Review Section (shared between scanning and completed)
+    // MARK: - Review Section
 
     private var reviewGroupCounter: String {
         let reviewed = reviewState.reviewedInSession
@@ -272,9 +261,25 @@ struct ScanView: View {
                     .padding(.horizontal)
             }
 
-            swipeableCardStack
+            ReviewCardStack(
+                group: reviewState.currentGroup,
+                keptIds: reviewState.currentGroup.map { reviewState.keptIds(for: $0) } ?? [],
+                dragOffset: $dragOffset,
+                fullscreenPhoto: $fullscreenPhoto,
+                onToggleKeep: { photo in
+                    withAnimation(QAnimation.springDefault) {
+                        reviewState.reduce(.didToggleKeep(photo))
+                    }
+                },
+                onSwipedOut: { skipCurrentGroup() }
+            )
 
-            confirmGroupButton
+            ReviewConfirmButton(
+                group: reviewState.currentGroup,
+                keptIds: reviewState.currentGroup.map { reviewState.keptIds(for: $0) } ?? [],
+                onDelete: { deleteCurrentGroup() },
+                onSkip: { animateSkip() }
+            )
 
             Text(L10n.tapToKeepHint)
                 .font(QTypography.caption)
@@ -300,189 +305,7 @@ struct ScanView: View {
         .padding(.horizontal)
     }
 
-    // MARK: - Swipeable Card Stack
-
-    private var swipeableCardStack: some View {
-        GeometryReader { geo in
-            ZStack {
-                if let group = reviewState.currentGroup {
-                    GroupComparisonView(
-                        group: group,
-                        keptIds: reviewState.keptIds(for: group),
-                        onToggleKeep: { photo in
-                            withAnimation(QAnimation.springDefault) {
-                                reviewState.reduce(.didToggleKeep(photo))
-                            }
-                        },
-                        onFullscreen: { photo in
-                            fullscreenPhoto = photo
-                        }
-                    )
-                    .id(group.id)
-                    .offset(x: dragOffset)
-                    .rotationEffect(.degrees(Double(dragOffset) / 30), anchor: .bottom)
-                    .opacity(swipeOpacity)
-                    .allowsHitTesting(!isDragging)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-                }
-            }
-            .overlay {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .gesture(swipeGesture(screenWidth: geo.size.width))
-                    .allowsHitTesting(isDragging)
-            }
-            .simultaneousGesture(swipeDetectionGesture(screenWidth: geo.size.width))
-            .animation(QAnimation.springDefault, value: reviewState.currentGroup?.id)
-        }
-    }
-
-    private var swipeOpacity: Double {
-        let progress = abs(dragOffset) / 200
-        return Double(1 - progress * 0.3)
-    }
-
-    private var isDragging: Bool {
-        dragOffset != 0
-    }
-
-    private func swipeDetectionGesture(screenWidth: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 20)
-            .onChanged { value in
-                let horizontal = abs(value.translation.width)
-                let vertical = abs(value.translation.height)
-                guard horizontal > vertical else { return }
-                dragOffset = value.translation.width
-            }
-            .onEnded { value in
-                guard dragOffset != 0 else { return }
-                let swipeThreshold = screenWidth * 0.3
-                let velocity = value.predictedEndTranslation.width
-
-                switch true {
-                case value.translation.width < -swipeThreshold || velocity < -500:
-                    performSwipeOut(direction: .left, screenWidth: screenWidth)
-                case value.translation.width > swipeThreshold || velocity > 500:
-                    performSwipeOut(direction: .right, screenWidth: screenWidth)
-                default:
-                    withAnimation(QAnimation.springDefault) {
-                        dragOffset = 0
-                    }
-                }
-            }
-    }
-
-    private func swipeGesture(screenWidth: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                dragOffset = value.translation.width
-            }
-            .onEnded { value in
-                let swipeThreshold = screenWidth * 0.3
-                let velocity = value.predictedEndTranslation.width
-
-                switch true {
-                case value.translation.width < -swipeThreshold || velocity < -500:
-                    performSwipeOut(direction: .left, screenWidth: screenWidth)
-                case value.translation.width > swipeThreshold || velocity > 500:
-                    performSwipeOut(direction: .right, screenWidth: screenWidth)
-                default:
-                    withAnimation(QAnimation.springDefault) {
-                        dragOffset = 0
-                    }
-                }
-            }
-    }
-
-    private func performSwipeOut(direction: SwipeDirection, screenWidth: CGFloat) {
-        let exitX: CGFloat = direction == .left ? -screenWidth * 1.5 : screenWidth * 1.5
-        swipeDirection = direction
-
-        withAnimation(.easeIn(duration: 0.25)) {
-            dragOffset = exitX
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            dragOffset = 0
-            swipeDirection = .none
-            skipCurrentGroup()
-        }
-    }
-
-    private func animateSkip() {
-        guard reviewState.currentGroup != nil else { return }
-        performSwipeOut(direction: .left, screenWidth: UIScreen.main.bounds.width)
-    }
-
-    // MARK: - Buttons
-
-    @ViewBuilder
-    private var confirmGroupButton: some View {
-        if let group = reviewState.currentGroup {
-            let kept = reviewState.keptIds(for: group)
-            let deleteCount = group.photos.count - kept.count
-
-            switch deleteCount > 0 {
-            case true:
-                Button {
-                    deleteCurrentGroup()
-                } label: {
-                    Label(L10n.deleteNPhotos(deleteCount), systemImage: QIcons.delete)
-                }
-                .buttonStyle(.qDestructive)
-                .padding(.horizontal)
-
-            case false:
-                Button {
-                    animateSkip()
-                } label: {
-                    Text(L10n.skip)
-                }
-                .buttonStyle(.qGhost)
-                .padding(.horizontal)
-            }
-        }
-    }
-
     // MARK: - Status Views
-
-    private var deletingView: some View {
-        VStack(spacing: QSpacing.md) {
-            Spacer()
-            ProgressView()
-            Text(L10n.deletingPhotos)
-                .foregroundStyle(QColors.textTertiary)
-            Spacer()
-        }
-    }
-
-    private var allReviewedView: some View {
-        VStack(spacing: QSpacing.lg) {
-            Spacer()
-            QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
-
-            Text(L10n.allDone)
-                .font(QTypography.titleMedium)
-
-            VStack(spacing: QSpacing.xs) {
-                statRow(label: L10n.groupsReviewed, value: "\(reviewState.stats.groupsReviewed)")
-                statRow(label: L10n.photosCleaned, value: "\(reviewState.stats.photosDeleted)")
-            }
-            .padding()
-            .background(QColors.surfaceSubtle)
-            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
-
-            Button(L10n.finish) {
-                onFinished()
-            }
-            .buttonStyle(.qPrimary)
-            Spacer()
-        }
-        .padding()
-    }
 
     private func failedView(error: AppError) -> some View {
         VStack(spacing: QSpacing.md) {
@@ -495,30 +318,10 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
 
             Button(L10n.retry) {
-                startPipeline()
+                Task { try? await scanUseCases?.startScan.execute(StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)) }
             }
             .buttonStyle(.qPrimary)
         }
-    }
-
-    private func reviewFailedView(error: AppError) -> some View {
-        VStack(spacing: QSpacing.md) {
-            Spacer()
-            QStatusIcon(QIcons.warningFill, size: QSize.iconLarge, color: QColors.error)
-            Text(L10n.error)
-                .font(QTypography.titleMedium)
-            Text(error.localizedDescription)
-                .font(QTypography.bodyMedium)
-                .foregroundStyle(QColors.textTertiary)
-                .multilineTextAlignment(.center)
-
-            Button(L10n.done) {
-                onFinished()
-            }
-            .buttonStyle(.qPrimary)
-            Spacer()
-        }
-        .padding()
     }
 
     private var cancelledView: some View {
@@ -528,7 +331,7 @@ struct ScanView: View {
                 .font(QTypography.titleMedium)
 
             Button(L10n.retry) {
-                startPipeline()
+                Task { try? await scanUseCases?.startScan.execute(StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)) }
             }
             .buttonStyle(.qPrimary)
         }
@@ -553,89 +356,64 @@ struct ScanView: View {
         .frame(width: QSize.progressRing, height: QSize.progressRing)
     }
 
-    private func statRow(label: LocalizedStringKey, value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(QColors.textSecondary)
-            Spacer()
-            Text(value)
-                .font(QTypography.numericMedium)
+    // MARK: - Swipe Animation
+
+    private func animateSkip() {
+        guard reviewState.currentGroup != nil else { return }
+        let screenWidth = UIScreen.main.bounds.width
+        let exitX: CGFloat = -screenWidth * 1.5
+
+        withAnimation(.easeIn(duration: 0.25)) {
+            dragOffset = exitX
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            dragOffset = 0
+            skipCurrentGroup()
         }
     }
 
-    // MARK: - Actions
-
-    private func startPipeline() {
-        guard !coordinator.isActive else { return }
-        guard let deps = dependencies else { return }
-        coordinator.startPipeline(
-            dateRange: dateRange,
-            resumeSessionId: resumeSessionId,
-            deps: deps
-        )
-    }
+    // MARK: - Actions (use case delegation)
 
     private func loadNextGroupFromDB() {
-        guard let deps = dependencies else { return }
+        guard let reviewUseCases else { return }
         Task {
-            await reviewState.loadNextGroup(from: deps.scanStore)
-        }
-    }
-
-    private func deleteCurrentGroup() {
-        guard let deps = dependencies, let group = reviewState.currentGroup else { return }
-        let idsToDelete = reviewState.deletionIdsForCurrentGroup()
-        let keptIds = reviewState.keptIds(for: group)
-        let keptCount = keptIds.count
-
-        reviewState.reduce(.didConfirmGroup)
-
-        guard !idsToDelete.isEmpty else {
-            reviewState.reduce(.didFinishGroupDeletion(deleted: 0, kept: keptCount))
-            persistGroupStatus(group: group, keptIds: keptIds, deletedAssetIds: [], deps: deps)
-            return
-        }
-
-        Task {
+            reviewState.reduce(.didStartLoading)
             do {
-                try await deps.photoLibrary.deleteAssets(idsToDelete)
-                let uuids = idsToDelete.map { deterministicUUID(from: $0) }
-                try await deps.vectorStore.delete(ids: uuids)
-                reviewState.reduce(.didFinishGroupDeletion(deleted: idsToDelete.count, kept: keptCount))
-                persistGroupStatus(group: group, keptIds: keptIds, deletedAssetIds: idsToDelete, deps: deps)
-            } catch let error as AppError {
-                reviewState.reduce(.didFail(error))
+                let output = try await reviewUseCases.loadNextGroup.execute(())
+                guard let group = output.group else {
+                    reviewState.reduce(.didLoadEmpty)
+                    return
+                }
+                reviewState.reduce(.didLoadGroup(group, pendingCount: output.pendingCount))
             } catch {
-                reviewState.reduce(.didFail(.unknown(error.localizedDescription)))
+                reviewState.reduce(.didFail(error as? AppError ?? .unknown(error.localizedDescription)))
             }
         }
     }
 
-    private func persistGroupStatus(group: DuplicateGroup, keptIds: Set<String>, deletedAssetIds: [String], deps: Dependencies) {
-        guard let groupUUID = UUID(uuidString: group.id) else { return }
+    private func deleteCurrentGroup() {
+        guard let reviewUseCases, let group = reviewState.currentGroup else { return }
+        let keptIds = reviewState.keptIds(for: group)
+        reviewState.reduce(.didConfirmGroup)
+
         Task {
-            if deletedAssetIds.isEmpty {
-                try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: keptIds)
-            } else {
-                let deletedUUIDs = Set(deletedAssetIds.map { deterministicUUID(from: $0) })
-                try? await deps.scanStore.markGroupDeleted(groupId: groupUUID, keptVectorUUIDs: keptIds, deletedVectorUUIDs: deletedUUIDs)
+            do {
+                let result = try await reviewUseCases.deleteGroup.execute(
+                    DeleteGroupInput(group: group, keptIds: keptIds)
+                )
+                reviewState.reduce(.didFinishGroupDeletion(deleted: result.deleted, kept: result.kept))
+            } catch {
+                reviewState.reduce(.didFail(error as? AppError ?? .unknown(error.localizedDescription)))
             }
         }
     }
 
     private func skipCurrentGroup() {
-        guard let deps = dependencies, let group = reviewState.currentGroup else { return }
-        let allIds = Set(group.photos.map(\.id))
-        guard let groupUUID = UUID(uuidString: group.id) else { return }
+        guard let reviewUseCases, let group = reviewState.currentGroup else { return }
         reviewState.reduce(.didSkipGroup)
         Task {
-            try? await deps.scanStore.markGroupReviewed(groupId: groupUUID, keptVectorUUIDs: allIds)
+            try? await reviewUseCases.skipGroup.execute(SkipGroupInput(group: group))
         }
     }
-}
-
-// MARK: - Supporting Types
-
-private enum SwipeDirection {
-    case none, left, right
 }

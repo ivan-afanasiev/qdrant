@@ -5,6 +5,10 @@ struct OnboardingView: View {
     let settings: AppSettings
     let onComplete: () -> Void
 
+    private let useCases = OnboardingFeature.UseCases(
+        requestPhotoAccess: RequestPhotoAccessUseCase()
+    )
+
     var body: some View {
         VStack(spacing: 0) {
             stepIndicator
@@ -15,7 +19,7 @@ struct OnboardingView: View {
                 case .welcome:
                     OnboardingWelcomeStep()
                 case .permission:
-                    OnboardingPermissionStep(state: state)
+                    OnboardingPermissionStep(state: state, useCases: useCases)
                 case .scanPeriod:
                     OnboardingScanPeriodStep(state: state)
                 }

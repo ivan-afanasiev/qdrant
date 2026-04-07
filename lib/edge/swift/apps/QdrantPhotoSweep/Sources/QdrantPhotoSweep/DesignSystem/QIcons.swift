@@ -20,6 +20,7 @@ enum QIcons {
     // MARK: - Photos
 
     static let photoStack = "photo.stack"
+    static let photoStackFill = "photo.stack.fill"
     static let photoAngled = "photo.on.rectangle.angled"
     static let photoError = "photo.badge.exclamationmark"
 
@@ -27,6 +28,9 @@ enum QIcons {
 
     static let sparkles = "sparkles"
     static let trashCircle = "trash.circle"
+    static let trashFill = "trash.fill"
     static let fullscreen = "arrow.up.left.and.arrow.down.right"
     static let xmark = "xmark"
+    static let clock = "clock.fill"
+    static let stackFill = "square.stack.3d.up.fill"
 }

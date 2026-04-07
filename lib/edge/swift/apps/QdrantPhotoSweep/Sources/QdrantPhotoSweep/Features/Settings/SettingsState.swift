@@ -1,5 +1,12 @@
 import Foundation
 
+enum SettingsFeature {
+    struct UseCases: Sendable {
+        let clearDatabase: ClearDatabaseUseCase
+        let loadDatabaseInfo: LoadDatabaseInfoUseCase
+    }
+}
+
 @Observable
 @MainActor
 final class SettingsState {
@@ -30,5 +37,14 @@ final class SettingsState {
         case .didFail(let error):
             status = .failed(error)
         }
+    }
+}
+
+extension Dependencies {
+    var settingsUseCases: SettingsFeature.UseCases {
+        SettingsFeature.UseCases(
+            clearDatabase: ClearDatabaseUseCase(vectorStore: vectorStore),
+            loadDatabaseInfo: LoadDatabaseInfoUseCase(vectorStore: vectorStore)
+        )
     }
 }

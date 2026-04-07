@@ -1,5 +1,13 @@
 import Foundation
 
+enum ReviewFeature {
+    struct UseCases: Sendable {
+        let deleteGroup: DeleteGroupUseCase
+        let skipGroup: SkipGroupUseCase
+        let loadNextGroup: LoadNextGroupUseCase
+    }
+}
+
 struct ReviewStats: Equatable, Sendable {
     var groupsReviewed: Int
     var photosDeleted: Int
@@ -105,21 +113,18 @@ final class ReviewState {
             status = .failed(error)
         }
     }
+}
 
-    func loadNextGroup(from scanStore: any ScanSessionStoring) async {
-        reduce(.didStartLoading)
-        do {
-            let count = try await scanStore.pendingGroupCount()
-            guard let dto = try await scanStore.loadNextPendingGroup(),
-                  let group = dto.toDuplicateGroup() else {
-                reduce(.didLoadEmpty)
-                return
-            }
-            reduce(.didLoadGroup(group, pendingCount: count))
-        } catch let error as AppError {
-            reduce(.didFail(error))
-        } catch {
-            reduce(.didFail(.unknown(error.localizedDescription)))
-        }
+extension Dependencies {
+    var reviewUseCases: ReviewFeature.UseCases {
+        ReviewFeature.UseCases(
+            deleteGroup: DeleteGroupUseCase(
+                photoLibrary: photoLibrary,
+                vectorStore: vectorStore,
+                scanStore: scanStore
+            ),
+            skipGroup: SkipGroupUseCase(scanStore: scanStore),
+            loadNextGroup: LoadNextGroupUseCase(scanStore: scanStore)
+        )
     }
 }
