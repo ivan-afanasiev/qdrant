@@ -5,11 +5,16 @@ struct SwipeReviewView: View {
     @State private var reviewState = ReviewState()
     @State private var fullscreenPhoto: PhotoReference?
     @State private var dragOffset: CGFloat = 0
+    @State private var showGroupGrid = false
 
     let onFinished: () -> Void
 
     private var useCases: ReviewFeature.UseCases? {
         dependencies?.reviewUseCases
+    }
+
+    private var groupGridUseCases: GroupGridFeature.UseCases? {
+        dependencies?.groupGridUseCases
     }
 
     var body: some View {
@@ -35,6 +40,23 @@ struct SwipeReviewView: View {
             }
         }
         .navigationTitle(L10n.reviewDuplicates)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showGroupGrid = true
+                } label: {
+                    Image(systemName: QIcons.squareGrid)
+                }
+            }
+        }
+        .sheet(isPresented: $showGroupGrid) {
+            if let groupGridUseCases, let useCases {
+                GroupGridView(
+                    useCases: groupGridUseCases,
+                    reviewUseCases: useCases
+                )
+            }
+        }
         .task { await loadNextGroup() }
         .onChange(of: reviewState.status) { _, newStatus in
             if newStatus == .loading {

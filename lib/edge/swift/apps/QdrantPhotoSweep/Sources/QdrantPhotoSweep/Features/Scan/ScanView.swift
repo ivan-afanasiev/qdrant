@@ -9,6 +9,7 @@ struct ScanView: View {
     @State private var dragOffset: CGFloat = 0
     @State private var swipeDirection: SwipeDirection = .none
     @State private var showCompletedBadge = false
+    @State private var showGroupGrid = false
 
     let dateRange: DateRange
     let resumeSessionId: UUID?
@@ -31,6 +32,15 @@ struct ScanView: View {
             cancelScan: CancelScanUseCase(coordinator: coordinator),
             manageBackground: ManageBackgroundExecutionUseCase(coordinator: coordinator)
         )
+    }
+
+    private var groupGridUseCases: GroupGridFeature.UseCases? {
+        dependencies?.groupGridUseCases
+    }
+
+    private var canShowGroupGrid: Bool {
+        if case .completed = coordinator.phase { return true }
+        return false
     }
 
     var body: some View {
@@ -60,6 +70,25 @@ struct ScanView: View {
         }
         .navigationTitle(L10n.scanning)
         .navigationBarBackButtonHidden(coordinator.isActive)
+        .toolbar {
+            if canShowGroupGrid {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showGroupGrid = true
+                    } label: {
+                        Image(systemName: QIcons.squareGrid)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showGroupGrid) {
+            if let groupGridUseCases, let reviewUseCases {
+                GroupGridView(
+                    useCases: groupGridUseCases,
+                    reviewUseCases: reviewUseCases
+                )
+            }
+        }
         .task {
             try? await scanUseCases?.startScan.execute(
                 StartScanInput(dateRange: dateRange, resumeSessionId: resumeSessionId)

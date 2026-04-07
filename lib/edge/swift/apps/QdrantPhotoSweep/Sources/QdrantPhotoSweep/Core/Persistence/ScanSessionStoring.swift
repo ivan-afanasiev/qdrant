@@ -11,6 +11,8 @@ protocol ScanSessionStoring: Sendable {
 
     func saveDuplicateGroups(_ groups: [DuplicateGroup], sessionId: UUID) async throws
     func loadPendingGroups() async throws -> [DuplicateGroupDTO]
+    func loadPendingGroupsPage(offset: Int, limit: Int) async throws -> [DuplicateGroupDTO]
+    func loadPendingGroup(id: UUID) async throws -> DuplicateGroupDTO?
     func loadNextPendingGroup() async throws -> DuplicateGroupDTO?
     func pendingGroupCount() async throws -> Int
     func markGroupReviewed(groupId: UUID, keptVectorUUIDs: Set<String>) async throws

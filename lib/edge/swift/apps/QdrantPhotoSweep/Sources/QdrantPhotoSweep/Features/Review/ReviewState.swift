@@ -127,4 +127,11 @@ extension Dependencies {
             loadNextGroup: LoadNextGroupUseCase(scanStore: scanStore)
         )
     }
+
+    var groupGridUseCases: GroupGridFeature.UseCases {
+        GroupGridFeature.UseCases(
+            loadPage: LoadGroupsPageUseCase(scanStore: scanStore),
+            loadGroup: LoadGroupByIdUseCase(scanStore: scanStore)
+        )
+    }
 }

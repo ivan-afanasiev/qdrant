@@ -117,6 +117,23 @@ actor SwiftDataScanStore: ScanSessionStoring {
         return entities.map { $0.toDTO() }
     }
 
+    func loadPendingGroupsPage(offset: Int, limit: Int) throws -> [DuplicateGroupDTO] {
+        let pendingStatus = DuplicateGroupStatus.pending.rawValue
+        let predicate = #Predicate<DuplicateGroupEntity> { $0.status == pendingStatus }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.sortBy = [SortDescriptor(\.detectedAt, order: .forward)]
+        descriptor.fetchOffset = offset
+        descriptor.fetchLimit = limit
+        return try modelContext.fetch(descriptor).map { $0.toDTO() }
+    }
+
+    func loadPendingGroup(id: UUID) throws -> DuplicateGroupDTO? {
+        let predicate = #Predicate<DuplicateGroupEntity> { $0.id == id }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first?.toDTO()
+    }
+
     func loadNextPendingGroup() throws -> DuplicateGroupDTO? {
         let pendingStatus = DuplicateGroupStatus.pending.rawValue
         let predicate = #Predicate<DuplicateGroupEntity> { $0.status == pendingStatus }

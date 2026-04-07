@@ -63,6 +63,7 @@ enum L10n {
     static let deletedPhotosNote: LocalizedStringKey = "review.deletedPhotosNote"
     static let deletingPhotos: LocalizedStringKey = "review.deletingPhotos"
     static let allDone: LocalizedStringKey = "review.allDone"
+    static let allGroups: LocalizedStringKey = "review.allGroups"
     static let finish: LocalizedStringKey = "review.finish"
     static let error: LocalizedStringKey = "review.error"
     static let unknownDate: LocalizedStringKey = "review.unknownDate"

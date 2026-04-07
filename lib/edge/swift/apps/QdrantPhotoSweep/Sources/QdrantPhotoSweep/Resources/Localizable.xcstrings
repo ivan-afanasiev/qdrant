@@ -1867,6 +1867,35 @@
         }
       }
     },
+    "review.allGroups": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Gruppen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Groups"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los grupos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все группы"
+          }
+        }
+      }
+    },
     "review.deleteNPhotos %lld": {
       "extractionState": "manual",
       "localizations": {
