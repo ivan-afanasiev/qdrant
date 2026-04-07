@@ -1,12 +1,11 @@
 import SwiftUI
 import Photos
 
-struct GroupGridView: View {
-    let useCases: GroupGridFeature.UseCases
-    let reviewUseCases: ReviewFeature.UseCases
-
-    @State private var state = GroupGridState()
-    @State private var path = NavigationPath()
+struct InlineGroupGridView: View {
+    var state: GroupGridState
+    let useCases: GroupGridFeature.UseCases?
+    let reviewUseCases: ReviewFeature.UseCases?
+    let onGroupReviewed: (UUID) -> Void
 
     private let columns = [
         GridItem(.flexible(), spacing: QSpacing.xs),
@@ -14,15 +13,15 @@ struct GroupGridView: View {
     ]
 
     var body: some View {
-        NavigationStack(path: $path) {
-            gridRoot
-                .navigationTitle(L10n.allGroups)
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(for: GroupSummary.self) { summary in
-                    groupDestination(for: summary.id)
+        gridRoot
+            .navigationDestination(for: GroupSummary.self) { summary in
+                groupDestination(for: summary.id)
+            }
+            .task {
+                if state.status == .idle {
+                    loadFirstPage()
                 }
-        }
-        .task { loadFirstPage() }
+            }
     }
 
     // MARK: - Grid Root
@@ -56,9 +55,10 @@ struct GroupGridView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: QSpacing.xs) {
                 ForEach(state.groups) { summary in
-                    GroupGridCell(summary: summary) {
-                        path.append(summary)
+                    NavigationLink(value: summary) {
+                        GroupGridCell(summary: summary)
                     }
+                    .buttonStyle(.plain)
                     .onAppear {
                         if summary.id == state.groups.last?.id, state.hasMore {
                             loadNextPage()
@@ -80,19 +80,20 @@ struct GroupGridView: View {
 
     @ViewBuilder
     private func groupDestination(for groupId: UUID) -> some View {
-        GroupDetailLoader(
-            groupId: groupId,
-            useCases: useCases,
-            reviewUseCases: reviewUseCases,
-            onGroupReviewed: { reviewedId in
-                state.reduce(.didRemoveGroup(reviewedId))
-            }
-        )
+        if let useCases, let reviewUseCases {
+            GroupDetailLoader(
+                groupId: groupId,
+                useCases: useCases,
+                reviewUseCases: reviewUseCases,
+                onGroupReviewed: onGroupReviewed
+            )
+        }
     }
 
     // MARK: - Actions
 
     private func loadFirstPage() {
+        guard let useCases else { return }
         state.reduce(.didStartLoading)
         Task {
             do {
@@ -107,7 +108,7 @@ struct GroupGridView: View {
     }
 
     private func loadNextPage() {
-        guard state.status != .loading else { return }
+        guard let useCases, state.status != .loading else { return }
         state.reduce(.didStartLoading)
         Task {
             do {
@@ -170,9 +171,8 @@ private struct GroupDetailLoader: View {
 
 // MARK: - Grid Cell
 
-private struct GroupGridCell: View {
+struct GroupGridCell: View {
     let summary: GroupSummary
-    let onTap: () -> Void
 
     @State private var thumbnail: CGImage?
     @State private var fullImage: CGImage?
@@ -185,29 +185,26 @@ private struct GroupGridCell: View {
     }
 
     var body: some View {
-        Button(action: onTap) {
-            ZStack(alignment: .bottomLeading) {
-                imageContent
+        ZStack(alignment: .bottomLeading) {
+            imageContent
 
-                loadingIndicator
+            loadingIndicator
 
-                HStack(spacing: QSpacing.xxs) {
-                    Image(systemName: QIcons.photoStackFill)
-                        .font(QTypography.captionSmall)
-                    Text("\(summary.photoCount)")
-                        .font(QTypography.numericSmall)
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, QSpacing.xs)
-                .padding(.vertical, QSpacing.xxs)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: QRadius.xs))
-                .padding(QSpacing.xs)
+            HStack(spacing: QSpacing.xxs) {
+                Image(systemName: QIcons.photoStackFill)
+                    .font(QTypography.captionSmall)
+                Text("\(summary.photoCount)")
+                    .font(QTypography.numericSmall)
             }
-            .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
-            .qShadow(QShadow.sm)
+            .foregroundStyle(.white)
+            .padding(.horizontal, QSpacing.xs)
+            .padding(.vertical, QSpacing.xxs)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: QRadius.xs))
+            .padding(QSpacing.xs)
         }
-        .buttonStyle(.plain)
+        .clipShape(RoundedRectangle(cornerRadius: QRadius.md))
+        .qShadow(QShadow.sm)
         .task { await loadImages() }
     }
 

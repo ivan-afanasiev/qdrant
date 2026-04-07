@@ -34,4 +34,6 @@ enum QIcons {
     static let clock = "clock.fill"
     static let stackFill = "square.stack.3d.up.fill"
     static let squareGrid = "square.grid.2x2"
+    static let rectangleStack = "rectangle.stack"
+    static let refresh = "arrow.clockwise"
 }

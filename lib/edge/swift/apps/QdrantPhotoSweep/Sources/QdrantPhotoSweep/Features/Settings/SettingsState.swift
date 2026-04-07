@@ -4,6 +4,7 @@ enum SettingsFeature {
     struct UseCases: Sendable {
         let clearDatabase: ClearDatabaseUseCase
         let loadDatabaseInfo: LoadDatabaseInfoUseCase
+        let loadStats: LoadStatsUseCase
     }
 }
 
@@ -44,7 +45,8 @@ extension Dependencies {
     var settingsUseCases: SettingsFeature.UseCases {
         SettingsFeature.UseCases(
             clearDatabase: ClearDatabaseUseCase(vectorStore: vectorStore),
-            loadDatabaseInfo: LoadDatabaseInfoUseCase(vectorStore: vectorStore)
+            loadDatabaseInfo: LoadDatabaseInfoUseCase(vectorStore: vectorStore),
+            loadStats: LoadStatsUseCase(scanStore: scanStore)
         )
     }
 }

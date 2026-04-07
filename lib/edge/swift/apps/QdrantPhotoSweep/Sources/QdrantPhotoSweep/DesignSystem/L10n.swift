@@ -79,24 +79,6 @@ enum L10n {
         String(localized: "review.similarPhotos \(count)")
     }
 
-    // MARK: - Home Banners
-
-    static let scanNewPhotos: LocalizedStringKey = "home.newPhotos.scanButton"
-    static let continueReview: LocalizedStringKey = "home.pendingGroups.continueReview"
-    static let resumeScan: LocalizedStringKey = "home.interruptedScan.resumeButton"
-
-    static func newPhotosSinceLastScan(_ count: Int) -> String {
-        String(localized: "home.newPhotos.banner \(count)")
-    }
-
-    static func pendingGroupsToReview(_ count: Int) -> String {
-        String(localized: "home.pendingGroups.banner \(count)")
-    }
-
-    static func interruptedScanBanner(_ remaining: Int) -> String {
-        String(localized: "home.interruptedScan.banner \(remaining)")
-    }
-
     // MARK: - Scan Progress (inline detection)
 
     static let scanningWithInlineDetection: LocalizedStringKey = "scan.inlineDetection.subtitle"
@@ -110,14 +92,6 @@ enum L10n {
     static func groupsFoundSoFar(_ count: Int) -> String {
         String(localized: "scan.progress.groupsFound \(count)")
     }
-
-    // MARK: - Home Stats
-
-    static let homeStatsHeader: LocalizedStringKey = "home.stats.header"
-    static let homeStatPhotosIndexed: LocalizedStringKey = "home.stats.photosIndexed"
-    static let homeStatLastScan: LocalizedStringKey = "home.stats.lastScan"
-    static let homeStatDuplicatesFound: LocalizedStringKey = "home.stats.duplicatesFound"
-    static let homeStatPhotosDeleted: LocalizedStringKey = "home.stats.photosDeleted"
 
     // MARK: - Onboarding
 
@@ -151,6 +125,7 @@ enum L10n {
     static let settings: LocalizedStringKey = "settings.title"
     static let settingsScanPeriodHeader: LocalizedStringKey = "settings.scanPeriod.header"
     static let settingsScanPeriodFooter: LocalizedStringKey = "settings.scanPeriod.footer"
+    static let settingsRescanButton: LocalizedStringKey = "settings.scanPeriod.rescan"
     static let similarityThreshold: LocalizedStringKey = "settings.detection.similarityThreshold"
     static let thresholdDescription: LocalizedStringKey = "settings.detection.thresholdDescription"
     static let detection: LocalizedStringKey = "settings.detection.header"
@@ -164,6 +139,14 @@ enum L10n {
     static let embeddings: LocalizedStringKey = "settings.about.embeddings"
     static let appleVision: LocalizedStringKey = "settings.about.appleVision"
     static let about: LocalizedStringKey = "settings.about.header"
+
+    // MARK: - Settings Statistics
+
+    static let settingsStatHeader: LocalizedStringKey = "settings.stats.header"
+    static let settingsStatPhotosIndexed: LocalizedStringKey = "settings.stats.photosIndexed"
+    static let settingsStatLastScan: LocalizedStringKey = "settings.stats.lastScan"
+    static let settingsStatDuplicatesFound: LocalizedStringKey = "settings.stats.duplicatesFound"
+    static let settingsStatPhotosDeleted: LocalizedStringKey = "settings.stats.photosDeleted"
 
     // MARK: - Errors
 

@@ -42,6 +42,13 @@ final class AppSettings {
         }
     }
 
+    /// Bumped by Settings to signal ScanView should start a new scan with the current range.
+    var rescanRequestId = UUID()
+
+    func requestRescan() {
+        rescanRequestId = UUID()
+    }
+
     init() {
         let storedThreshold = defaults.float(forKey: "similarityThreshold")
         self.similarityThreshold = storedThreshold > 0 ? storedThreshold : Self.defaultSimilarityThreshold

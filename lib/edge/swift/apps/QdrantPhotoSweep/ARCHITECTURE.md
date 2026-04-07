@@ -87,8 +87,9 @@ Sources/QdrantPhotoSweep/
 │   ├── Scan/
 │   │   ├── ScanPipeline.swift         # Core logic: embed → upsert → search → persist edges → groups
 │   │   ├── ScanState.swift            # ScanFeature namespace + ScanState (scan progress state machine)
-│   │   ├── ScanView.swift             # Unified scan + review UI (delegates to use cases)
+│   │   ├── ScanView.swift             # Root screen: auto-detect, scan + review + grid toggle
 │   │   └── UseCases/
+│   │       ├── LoadInitialStateUseCase.swift
 │   │       ├── StartScanUseCase.swift
 │   │       ├── CancelScanUseCase.swift
 │   │       └── ManageBackgroundExecutionUseCase.swift
@@ -96,7 +97,6 @@ Sources/QdrantPhotoSweep/
 │   │   ├── DuplicateGroup.swift       # PhotoReference + DuplicateGroup models
 │   │   └── UnionFind.swift            # Generic union-find data structure
 │   ├── Review/
-│   │   ├── SwipeReviewView.swift      # Persistence-resume review (delegates to use cases)
 │   │   ├── ReviewState.swift          # ReviewFeature namespace + ReviewState (pure reducer)
 │   │   ├── GroupComparisonView.swift  # Grid of photos in a group
 │   │   ├── PhotoCardView.swift        # Individual photo card with async loading
@@ -112,15 +112,8 @@ Sources/QdrantPhotoSweep/
 │   │       └── LoadGroupByIdUseCase.swift   # Single group fetch for grid → review
 │   ├── GroupGrid/
 │   │   ├── GroupGridState.swift       # GroupGridFeature namespace + GroupGridState (pure reducer)
-│   │   ├── GroupGridView.swift        # 2-column LazyVGrid with pagination + NavigationStack
-│   │   └── SingleGroupReviewView.swift# Self-contained single-group review (used inside grid sheet)
-│   ├── Home/
-│   │   ├── HomeView.swift             # Dashboard with banners + stats (delegates to use cases)
-│   │   ├── HomeState.swift            # HomeFeature namespace + HomeState (pure reducer)
-│   │   ├── BannerCard.swift           # Reusable banner component
-│   │   ├── StatCard.swift             # Stat display component
-│   │   └── UseCases/
-│   │       └── LoadHomeDataUseCase.swift
+│   │   ├── GroupGridView.swift        # InlineGroupGridView + GroupGridCell (inline in ScanView)
+│   │   └── SingleGroupReviewView.swift# Self-contained single-group review (used from grid drill-down)
 │   ├── Onboarding/
 │   │   ├── OnboardingState.swift      # OnboardingFeature namespace + OnboardingState
 │   │   ├── OnboardingView.swift
@@ -130,14 +123,21 @@ Sources/QdrantPhotoSweep/
 │   │   └── UseCases/
 │   │       └── RequestPhotoAccessUseCase.swift
 │   └── Settings/
-│       ├── SettingsView.swift         # Settings UI (delegates to use cases)
-│       ├── SettingsState.swift        # SettingsFeature namespace + SettingsState
+│       ├── SettingsView.swift         # Thin composition root (delegates to section views)
+│       ├── SettingsState.swift        # SettingsFeature namespace + SettingsState (database section)
+│       ├── Sections/
+│       │   ├── SettingsStatsSectionView.swift       # Statistics grid (receives ScanStats)
+│       │   ├── SettingsScanPeriodSectionView.swift   # Presets, custom range, rescan button
+│       │   ├── SettingsDetectionSectionView.swift    # Similarity threshold slider
+│       │   ├── SettingsDatabaseSectionView.swift     # Indexed count, clear DB (owns SettingsState)
+│       │   └── SettingsAboutSectionView.swift        # Static engine/embeddings info
 │       └── UseCases/
 │           ├── ClearDatabaseUseCase.swift
-│           └── LoadDatabaseInfoUseCase.swift
+│           ├── LoadDatabaseInfoUseCase.swift
+│           └── LoadStatsUseCase.swift
 ├── Navigation/
-│   ├── AppRoute.swift                 # Route enum (scan, review, settings)
-│   └── RootNavigationView.swift       # NavigationStack + destination routing
+│   ├── AppRoute.swift                 # Route enum (settings only)
+│   └── RootNavigationView.swift       # NavigationStack with ScanView as root
 ├── DesignSystem/                      # Colors, typography, icons, layout tokens, L10n
 └── Utilities/
     ├── UUIDHelpers.swift              # deterministicUUID(from:) for stable point IDs
@@ -188,7 +188,6 @@ extension Dependencies {
     var reviewUseCases: ReviewFeature.UseCases { ... }
     var groupGridUseCases: GroupGridFeature.UseCases { ... }
     var settingsUseCases: SettingsFeature.UseCases { ... }
-    var homeUseCases: HomeFeature.UseCases { ... }
 }
 ```
 
@@ -221,42 +220,34 @@ App.swift
  ├── .failed           → Error view with "Open Settings"
  └── .ready            → RootNavigationView
                              │
-                             ├── HomeView (root)
-                             │    ├── "Start Scanning" button    → .scan(dateRange)
-                             │    ├── "Resume Scan" banner       → .scan(dateRange, sessionId)
-                             │    ├── "Review Duplicates" banner → .review
-                             │    └── Settings gear icon         → .settings
-                             │
-                             ├── ScanView (unified scan + review)
+                             ├── ScanView (root — auto-detects action on launch)
+                             │    ├── Auto-detect: resume interrupted scan / review pending / start new scan
+                             │    ├── Cards view (default): review groups one at a time
+                             │    ├── Grid view (toggle): InlineGroupGridView with pagination
+                             │    │    └── Tap group → NavigationLink to SingleGroupReviewView
                              │    ├── Progress bar / interrupted banner / completed badge
-                             │    ├── Review cards always visible (DB-driven)
-                             │    ├── Cancel button (toolbar) → back to Home
-                             │    ├── Grid button (scan complete) → sheet: GroupGridView
-                             │    └── On finished → clears path (back to Home)
+                             │    ├── Cancel button (toolbar, during scan)
+                             │    ├── Grid/Cards toggle (toolbar, when groups exist)
+                             │    └── Settings gear icon (toolbar) → .settings
                              │
-                             ├── SwipeReviewView (persistence resume only)
-                             │    ├── Grid button → sheet: GroupGridView
-                             │    └── On finished → clears path (back to Home)
-                             │
-                             └── SettingsView
+                             └── SettingsView (thin composition root)
+                                  ├── SettingsStatsSectionView (photos indexed, last scan, duplicates, deleted)
+                                  ├── SettingsScanPeriodSectionView (presets + custom range + "Rescan" button)
+                                  ├── SettingsDetectionSectionView (similarity threshold slider)
+                                  ├── SettingsDatabaseSectionView (indexed count, clear — owns its own state)
+                                  └── SettingsAboutSectionView (engine, embeddings)
 ```
 
-Navigation uses `NavigationStack(path:)` with `AppRoute` enum.
+Navigation uses `NavigationStack(path:)` with `AppRoute` enum (currently only `.settings`).
 
-**Key change**: The `.scan` route now shows a **unified screen** that handles both scanning and reviewing. Groups appear as cards during the scan. The review UI is always visible (DB-driven) regardless of the pipeline's state. The `.review` route is only used when resuming review of already-persisted pending groups (e.g., from a Home banner).
+**Key design**: There is no Home screen. `ScanView` is the permanent root that auto-detects what to do on launch via `LoadInitialStateUseCase`:
+1. If there's an interrupted session in the DB → auto-resume scan
+2. If there are pending (unreviewed) groups → show review UI
+3. Otherwise → auto-start a new scan with the saved date range from Settings
 
-### Group Grid Sheet
+The group grid is displayed **inline** as an alternative view mode (toggled via toolbar), not as a sheet. Both cards and grid views share the same `GroupGridState` which persists across toggles.
 
-Both `ScanView` (after scan completes) and `SwipeReviewView` show a toolbar button that opens a **Group Grid** sheet. The sheet owns its own `NavigationStack`:
-
-```
-GroupGridView (2-column LazyVGrid, paginated from DB)
-  └── Tap group → push SingleGroupReviewView
-       ├── Skip/delete → pop back to grid, group removed from list
-       └── Grid scroll position and loaded pages are preserved
-```
-
-This in-sheet navigation avoids destroying the grid state when reviewing a group. `SingleGroupReviewView` is a self-contained review screen that reuses `ReviewCardStack` and `ReviewConfirmButton` for a single group.
+**Rescan from Settings**: `AppSettings` exposes a `rescanRequestId: UUID` signal. When the user taps "Rescan with New Period" in `SettingsScanPeriodSectionView`, it bumps the ID and dismisses Settings. `ScanView`'s `ScanEventHandlers` modifier observes this via `.onChange`, cancels any active scan, resets review/grid state, and starts a fresh scan with the updated date range.
 
 ---
 
@@ -264,7 +255,7 @@ This in-sheet navigation avoids destroying the grid state when reviewing a group
 
 ### Single Unified Phase: Scan with Inline Detection
 
-**Entry point**: User taps "Start Scanning" on Home → navigates to `ScanView` → `.task` calls `startPipeline()` → `ContinuousScanCoordinator.startPipeline()`.
+**Entry point**: App launches → `ScanView` `.task` calls `LoadInitialStateUseCase` → determines action → `ContinuousScanCoordinator.startPipeline()` (for new/resumed scans) or `loadNextGroupFromDB()` (for pending review).
 
 **Coordinator role**: The `ContinuousScanCoordinator` is a thin orchestration layer. It:
 1. Sets `phase = .scanning(processed: 0, total: 0, groupsFound: 0)`
@@ -403,8 +394,9 @@ This ensures the UI **never shifts** when new groups are discovered during scann
 
 ### Inline Review (during scanning — ScanView)
 
-The unified `ScanView` is a **database-driven UI** that is fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the UI reads from it. The user never sees error or failure screens from the pipeline.
+The `ScanView` is the **permanent root screen** and a **database-driven UI** fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the UI reads from it. The user never sees error or failure screens from the pipeline.
 
+- **On launch**: `LoadInitialStateUseCase` queries the DB to auto-detect the right action (resume/review/new scan)
 - **Scanning**: Progress bar at top shows scan progress and groups-found count. Cancel button in toolbar.
 - **Interrupted**: A subtle "Resuming scan…" banner replaces the progress bar. The pipeline auto-resumes.
 - **Completed**: Brief "Scan complete" badge, then only the review UI remains.
@@ -412,15 +404,25 @@ The unified `ScanView` is a **database-driven UI** that is fully decoupled from 
   - When `coordinator.groupsFoundCount` increases and the review is idle, a DB fetch is triggered
   - **Group cards** are stable — only replaced when the user explicitly skips/deletes
   - If all groups reviewed before scan ends: shows scanning placeholder
-  - If scan completes with no groups: shows "No duplicates found" with Done button
+  - If scan completes with no groups: shows "No duplicates found"
+- **View mode toggle**: Toolbar button switches between cards (one-at-a-time review) and grid (browse all groups)
 
 ### Persistence Resume Review
 
-`SwipeReviewView` uses the same DB-driven `ReviewState` — used when returning to review from a Home banner.
+Review of pending groups happens automatically: when the app launches and finds pending groups in the DB, `ScanView` enters review mode directly without starting a scan.
 
-### Group Grid (browse all groups)
+### Group Grid (inline view mode)
 
-Both `ScanView` and `SwipeReviewView` offer a toolbar button to open a paginated grid of all pending groups:
+`ScanView` offers a toolbar toggle to switch between cards and grid view modes:
+
+```
+InlineGroupGridView (2-column LazyVGrid, paginated from DB)
+  └── Tap group → NavigationLink to SingleGroupReviewView
+       ├── Skip/delete → pop back to grid, group removed from list
+       └── Grid scroll position and loaded pages are preserved
+```
+
+The grid uses the parent's `NavigationStack` for drill-down (no separate NavigationStack). `GroupGridState` is owned by `ScanView` so it persists across view mode toggles.
 
 ```
 GroupGridFeature.UseCases:
@@ -430,19 +432,9 @@ GroupGridFeature.UseCases:
 GroupGridState (pure reducer):
   - Manages groups: [GroupSummary], totalCount, hasMore, status
   - Actions: didStartLoading, didLoadPage, didFail, didRemoveGroup(UUID)
-
-GroupGridView:
-  - Owns its own NavigationStack with NavigationPath
-  - 2-column LazyVGrid with pagination (loads 20 groups per page)
-  - Tap → push GroupDetailLoader → SingleGroupReviewView
-  - On review complete → pop back, didRemoveGroup removes the group from grid in place
-
-SingleGroupReviewView:
-  - Self-contained review for one group (reuses ReviewCardStack + ReviewConfirmButton)
-  - Skip/delete → calls ReviewFeature.UseCases → notifies grid → pops via dismiss()
 ```
 
-This preserves the grid's scroll position and loaded pages while the user reviews individual groups.
+`SingleGroupReviewView` is a self-contained review for one group (reuses `ReviewCardStack` + `ReviewConfirmButton`). Skip/delete calls `ReviewFeature.UseCases`, notifies the grid, and pops via `dismiss()`.
 
 ### Review UI State Machine (`ReviewState`)
 
@@ -560,7 +552,7 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
 
 ### 9.2 ContinuousScanCoordinator
 
-- Created as `@State` on `ScanView`
+- Created as `@State` on `ScanView` (the permanent root screen)
 - Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/interrupted)
 - Delegates background task management to `BackgroundTaskManager`
 - On iOS 26+:
@@ -580,7 +572,7 @@ Layer 3: BGContinuedProcessingTask (iOS 26+ only)
     - If the scan doesn't finish in time, it's marked `.interrupted` and auto-resumes when the app returns to foreground
 - Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groupsFound:)` / `interrupted(processed:total:)`
 - **Interrupted auto-resume**: When the pipeline is interrupted (background suspension, error, or system cancellation), the coordinator saves the `dateRange`, `resumeSessionId`, and `deps`. On return to foreground, `resumeIfInterrupted()` automatically restarts the pipeline — no user intervention needed.
-- **Explicit cancel** (user taps Cancel): Transitions to `.idle`, clears saved state — no auto-resume. ScanView navigates back to Home.
+- **Explicit cancel** (user taps Cancel): Transitions to `.idle`, clears saved state — no auto-resume.
 
 ### 9.3 BackgroundScanService (BGProcessingTask)
 
@@ -663,8 +655,10 @@ private func deleteCurrentGroup() {
 - All mutations go through `reduce(_:)` with explicit actions
 - `reduce(_:)` is **pure** — no async, no service calls, no side effects
 - Views never call services directly — all business logic lives in `UseCase` structs
-- Shared UI components (like `ReviewCardStack`, `ReviewConfirmButton`, `BannerCard`) accept data + callbacks, never hold state
+- Shared UI components (like `ReviewCardStack`, `ReviewConfirmButton`) accept data + callbacks, never hold state
 - `ContinuousScanCoordinator` also follows the `Action/reduce` pattern for its phase transitions
+- **Large views split into sections**: `SettingsView` is a thin composition root; each `Sections/` view handles one concern (stats, scan period, detection, database, about). Database section owns its own `SettingsState`; others receive data as props.
+- **ViewModifier for event handlers**: `ScanView` extracts all `.onChange` / `.onDisappear` / `.fullScreenCover` modifiers into a `ScanEventHandlers: ViewModifier` to help the Swift type-checker with long modifier chains
 
 ### Use Cases
 
@@ -680,9 +674,9 @@ struct DeleteGroupUseCase: UseCase {
 }
 ```
 
-**State classes**: `ScanState`, `ReviewState`, `GroupGridState`, `HomeState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
+**State classes**: `ScanState`, `ReviewState`, `GroupGridState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
 
-**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `GroupGridFeature`, `HomeFeature`, `OnboardingFeature`, `SettingsFeature`.
+**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `GroupGridFeature`, `OnboardingFeature`, `SettingsFeature`.
 
 ---
 
@@ -727,19 +721,25 @@ struct DeleteGroupUseCase: UseCase {
 - Resolution: always loads 224×224 thumbnails for embedding (model's expected input size)
 - The same 224×224 thumbnail is used regardless of the original photo's resolution
 
-### Unified scan + review screen (DB-driven, pipeline-decoupled)
-- `ScanView` combines scanning progress with Tinder-style group review
+### Unified scan + review screen (DB-driven, pipeline-decoupled, root screen)
+- `ScanView` is the **permanent root screen** — there is no Home screen
+- On launch, `LoadInitialStateUseCase` queries the DB to auto-detect the right action:
+  1. Interrupted session → auto-resume scan
+  2. Pending groups → show review UI
+  3. Nothing pending → auto-start new scan with saved date range
 - The UI is a **read-only projection of the database** — it never displays pipeline errors or failure screens
 - Pipeline interruptions (background suspension, errors, cancellation) are transparent to the user:
   - Coordinator transitions to `.interrupted`, auto-resumes on return to foreground
   - A small "Resuming scan…" banner shows while the pipeline restarts
-- Only an **explicit user cancel** (toolbar button) stops the scan and navigates back to Home
+- Only an **explicit user cancel** (toolbar button) stops the scan
 - Users can review and delete duplicates while scanning is still in progress
-- `SwipeReviewView` is kept as a separate route only for persistence resume (opening from Home banner)
+- Statistics (previously on Home) are available in Settings
 
-### Group Grid with in-sheet navigation
-- Both `ScanView` and `SwipeReviewView` present a `GroupGridView` sheet for browsing all pending groups
-- The sheet owns its own `NavigationStack` so the grid stays alive when pushing to `SingleGroupReviewView`
+### Group Grid as inline view mode
+- `ScanView` offers a toolbar toggle between cards (one-at-a-time review) and grid (browse all groups)
+- The grid view is **inline** in the root screen, not a separate sheet
+- `GroupGridState` is owned by `ScanView` so it persists across view mode toggles
+- Grid cells use `NavigationLink` for drill-down to `SingleGroupReviewView`
 - After reviewing a group, the user pops back to the same scroll position with the reviewed group removed
 - Grid loads groups in pages of 20 from SwiftData (`loadPendingGroupsPage`)
 - Two-phase image loading in grid cells (fast thumbnail → higher-quality image) with correct aspect ratios
@@ -749,3 +749,25 @@ struct DeleteGroupUseCase: UseCase {
 - `QdrantVectorStore.ensureShard()` retries up to 3 times with 500ms/1s backoff on `WouldBlock` errors
 - `BackgroundScanService` checks `ContinuousScanCoordinator.isForegroundScanActive` and skips work if a foreground scan already holds the lock
 - This prevents the "Resource temporarily unavailable" crash when background and foreground tasks overlap
+
+### Settings decomposition
+- `SettingsView` is a thin composition root — no business logic, just assembles section views in a `Form`
+- Each `Sections/` view is responsible for one concern:
+  - `SettingsStatsSectionView` — receives `ScanStats` as a prop, purely presentational
+  - `SettingsScanPeriodSectionView` — binds to `AppSettings`, calls `onRescan` callback
+  - `SettingsDetectionSectionView` — binds to `AppSettings` for the threshold slider
+  - `SettingsDatabaseSectionView` — owns its own `SettingsState`, calls use cases directly
+  - `SettingsAboutSectionView` — static, no state
+- This keeps each section independently testable and prevents the type-checker issues that arise from large view bodies
+
+### Rescan via signal (AppSettings.rescanRequestId)
+- When the user taps "Rescan with New Period" in Settings, `AppSettings.requestRescan()` bumps a `UUID`
+- `ScanView`'s `ScanEventHandlers` modifier observes this via `.onChange(of: settings.rescanRequestId)`
+- On change: cancel current scan → reset review/grid state → start fresh scan with `settings.currentDateRange`
+- No callback threading through navigation — the shared `@Observable AppSettings` acts as the signal bus
+
+### ScanEventHandlers ViewModifier
+- `ScanView` had 8+ chained `.onChange` modifiers that caused Swift type-checker timeouts
+- All event-handling modifiers are extracted into a `ScanEventHandlers: ViewModifier`
+- This breaks the modifier chain into two independent type-checking units
+- Private helper functions (`handleScenePhaseChange`, `handleGroupsFound`, `handlePhaseChange`) keep the modifier body clean

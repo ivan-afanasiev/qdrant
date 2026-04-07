@@ -47,6 +47,8 @@ final class ReviewState {
 
     var totalGroups: Int { reviewedInSession + pendingCount }
 
+    var isLoading: Bool { status == .loading }
+
     func keptIds(for group: DuplicateGroup) -> Set<String> {
         keepSelections[group.id] ?? [group.bestCandidate.id]
     }
