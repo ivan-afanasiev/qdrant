@@ -148,7 +148,11 @@ struct QdrantPhotoSweepApp: App {
         switch phase {
         case .background:
             guard case .ready = bootstrapStatus else { return }
-            BackgroundScanService.schedule()
+            Task {
+                if !(await ContinuousScanCoordinator.isForegroundScanActive) {
+                    BackgroundScanService.schedule()
+                }
+            }
         case .active:
             break
         case .inactive:

@@ -7,6 +7,8 @@ final class PhotoPointEntity {
     var vectorUUID: String
     var embeddingDimensions: Int
     var indexedAt: Date
+    var status: String
+    var lastError: String?
     var pixelWidth: Int
     var pixelHeight: Int
     var creationDate: Date?
@@ -18,6 +20,8 @@ final class PhotoPointEntity {
         vectorUUID: String,
         embeddingDimensions: Int,
         indexedAt: Date = .now,
+        status: String = PhotoPointStatus.indexed.rawValue,
+        lastError: String? = nil,
         pixelWidth: Int = 0,
         pixelHeight: Int = 0,
         creationDate: Date? = nil,
@@ -27,6 +31,8 @@ final class PhotoPointEntity {
         self.vectorUUID = vectorUUID
         self.embeddingDimensions = embeddingDimensions
         self.indexedAt = indexedAt
+        self.status = status
+        self.lastError = lastError
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.creationDate = creationDate

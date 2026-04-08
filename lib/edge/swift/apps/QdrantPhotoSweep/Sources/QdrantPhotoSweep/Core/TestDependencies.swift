@@ -39,6 +39,7 @@ final class MockVectorStore: VectorStoring, @unchecked Sendable {
     func scroll(offset: String?, limit: Int) async throws(AppError) -> ScrollPage { ScrollPage(records: [], nextOffset: nil) }
     func delete(ids: [String]) async throws(AppError) {}
     func count() async throws(AppError) -> Int { countResult }
+    func reset() async throws(AppError) {}
     func close() async {}
 }
 
@@ -74,14 +75,21 @@ final class MockScanStore: ScanSessionStoring, @unchecked Sendable {
     var groups: [DuplicateGroupDTO] = []
 
     func createSession(rangeStart: Date, rangeEnd: Date, totalPhotos: Int) async throws -> UUID { UUID() }
+    func loadSession(id: UUID) async throws -> ScanSessionDTO? { sessions.first { $0.id == id } }
     func updateSessionStatus(_ sessionId: UUID, status: ScanSessionStatus, indexedPhotos: Int?) async throws {}
     func latestCompletedSession() async throws -> ScanSessionDTO? { sessions.first }
     func latestInterruptedSession() async throws -> ScanSessionDTO? { nil }
     func interruptActiveSessions() async throws {}
+    func claimSessionLease(sessionId: UUID, owner: String, until: Date) async throws -> Bool { true }
 
-    func recordIndexedPhoto(sessionId: UUID, assetLocalId: String, vectorUUID: String, dimensions: Int, pixelWidth: Int, pixelHeight: Int, creationDate: Date?) async throws {}
+    func persistScanBatch(
+        sessionId: UUID,
+        photos: [ScanPhotoRecord],
+        similarityEdges: [SimilarityEdgeRecord]
+    ) async throws -> PersistScanBatchResult {
+        PersistScanBatchResult(groups: [])
+    }
 
-    func saveDuplicateGroups(_ groups: [DuplicateGroup], sessionId: UUID) async throws {}
     func loadPendingGroups() async throws -> [DuplicateGroupDTO] { groups }
     func loadPendingGroupsPage(offset: Int, limit: Int) async throws -> [DuplicateGroupDTO] {
         Array(groups.dropFirst(offset).prefix(limit))
@@ -90,11 +98,11 @@ final class MockScanStore: ScanSessionStoring, @unchecked Sendable {
     func loadNextPendingGroup() async throws -> DuplicateGroupDTO? { groups.first }
     func pendingGroupCount() async throws -> Int { groups.count }
     func markGroupReviewed(groupId: UUID, keptVectorUUIDs: Set<String>) async throws {}
+    func markGroupDeletionPending(groupId: UUID, keptVectorUUIDs: Set<String>, deletedVectorUUIDs: Set<String>) async throws {}
+    func markGroupDeletionFailed(groupId: UUID, reason: String, deletedVectorUUIDs: Set<String>) async throws {}
     func markGroupDeleted(groupId: UUID, keptVectorUUIDs: Set<String>, deletedVectorUUIDs: Set<String>) async throws {}
-    func deleteAllPendingGroups() async throws {}
-
-    func recordSimilarityEdge(source: String, target: String, score: Float, sessionId: UUID) async throws {}
-    func computeGroupsFromEdges(sessionId: UUID) async throws -> [DuplicateGroup] { [] }
+    func recoverPendingOperations() async throws {}
+    func resetAllData() async throws {}
 
     func countNewPhotosSince(date: Date, in dateRange: DateRange, using photoLibrary: any PhotoLibraryProviding) async throws -> Int { 0 }
 

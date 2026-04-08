@@ -10,6 +10,10 @@ final class ScanSessionEntity {
     var status: String
     var totalPhotos: Int
     var indexedPhotos: Int
+    var skippedPhotos: Int
+    var failedPhotos: Int
+    var leaseOwner: String?
+    var leaseExpiresAt: Date?
 
     @Relationship(deleteRule: .cascade, inverse: \PhotoPointEntity.session)
     var photoPoints: [PhotoPointEntity] = []
@@ -27,7 +31,11 @@ final class ScanSessionEntity {
         scannedAt: Date = .now,
         status: String = ScanSessionStatus.scanning.rawValue,
         totalPhotos: Int = 0,
-        indexedPhotos: Int = 0
+        indexedPhotos: Int = 0,
+        skippedPhotos: Int = 0,
+        failedPhotos: Int = 0,
+        leaseOwner: String? = nil,
+        leaseExpiresAt: Date? = nil
     ) {
         self.id = id
         self.rangeStart = rangeStart
@@ -36,6 +44,10 @@ final class ScanSessionEntity {
         self.status = status
         self.totalPhotos = totalPhotos
         self.indexedPhotos = indexedPhotos
+        self.skippedPhotos = skippedPhotos
+        self.failedPhotos = failedPhotos
+        self.leaseOwner = leaseOwner
+        self.leaseExpiresAt = leaseExpiresAt
     }
 }
 

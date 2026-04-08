@@ -22,6 +22,7 @@ final class ScanState {
 
     enum Action {
         case didStartScan(total: Int)
+        case didResumeScan(processed: Int, total: Int)
         case batchCompleted(count: Int)
         case didFinishScan(indexed: Int)
         case didFail(AppError)
@@ -60,6 +61,9 @@ final class ScanState {
         switch action {
         case .didStartScan(let total):
             status = .scanning(processed: 0, total: total)
+
+        case .didResumeScan(let processed, let total):
+            status = .scanning(processed: processed, total: total)
 
         case .batchCompleted(let count):
             switch status {

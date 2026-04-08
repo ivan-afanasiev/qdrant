@@ -5,6 +5,7 @@ actor QdrantVectorStore: VectorStoring {
     private let basePath: String
     private var dimensions: Int
     private var shard: EdgeShard?
+    private var dimensionMismatchMessage: String?
 
     init(path: String, dimensions: Int) {
         self.basePath = path
@@ -14,34 +15,42 @@ actor QdrantVectorStore: VectorStoring {
     func updateDimensions(_ dims: Int) {
         guard dims > 0 else { return }
 
-        let marker = URL(fileURLWithPath: basePath)
-            .deletingLastPathComponent()
-            .appendingPathComponent("qdrant-edge-dims")
-        let previousDims = (try? String(contentsOf: marker, encoding: .utf8))
+        let previousDims = (try? String(contentsOf: markerURL, encoding: .utf8))
             .flatMap(Int.init)
 
         if let prev = previousDims, prev != dims {
             shard?.close()
             shard = nil
-            try? FileManager.default.removeItem(atPath: basePath)
+            if FileManager.default.fileExists(atPath: basePath) {
+                dimensionMismatchMessage = "Stored vector dimensions (\(prev)) do not match current embeddings (\(dims)). Reset the database to rebuild the index."
+                self.dimensions = dims
+                return
+            }
         }
-        try? String(dims).write(to: marker, atomically: true, encoding: .utf8)
+        dimensionMismatchMessage = nil
+        try? String(dims).write(to: markerURL, atomically: true, encoding: .utf8)
 
         self.dimensions = dims
     }
 
     func restoreDimensionsFromDisk() {
-        let marker = URL(fileURLWithPath: basePath)
-            .deletingLastPathComponent()
-            .appendingPathComponent("qdrant-edge-dims")
-        if let stored = (try? String(contentsOf: marker, encoding: .utf8)).flatMap(Int.init), stored > 0 {
+        if let stored = (try? String(contentsOf: markerURL, encoding: .utf8)).flatMap(Int.init), stored > 0 {
             self.dimensions = stored
         }
     }
 
-    private func ensureShard() throws(AppError) -> EdgeShard {
+    private var markerURL: URL {
+        URL(fileURLWithPath: basePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("qdrant-edge-dims")
+    }
+
+    private func ensureShard() async throws(AppError) -> EdgeShard {
         if let existing = shard {
             return existing
+        }
+        if let mismatch = dimensionMismatchMessage {
+            throw .vectorStore(mismatch)
         }
         guard dimensions > 0 else {
             throw .vectorStore("Vector dimensions not yet determined")
@@ -63,7 +72,7 @@ actor QdrantVectorStore: VectorStoring {
                 ],
                 sparseVectorData: [:]
             )
-            let loaded = try loadShardWithRetry(config: config, maxAttempts: 3)
+            let loaded = try await loadShardWithRetry(config: config, maxAttempts: 3)
             shard = loaded
             return loaded
         } catch let error as AppError {
@@ -73,7 +82,7 @@ actor QdrantVectorStore: VectorStoring {
         }
     }
 
-    private func loadShardWithRetry(config: EdgeConfig, maxAttempts: Int) throws -> EdgeShard {
+    private func loadShardWithRetry(config: EdgeConfig, maxAttempts: Int) async throws -> EdgeShard {
         var lastError: Error?
         for attempt in 0..<maxAttempts {
             do {
@@ -86,8 +95,7 @@ actor QdrantVectorStore: VectorStoring {
                     break
                 }
                 lastError = error
-                let delayMs = UInt32((attempt + 1) * 500)
-                Thread.sleep(forTimeInterval: Double(delayMs) / 1000.0)
+                try await Task.sleep(for: .milliseconds((attempt + 1) * 500))
             }
         }
         throw AppError.vectorStore("Failed to load shard: \(lastError?.localizedDescription ?? "unknown")")
@@ -97,9 +105,9 @@ actor QdrantVectorStore: VectorStoring {
         try await _exists(id: id)
     }
 
-    private func _exists(id: String) throws(AppError) -> Bool {
+    private func _exists(id: String) async throws(AppError) -> Bool {
         guard dimensions > 0 else { return false }
-        let shard = try ensureShard()
+        let shard = try await ensureShard()
         do {
             let request = ScrollRequest(
                 offset: .uuid(value: id),
@@ -120,8 +128,8 @@ actor QdrantVectorStore: VectorStoring {
         try await _upsert(points: points)
     }
 
-    private func _upsert(points: [VectorPoint]) throws(AppError) {
-        let shard = try ensureShard()
+    private func _upsert(points: [VectorPoint]) async throws(AppError) {
+        let shard = try await ensureShard()
         let edgePoints = points.map { point in
             Point(
                 id: .uuid(value: point.id),
@@ -141,8 +149,8 @@ actor QdrantVectorStore: VectorStoring {
         try await _search(vector: vector, limit: limit, threshold: threshold)
     }
 
-    private func _search(vector: [Float], limit: Int, threshold: Float) throws(AppError) -> [ScoredResult] {
-        let shard = try ensureShard()
+    private func _search(vector: [Float], limit: Int, threshold: Float) async throws(AppError) -> [ScoredResult] {
+        let shard = try await ensureShard()
         do {
             let request = SearchRequest(
                 query: .nearest(vector: vector, using: nil),
@@ -172,8 +180,8 @@ actor QdrantVectorStore: VectorStoring {
         try await _scroll(offset: offset, limit: limit)
     }
 
-    private func _scroll(offset: String?, limit: Int) throws(AppError) -> ScrollPage {
-        let shard = try ensureShard()
+    private func _scroll(offset: String?, limit: Int) async throws(AppError) -> ScrollPage {
+        let shard = try await ensureShard()
         let pointOffset: PointId? = offset.map { .uuid(value: $0) }
         do {
             let request = ScrollRequest(
@@ -203,8 +211,8 @@ actor QdrantVectorStore: VectorStoring {
         try await _delete(ids: ids)
     }
 
-    private func _delete(ids: [String]) throws(AppError) {
-        let shard = try ensureShard()
+    private func _delete(ids: [String]) async throws(AppError) {
+        let shard = try await ensureShard()
         let pointIds = ids.map { PointId.uuid(value: $0) }
         do {
             let operation = UpdateOperation.deletePoints(pointIds: pointIds)
@@ -218,14 +226,41 @@ actor QdrantVectorStore: VectorStoring {
         try await _count()
     }
 
-    private func _count() throws(AppError) -> Int {
+    private func _count() async throws(AppError) -> Int {
         guard dimensions > 0 else { return 0 }
-        let shard = try ensureShard()
+        let shard = try await ensureShard()
         do {
             let result = try shard.count(request: CountRequest(filter: nil, exact: true))
             return Int(result)
         } catch {
             throw .vectorStore("Count failed: \(error.localizedDescription)")
+        }
+    }
+
+    nonisolated func reset() async throws(AppError) {
+        try await _reset()
+    }
+
+    private func _reset() throws(AppError) {
+        shard?.close()
+        shard = nil
+        dimensionMismatchMessage = nil
+        dimensions = 0
+
+        if FileManager.default.fileExists(atPath: basePath) {
+            do {
+                try FileManager.default.removeItem(atPath: basePath)
+            } catch {
+                throw .vectorStore("Failed to remove vector store: \(error.localizedDescription)")
+            }
+        }
+
+        if FileManager.default.fileExists(atPath: markerURL.path) {
+            do {
+                try FileManager.default.removeItem(at: markerURL)
+            } catch {
+                throw .vectorStore("Failed to remove vector dimension marker: \(error.localizedDescription)")
+            }
         }
     }
 

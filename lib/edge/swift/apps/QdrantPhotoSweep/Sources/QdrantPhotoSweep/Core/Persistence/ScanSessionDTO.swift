@@ -9,6 +9,8 @@ struct ScanSessionDTO: Identifiable, Sendable {
     let status: ScanSessionStatus
     let totalPhotos: Int
     let indexedPhotos: Int
+    let skippedPhotos: Int
+    let failedPhotos: Int
 }
 
 extension ScanSessionEntity {
@@ -20,7 +22,9 @@ extension ScanSessionEntity {
             scannedAt: scannedAt,
             status: ScanSessionStatus(rawValue: status) ?? .scanning,
             totalPhotos: totalPhotos,
-            indexedPhotos: indexedPhotos
+            indexedPhotos: indexedPhotos,
+            skippedPhotos: skippedPhotos,
+            failedPhotos: failedPhotos
         )
     }
 }

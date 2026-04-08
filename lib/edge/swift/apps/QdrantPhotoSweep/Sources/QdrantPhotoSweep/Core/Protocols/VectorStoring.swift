@@ -31,5 +31,6 @@ protocol VectorStoring: Sendable {
     func scroll(offset: String?, limit: Int) async throws(AppError) -> ScrollPage
     func delete(ids: [String]) async throws(AppError)
     func count() async throws(AppError) -> Int
+    func reset() async throws(AppError)
     func close() async
 }

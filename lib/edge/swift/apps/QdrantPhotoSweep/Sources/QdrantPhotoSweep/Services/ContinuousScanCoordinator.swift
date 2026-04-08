@@ -6,6 +6,13 @@ import UIKit
 @MainActor
 final class ContinuousScanCoordinator {
     static let continuedTaskIdentifier = "com.qdrant.edge.PhotoSweep.continuousScan"
+    private let workerID = "foreground-\(UUID().uuidString.lowercased())"
+
+    private struct PendingPipelineStart {
+        let dateRange: DateRange
+        let resumeSessionId: UUID?
+        let deps: any DependencyProviding
+    }
 
     enum Phase: Equatable {
         case idle
@@ -32,6 +39,7 @@ final class ContinuousScanCoordinator {
     private var lastDateRange: DateRange?
     private var lastResumeSessionId: UUID?
     private var lastDeps: (any DependencyProviding)?
+    private var pendingPipelineStart: PendingPipelineStart?
 
     var scanProgress: Double {
         switch phase {
@@ -139,6 +147,7 @@ final class ContinuousScanCoordinator {
                 coordinator?.workTask?.cancel()
             }
         })
+        coordinator.startPendingPipelineIfNeeded()
     }
 
     // MARK: - Start Pipeline
@@ -155,17 +164,32 @@ final class ContinuousScanCoordinator {
         lastDeps = deps
 
         reduce(.didStartPipeline)
-        runPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
-        backgroundTaskManager.requestContinuedTaskSupport(
+        pendingPipelineStart = PendingPipelineStart(
+            dateRange: dateRange,
+            resumeSessionId: resumeSessionId,
+            deps: deps
+        )
+
+        let didSubmitContinuedTask = backgroundTaskManager.requestContinuedTaskSupport(
             identifier: Self.continuedTaskIdentifier,
             registerSelf: { self.setActiveCoordinator() }
         )
+
+        if didSubmitContinuedTask {
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(500))
+                self?.startPendingPipelineIfNeeded()
+            }
+        } else {
+            startPendingPipelineIfNeeded()
+        }
     }
 
     /// Explicit user cancel — goes to idle, no auto-resume.
     func cancel() {
         workTask?.cancel()
         workTask = nil
+        pendingPipelineStart = nil
         lastDateRange = nil
         lastDeps = nil
         backgroundTaskManager.completeContinuedTask(success: false)
@@ -180,6 +204,7 @@ final class ContinuousScanCoordinator {
               let dateRange = lastDateRange,
               let deps = lastDeps else { return }
         reduce(.didStartPipeline)
+        pendingPipelineStart = nil
         runPipeline(dateRange: dateRange, resumeSessionId: lastResumeSessionId, deps: deps)
     }
 
@@ -210,6 +235,7 @@ final class ContinuousScanCoordinator {
                     await store.updateDimensions(dims)
                 }
             },
+            ownerID: workerID,
             similarityThreshold: deps.settings.similarityThreshold,
             onGroupCountChanged: { [weak self] count in
                 Task { @MainActor [weak self] in
@@ -286,9 +312,20 @@ final class ContinuousScanCoordinator {
     }
 
     private func finishBackgroundTasks(success: Bool) {
+        pendingPipelineStart = nil
         backgroundTaskManager.completeContinuedTask(success: success)
         clearActiveCoordinator()
         backgroundTaskManager.endUIBackgroundTask()
+    }
+
+    private func startPendingPipelineIfNeeded() {
+        guard workTask == nil, let pendingPipelineStart else { return }
+        self.pendingPipelineStart = nil
+        runPipeline(
+            dateRange: pendingPipelineStart.dateRange,
+            resumeSessionId: pendingPipelineStart.resumeSessionId,
+            deps: pendingPipelineStart.deps
+        )
     }
 
     // MARK: - Active Coordinator Management

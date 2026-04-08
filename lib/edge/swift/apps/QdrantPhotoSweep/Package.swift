@@ -15,5 +15,10 @@ let package = Package(
             dependencies: ["QdrantEdge"],
             path: "Sources/QdrantPhotoSweep"
         ),
+        .testTarget(
+            name: "QdrantPhotoSweepTests",
+            dependencies: ["QdrantPhotoSweep"],
+            path: "Tests/QdrantPhotoSweepTests"
+        ),
     ]
 )

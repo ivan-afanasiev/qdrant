@@ -340,13 +340,13 @@ Step 3: For each photo in the fetched list:
 
     g) Every 20 photos, flush the batch with inline detection:
        1. vectorStore.upsert(points: batch)
-       2. scanStore.recordIndexedPhoto(...) — records in SwiftData with full metadata
+       2. scanStore.persistScanBatch(...) — upserts batch photo records in SwiftData
        3. For each point in the batch:
             vectorStore.search(vector, limit: 10, threshold: 0.92)
             For each neighbor found:
-              scanStore.recordSimilarityEdge(source, target, score, sessionId)
+             similarity edges are normalized and deduplicated inside persistScanBatch
        4. If new edges were found:
-            scanStore.computeGroupsFromEdges(sessionId) → [DuplicateGroup]
+            session-scoped pending groups are re-projected from persisted edges
             onGroupsUpdated(groups) — callback to coordinator
 
 Step 4: Flush remaining batch (same inline detection)
@@ -372,13 +372,13 @@ For each newly-upserted point in the batch:
     → Returns up to 10 nearest neighbors above the similarity threshold
 
     For each result where result.id != point.id:
-        scanStore.recordSimilarityEdge(source, target, score, sessionId)
-        → Persists a SimilarityEdgeEntity in SwiftData
+        scanStore.persistScanBatch(...)
+        → Persists normalized similarity edges and batch photo outcomes in SwiftData
 ```
 
 ### Group Computation from Edges
 
-After edges are discovered, `SwiftDataScanStore.computeGroupsFromEdges(sessionId:)` runs:
+After edges are discovered, `SwiftDataScanStore.persistScanBatch(sessionId:photos:similarityEdges:)` re-projects pending groups for that session:
 
 ```
 Step 1: Fetch all SimilarityEdgeEntity for the session from SwiftData
@@ -390,12 +390,12 @@ Step 3: Extract connected components
     unionFind.components() → [[String]]
     Each component = a group of transitively similar photos
 
-Step 4: Enrich with metadata from PhotoPointEntity
+Step 4: Enrich with metadata from session-scoped PhotoPointEntity records
     For each vector UUID → look up assetLocalId, pixelWidth, pixelHeight, creationDate
 
-Step 5: Replace existing pending DuplicateGroupEntity records
-    Delete old pending groups for this session
-    Create new DuplicateGroupEntity + GroupMemberEntity for each group
+Step 5: Upsert pending DuplicateGroupEntity records by component key
+    Reuse matching pending groups
+    Delete stale pending groups that no longer exist
 
 Step 6: Return sorted groups (largest first)
 ```
@@ -499,11 +499,13 @@ GroupGridState (pure reducer):
 
 ```
 1. Identify unselected photos → idsToDelete = group.photos - keptIds
-2. Delete from photo library: photoLibrary.deleteAssets(assetLocalIdentifiers)
-   This prompts the iOS system deletion dialog
+2. Persist deletion intent in SwiftData: markGroupDeletionPending(...)
 3. Delete from vector store: vectorStore.delete(ids: deterministicUUIDs)
-4. Persist in SwiftData: markGroupDeleted(groupId, keptIds, deletedIds)
-5. Advance to next group
+4. Delete from photo library: photoLibrary.deleteAssets(assetLocalIdentifiers)
+   This prompts the iOS system deletion dialog
+5. Persist final state in SwiftData: markGroupDeleted(groupId, keptIds, deletedIds)
+6. On failure: markGroupDeletionFailed(...) so the app can recover on next launch
+7. Advance to next group
 ```
 
 Photos are deleted **immediately after each group confirmation**, not batched.
@@ -774,7 +776,7 @@ struct DeleteGroupUseCase: UseCase {
 - If dimensions change (unlikely), old shard data is deleted and recreated
 
 ### Deterministic UUIDs
-- `deterministicUUID(from: asset.localIdentifier)` generates a stable UUID via XOR hashing
+- `deterministicUUID(from: asset.localIdentifier)` generates a stable UUID from a SHA-256 digest
 - Same photo always maps to same vector ID → enables skip-if-exists during resume
 
 ### Transitive grouping via Union-Find
@@ -813,8 +815,9 @@ struct DeleteGroupUseCase: UseCase {
 
 ### WAL lock resilience
 - Qdrant Edge uses a WAL (Write-Ahead Log) file that only one process can lock at a time
-- `QdrantVectorStore.ensureShard()` retries up to 3 times with 500ms/1s backoff on `WouldBlock` errors
+- `QdrantVectorStore.ensureShard()` retries up to 3 times with async 500ms/1s backoff on `WouldBlock` errors
 - `BackgroundScanService` checks `ContinuousScanCoordinator.isForegroundScanActive` and skips work if a foreground scan already holds the lock
+- Scan sessions also carry a persisted lease owner / expiry, so stale `.scanning` sessions can be resumed without relying only on in-memory state
 - This prevents the "Resource temporarily unavailable" crash when background and foreground tasks overlap
 
 ### Settings decomposition

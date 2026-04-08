@@ -11,6 +11,8 @@ struct LoadInitialStateUseCase: UseCase {
     let settings: AppSettings
 
     func execute(_ input: Void) async throws -> InitialAction {
+        try await scanStore.recoverPendingOperations()
+
         if let interrupted = try await scanStore.latestInterruptedSession() {
             let range = DateRange(start: interrupted.rangeStart, end: interrupted.rangeEnd)
             return .resumeScan(dateRange: range, sessionId: interrupted.id)

@@ -44,7 +44,7 @@ final class SettingsState {
 extension DependencyProviding {
     var settingsUseCases: SettingsFeature.UseCases {
         SettingsFeature.UseCases(
-            clearDatabase: ClearDatabaseUseCase(vectorStore: vectorStore),
+            clearDatabase: ClearDatabaseUseCase(vectorStore: vectorStore, scanStore: scanStore),
             loadDatabaseInfo: LoadDatabaseInfoUseCase(vectorStore: vectorStore),
             loadStats: LoadStatsUseCase(scanStore: scanStore)
         )

@@ -5,6 +5,7 @@ import UserNotifications
 
 enum BackgroundScanService {
     static let taskIdentifier = "com.qdrant.edge.PhotoSweep.backgroundScan"
+    private static let workerID = "background-\(UUID().uuidString.lowercased())"
 
     static func register(modelContainer: ModelContainer) {
         BGTaskScheduler.shared.register(
@@ -21,7 +22,14 @@ enum BackgroundScanService {
         request.requiresExternalPower = false
         request.requiresNetworkConnectivity = false
         request.earliestBeginDate = urgent ? Date() : Date(timeIntervalSinceNow: 15 * 60)
-        try? BGTaskScheduler.shared.submit(request)
+        if urgent {
+            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: taskIdentifier)
+        }
+        do {
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            AppLog.background.error("Failed to schedule background scan (urgent: \(urgent)): \(error.localizedDescription)")
+        }
     }
 
     static func interruptActiveSessions(scanStore: any ScanSessionStoring) {
@@ -51,10 +59,10 @@ enum BackgroundScanService {
         }
 
         let deps = await AppDependencies.forBackground(modelContainer: modelContainer)
+        try? await deps.scanStore.recoverPendingOperations()
 
         defer { Task { await deps.vectorStore.close() } }
 
-        let bgScanState = await ScanState()
         var groupCount = 0
 
         let pipeline = ScanPipeline(
@@ -67,6 +75,7 @@ enum BackgroundScanService {
                     await qdrantStore.updateDimensions(dims)
                 }
             },
+            ownerID: workerID,
             onGroupCountChanged: { count in
                 groupCount = count
             }
@@ -75,11 +84,22 @@ enum BackgroundScanService {
         // Priority 1: Resume an interrupted session
         if let interrupted = try? await deps.scanStore.latestInterruptedSession() {
             let range = DateRange(start: interrupted.rangeStart, end: interrupted.rangeEnd)
-            await pipeline.run(dateRange: range, state: bgScanState, resumeSessionId: interrupted.id)
-
-            if Task.isCancelled {
+            let result = await runPipeline(
+                pipeline,
+                dateRange: range,
+                resumeSessionId: interrupted.id
+            )
+            switch result {
+            case .cancelled:
                 try? await deps.scanStore.interruptActiveSessions()
                 return -1
+            case .failed:
+                return -1
+            case .completed:
+                if groupCount > 0 {
+                    await postLocalNotification(groupCount: groupCount)
+                }
+                return groupCount
             }
         }
 
@@ -93,11 +113,19 @@ enum BackgroundScanService {
 
             if newCount > 0 {
                 let incrementalRange = DateRange(start: session.scannedAt, end: .now)
-                await pipeline.run(dateRange: incrementalRange, state: bgScanState)
-
-                if Task.isCancelled {
+                let result = await runPipeline(
+                    pipeline,
+                    dateRange: incrementalRange,
+                    resumeSessionId: nil
+                )
+                switch result {
+                case .cancelled:
                     try? await deps.scanStore.interruptActiveSessions()
                     return -1
+                case .failed:
+                    return -1
+                case .completed:
+                    break
                 }
             }
         }
@@ -109,6 +137,35 @@ enum BackgroundScanService {
         }
 
         return groupCount
+    }
+
+    private enum PipelineRunResult {
+        case completed
+        case failed
+        case cancelled
+    }
+
+    private static func runPipeline(
+        _ pipeline: ScanPipeline,
+        dateRange: DateRange,
+        resumeSessionId: UUID?
+    ) async -> PipelineRunResult {
+        let state = await ScanState()
+        await pipeline.run(dateRange: dateRange, state: state, resumeSessionId: resumeSessionId)
+
+        if Task.isCancelled {
+            return .cancelled
+        }
+
+        let status = await state.status
+        switch status {
+        case .failed:
+            return .failed
+        case .cancelled:
+            return .cancelled
+        case .completed, .idle, .scanning:
+            return .completed
+        }
     }
 
     private static func postLocalNotification(groupCount: Int) async {

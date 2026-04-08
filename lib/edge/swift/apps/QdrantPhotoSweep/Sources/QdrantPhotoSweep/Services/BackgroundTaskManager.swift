@@ -11,14 +11,19 @@ final class BackgroundTaskManager {
 
     func beginExtendedBackgroundExecution(onExpiration: @escaping @Sendable () -> Void) {
         guard uiBackgroundTaskId == .invalid else { return }
-        uiBackgroundTaskId = UIApplication.shared.beginBackgroundTask(
+        var taskId: UIBackgroundTaskIdentifier = .invalid
+        taskId = UIApplication.shared.beginBackgroundTask(
             withName: "PhotoSweep.scan"
         ) {
             onExpiration()
+            UIApplication.shared.endBackgroundTask(taskId)
             Task { @MainActor [weak self] in
-                self?.endUIBackgroundTask()
+                if self?.uiBackgroundTaskId == taskId {
+                    self?.uiBackgroundTaskId = .invalid
+                }
             }
         }
+        uiBackgroundTaskId = taskId
     }
 
     func endUIBackgroundTask() {
@@ -32,8 +37,8 @@ final class BackgroundTaskManager {
     func requestContinuedTaskSupport(
         identifier: String,
         registerSelf: () -> Void
-    ) {
-        guard #available(iOS 26.0, *) else { return }
+    ) -> Bool {
+        guard #available(iOS 26.0, *) else { return false }
         registerSelf()
         do {
             let request = BGContinuedProcessingTaskRequest(
@@ -42,8 +47,10 @@ final class BackgroundTaskManager {
                 subtitle: String(localized: "continuousTask.scan.subtitle")
             )
             try BGTaskScheduler.shared.submit(request)
+            return true
         } catch {
-            // Fallback: work continues without Live Activity
+            AppLog.background.error("Failed to submit continued processing task: \(error.localizedDescription)")
+            return false
         }
     }
 

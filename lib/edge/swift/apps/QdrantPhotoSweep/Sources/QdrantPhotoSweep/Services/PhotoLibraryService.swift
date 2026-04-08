@@ -43,7 +43,7 @@ final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendable {
         guard let phAsset = phAsset(for: asset.localIdentifier) else {
             throw .photoLibrary("Asset not found: \(asset.localIdentifier)")
         }
-        return try await loadCGImage(for: phAsset, targetSize: size)
+        return try await loadHighQualityCGImage(for: phAsset, targetSize: size)
     }
 
     func loadFullImage(for asset: PhotoAsset) async throws(AppError) -> CGImage {
@@ -78,7 +78,7 @@ final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendable {
 
     private func datePredicate(for dateRange: DateRange) -> NSPredicate {
         NSPredicate(
-            format: "creationDate >= %@ AND creationDate <= %@",
+            format: "creationDate == nil OR (creationDate >= %@ AND creationDate <= %@)",
             dateRange.start as NSDate,
             dateRange.end as NSDate
         )

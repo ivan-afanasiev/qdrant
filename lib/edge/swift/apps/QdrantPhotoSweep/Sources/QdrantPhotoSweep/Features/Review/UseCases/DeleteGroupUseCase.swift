@@ -33,11 +33,27 @@ struct DeleteGroupUseCase: UseCase {
             return DeleteGroupOutput(deleted: 0, kept: kept.count)
         }
 
-        try await photoLibrary.deleteAssets(idsToDelete)
         let vectorUUIDs = idsToDelete.map { deterministicUUID(from: $0) }
-        try await vectorStore.delete(ids: vectorUUIDs)
-
         let deletedVectorUUIDs = Set(vectorUUIDs)
+        try await scanStore.markGroupDeletionPending(
+            groupId: groupUUID,
+            keptVectorUUIDs: kept,
+            deletedVectorUUIDs: deletedVectorUUIDs
+        )
+
+        do {
+            try await vectorStore.delete(ids: vectorUUIDs)
+            try await photoLibrary.deleteAssets(idsToDelete)
+        } catch {
+            let appError = error as? AppError ?? .unknown(error.localizedDescription)
+            try? await scanStore.markGroupDeletionFailed(
+                groupId: groupUUID,
+                reason: appError.localizedDescription,
+                deletedVectorUUIDs: deletedVectorUUIDs
+            )
+            throw appError
+        }
+
         try await scanStore.markGroupDeleted(
             groupId: groupUUID,
             keptVectorUUIDs: kept,
