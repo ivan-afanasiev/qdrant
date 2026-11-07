@@ -11,6 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3F924D6E309F313C0057D648 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
 		B583F606A9024581BBDB2C6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QdrantPhotoSweep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -42,6 +43,7 @@
 		6DA7CBDCB65543BC8E8D125D = {
 			isa = PBXGroup;
 			children = (
+				3F924D6E309F313C0057D648 /* ARCHITECTURE.md */,
 				B583F606A9024581BBDB2C6A /* Info.plist */,
 				EE000001000000000000EE01 /* Sources */,
 				6D47939F097641369B8C2033 /* Products */,

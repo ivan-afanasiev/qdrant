@@ -1,58 +1,53 @@
 # Qdrant PhotoSweep — Architecture & Photo Processing Logic
 
+This document describes the current Swift implementation. Behavior and limitations below reflect the code, including places where persistence, cancellation, or UI refreshes are best-effort.
+
 ## Table of Contents
 
 1. [High-Level Overview](#1-high-level-overview)
 2. [Project Structure](#2-project-structure)
 3. [Dependency Injection](#3-dependency-injection)
 4. [Navigation Flow](#4-navigation-flow)
-5. [Photo Processing Pipeline — Step by Step](#5-photo-processing-pipeline--step-by-step)
-6. [Inline Duplicate Detection Algorithm](#6-inline-duplicate-detection-algorithm)
-7. [Review & Deletion Flow](#7-review--deletion-flow)
-8. [Persistence Layer](#8-persistence-layer)
+5. [Photo Processing Pipeline](#5-photo-processing-pipeline)
+6. [Inline Duplicate Detection](#6-inline-duplicate-detection)
+7. [Review and Deletion](#7-review-and-deletion)
+8. [Persistence](#8-persistence)
 9. [Background Processing](#9-background-processing)
-10. [State Management Pattern](#10-state-management-pattern)
-11. [Known Architectural Decisions & Trade-offs](#11-known-architectural-decisions--trade-offs)
-
----
+10. [State Management](#10-state-management)
+11. [Current Trade-offs and Limitations](#11-current-trade-offs-and-limitations)
 
 ## 1. High-Level Overview
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Photo      │────>│  Embedding       │────>│  Qdrant Edge    │──┐
-│  Library    │     │  Service          │     │  Vector Store   │  │ search after
-│  (Photos)   │     │  (Vision FP)     │     │  (on-device)    │  │ each batch
-└─────────────┘     └──────────────────┘     └─────────────────┘  │
-                                                                   v
-                                                           ┌──────────────┐
-                                                           │ Similarity   │
-                                                           │ Edges        │
-                                                           │ (SwiftData)  │
-                                                           └──────┬───────┘
-                                                                  │ Union-Find
-                                                                  v
-                                                           ┌──────────────┐
-                                                           │ Duplicate    │
-                                                           │ Groups       │
-                                                           │ (SwiftData)  │
-                                                           └──────┬───────┘
-                                                                  │ streamed
-                                                                  v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Unified Scan + Review UI                                 │
-│        Progress bar at top · Group cards appear as discovered               │
-│        Tinder-style swipe · Delete unselected immediately                   │
-└─────────────────────────────────────────────────────────────────────────────┘
+PhotoSweep finds visually similar images using Apple Vision feature prints and an on-device Qdrant Edge vector store. Similarity is based on cosine scores, not exact file equality.
+
+```text
+Photo library → thumbnails → Vision float vectors → Qdrant Edge
+                                                       │
+                                             search each new batch
+                                                       ↓
+                                          SwiftData similarity edges
+                                                       │
+                                                   Union-Find
+                                                       ↓
+                                          SwiftData duplicate groups
+                                                       │
+                                         use cases read groups/pages
+                                                       ↓
+                                           Cards / grid review UI
+
+ScanPipeline → group count callback → ContinuousScanCoordinator
+                                            │
+                                 ScanInteractor observes changes
+                                            │
+                                conditionally reloads from SwiftData
 ```
 
-The app takes photos from the user's library, generates vector embeddings using Apple's Vision framework, stores them in an on-device Qdrant Edge vector database, and **detects duplicates inline** by searching for similar vectors immediately after each batch upsert. Discovered similarity edges are persisted in SwiftData and grouped via Union-Find. Groups stream to the UI as they are found, allowing the user to review duplicates while scanning continues.
+Scanning and detection share one pipeline. After each batch, groups are persisted and a count is reported; full group arrays are not delivered to the coordinator or review UI. Review can proceed while scanning continues. The card UI holds one group snapshot, and the grid holds paginated summaries.
 
-The **UI is fully decoupled from the pipeline**: it reads groups from SwiftData and never shows pipeline errors. If the scan is interrupted (background suspension, error, system cancel), it auto-resumes transparently when the app returns to the foreground.
-
----
+Pipeline failures become the coordinator's interrupted phase rather than a pipeline error screen. Review and grid operations have their own error handling. Foreground activation attempts to resume an interrupted coordinator; this is not a continuous retry loop.
 
 ## 2. Project Structure
+
 
 ```
 Sources/QdrantPhotoSweep/
@@ -147,696 +142,291 @@ Sources/QdrantPhotoSweep/
     └── PHAssetExtensions.swift        # PHAsset → PhotoAsset conversion
 ```
 
----
+[File truncated: 695 more lines available. Use 'offset' and 'limit' parameters to read more content.]
 
 ## 3. Dependency Injection
 
-### Protocol-Based DI
+`DependencyProviding` supplies `vectorStore`, `embeddingService`, `photoLibrary`, `scanStore`, and `settings`. The service contracts are `VectorStoring`, `EmbeddingProviding`, `PhotoLibraryProviding`, and `ScanSessionStoring`.
 
-All services are defined behind protocols (`VectorStoring`, `EmbeddingProviding`, `PhotoLibraryProviding`, `ScanSessionStoring`). A `DependencyProviding` protocol bundles them into a single contract:
+`AppDependencies` holds the live implementations:
 
-```swift
-protocol DependencyProviding {
-    var vectorStore: any VectorStoring { get }
-    var embeddingService: any EmbeddingProviding { get }
-    var photoLibrary: any PhotoLibraryProviding { get }
-    var scanStore: any ScanSessionStoring { get }
-    var settings: AppSettings { get }
-}
-```
+| Dependency | Implementation | Responsibility |
+| --- | --- | --- |
+| Vector store | `QdrantVectorStore` actor | Owns a lazily opened Edge shard |
+| Embeddings | `VisionEmbeddingService` actor | Generates Vision feature prints |
+| Photos | `PhotoLibraryService` | Authorization, asset queries, image loading, deletion |
+| Persistence | `SwiftDataScanStore` model actor | Sessions, indexed-photo metadata, edges, groups |
+| Settings | `AppSettings` observable class | UserDefaults preferences and rescan signal |
 
-This protocol is the **single source of truth** for all dependencies. Every layer in the app — views, interactors, use cases, background services — consumes `any DependencyProviding` rather than concrete types. Adding a new dependency to the protocol produces compile errors in every conforming type, ensuring nothing is missed.
+Foreground services are constructed in `App.bootstrapDependencies(settings:)`. Background work constructs a separate set through `AppDependencies.forBackground(modelContainer:)`. These are separate construction paths, not one shared factory or a shared shard instance.
 
-### Live Implementation
+The SwiftUI environment contains an optional dependency container, populated only for the ready bootstrap state. `ScanInteractor.configure(deps:)` stores it once. Use cases receive their specific dependencies; foreground and background pipeline builders cast the vector store to `QdrantVectorStore` to configure dimensions.
 
-`AppDependencies` is the live conformance, created once in `App.swift → bootstrapDependencies()`:
+`UseCase<Input, Output>` is a Sendable protocol with an asynchronous throwing `execute` method. Feature bundles group use cases, with factories on `DependencyProviding` for review, grid, and settings. Scan use cases are assembled by the interactor.
 
-```swift
-final class AppDependencies: DependencyProviding {
-    let vectorStore: any VectorStoring       // QdrantVectorStore (actor)
-    let embeddingService: any EmbeddingProviding  // VisionEmbeddingService (actor)
-    let photoLibrary: any PhotoLibraryProviding   // PhotoLibraryService
-    let scanStore: any ScanSessionStoring    // SwiftDataScanStore (@ModelActor)
-    let settings: AppSettings                // @Observable, persisted to UserDefaults
-}
-```
-
-For background tasks, `AppDependencies.forBackground(modelContainer:)` is a static factory that creates a fresh set of services from a `ModelContainer` — eliminating the duplicated construction logic that previously lived in `BackgroundScanService`.
-
-### SwiftUI Environment Injection
-
-The container is injected into the SwiftUI view hierarchy via a custom `EnvironmentKey`:
-
-```
-App.swift → .environment(\.dependencies, appDependencies) → child views read @Environment(\.dependencies)
-```
-
-**Important**: The environment value is `(any DependencyProviding)?` — only non-nil when `bootstrapStatus == .ready`. Views guard on `dependencies != nil` before doing anything. Non-view code (interactors, coordinators) receives the container via `configure(deps:)` or init injection.
-
-### Test Implementation
-
-`TestDependencies` (`#if DEBUG`) provides a test conformance with default mock implementations for all protocols:
-
-```swift
-final class TestDependencies: DependencyProviding {
-    init(
-        vectorStore: any VectorStoring = MockVectorStore(),
-        embeddingService: any EmbeddingProviding = MockEmbeddingService(),
-        photoLibrary: any PhotoLibraryProviding = MockPhotoLibrary(),
-        scanStore: any ScanSessionStoring = MockScanStore(),
-        settings: AppSettings = AppSettings()
-    )
-}
-```
-
-Each mock (`MockVectorStore`, `MockEmbeddingService`, `MockPhotoLibrary`, `MockScanStore`) has configurable properties for test setup and no-op default behavior.
-
-### UseCase Pattern
-
-All business logic lives in `UseCase` structs, never in Views:
-
-```swift
-protocol UseCase<Input, Output>: Sendable {
-    associatedtype Input: Sendable
-    associatedtype Output: Sendable
-    func execute(_ input: Input) async throws -> Output
-}
-```
-
-Each feature defines a `UseCases` bundle, constructed via a factory extension on `DependencyProviding`:
-
-```swift
-extension DependencyProviding {
-    var reviewUseCases: ReviewFeature.UseCases { ... }
-    var groupGridUseCases: GroupGridFeature.UseCases { ... }
-    var settingsUseCases: SettingsFeature.UseCases { ... }
-}
-```
-
-### Feature Namespaces
-
-Each feature is organized as a TCA-inspired namespace enum containing State, Action, reduce, and UseCases:
-
-```swift
-enum ReviewFeature {
-    struct UseCases: Sendable { ... }
-}
-// ReviewState, ReviewState.Action, ReviewState.Status defined alongside
-```
-
-Data flow for every user action:
-```
-Simple features: View → UseCase.execute() → async side effect → Action → State.reduce() → pure state update → View re-renders
-Complex features: View → interactor.send(intent) → Interactor calls UseCase → Action → State.reduce() → View re-renders (via @Observable)
-```
-
-No View ever calls a service directly. No `State.reduce()` ever performs side effects.
-
----
+`TestDependencies` and configurable mock implementations are available under `#if DEBUG`.
 
 ## 4. Navigation Flow
 
-```
-App.swift
- ├── .loading          → ProgressView
- ├── .onboarding       → OnboardingView (welcome → permissions → scan period)
- ├── .failed           → Error view with "Open Settings"
- └── .ready            → RootNavigationView
-                             │
-                             ├── ScanView (root — auto-detects action on launch)
-                             │    ├── Auto-detect: resume interrupted scan / review pending / start new scan
-                             │    ├── Cards view (default): review groups one at a time
-                             │    ├── Grid view (toggle): InlineGroupGridView with pagination
-                             │    │    └── Tap group → NavigationLink to SingleGroupReviewView
-                             │    ├── Progress bar / interrupted banner / completed badge
-                             │    ├── Cancel button (toolbar, during scan)
-                             │    ├── Grid/Cards toggle (toolbar, when groups exist)
-                             │    └── Settings gear icon (toolbar) → .settings
-                             │
-                             └── SettingsView (thin composition root)
-                                  ├── SettingsStatsSectionView (photos indexed, last scan, duplicates, deleted)
-                                  ├── SettingsScanPeriodSectionView (presets + custom range + "Rescan" button)
-                                  ├── SettingsDetectionSectionView (similarity threshold slider)
-                                  ├── SettingsDatabaseSectionView (indexed count, clear — owns its own state)
-                                  └── SettingsAboutSectionView (engine, embeddings)
+```text
+App
+ ├─ loading → progress
+ ├─ onboarding → welcome, photo permission, scan period
+ ├─ failed → authorization error and Open Settings
+ └─ ready → RootNavigationView / NavigationStack
+              ├─ ScanView (permanent root)
+              │    ├─ cards
+              │    └─ inline grid → SingleGroupReviewView
+              └─ SettingsView
+                   ├─ statistics
+                   ├─ scan period and rescan
+                   ├─ similarity threshold
+                   ├─ vector database information and clear
+                   └─ about
 ```
 
-Navigation uses `NavigationStack(path:)` with `AppRoute` enum (currently only `.settings`).
+`App.init()` creates the SwiftData container for all five model types and registers both background handlers. Container creation failure calls `fatalError`. Bootstrap accepts full or limited photo authorization, restores vector dimensions from disk, and injects live dependencies.
 
-**Key design**: There is no Home screen. `ScanView` is the permanent root that auto-detects what to do on launch via `LoadInitialStateUseCase`:
-1. If there's an interrupted session in the DB → auto-resume scan
-2. If there are pending (unreviewed) groups → show review UI
-3. Otherwise → auto-start a new scan with the saved date range from Settings
+`ScanView.task` configures the interactor and sends `.launched`. `LoadInitialStateUseCase` chooses, in order:
 
-The group grid is displayed **inline** as an alternative view mode (toggled via toolbar), not as a sheet. Both cards and grid views share the same `GroupGridState` which persists across toggles.
+1. Resume the latest session explicitly marked interrupted, using its saved date range and ID.
+2. Show pending groups if any exist across sessions.
+3. Start a new scan using the saved settings range.
 
-**Rescan from Settings**: `AppSettings` exposes a `rescanRequestId: UUID` signal. When the user taps "Rescan with New Period" in `SettingsScanPeriodSectionView`, it bumps the ID and dismisses Settings. `ScanInteractor` internally observes this property via `withObservationTracking`, cancels any active scan, resets review/grid state, and starts a fresh scan with the updated date range.
+This lookup does not first convert leftover scanning sessions to interrupted.
 
----
+Settings rescan changes `AppSettings.rescanRequestId`. The interactor observes it, cancels work, replaces review/grid state, and starts a new session for the current range. Existing vectors, sessions, and groups remain stored.
 
-## 5. Photo Processing Pipeline — Step by Step
+## 5. Photo Processing Pipeline
 
-### Single Unified Phase: Scan with Inline Detection
+The main implementation is `Features/Scan/ScanPipeline.swift`.
 
-**Entry point**: App launches → `ScanView` `.task` → `ScanInteractor.send(.launched)` → `autoDetectAndLaunch()` calls `LoadInitialStateUseCase` → determines action → `ContinuousScanCoordinator.startPipeline()` (for new/resumed scans) or `loadNextGroupFromDB()` (for pending review).
+### Starting and reporting progress
 
-**Coordinator role**: The `ContinuousScanCoordinator` is a thin orchestration layer. It:
-1. Sets `phase = .scanning(processed: 0, total: 0, groupsFound: 0)`
-2. Optionally requests iOS 26+ `BGContinuedProcessingTask` for Live Activity (non-blocking)
-3. Immediately calls `runPipeline()` which creates a background `Task`
-4. Maintains a `discoveredGroups` array updated via callback from `ScanPipeline`
+`ContinuousScanCoordinator.startPipeline` saves the range, supplied resume ID, and dependencies; transitions to scanning; starts a Swift task immediately; then requests optional continued-processing support.
 
-**Inside `ScanPipeline.run()`** — the actual work:
+A separate task polls `ScanState.status` every 150 ms to update coordinator progress and any attached background task. The pipeline's `onGroupCountChanged` callback updates `groupsFoundCount` on the main actor.
 
-```
-Step 1: Fetch photos
-    photoLibrary.fetchAssets(in: dateRange) → [PhotoAsset]
-    Each PhotoAsset has: localIdentifier, creationDate, pixelWidth, pixelHeight
+### Processing steps
 
-Step 2: Create or resume a scan session in SwiftData
-    If resumeSessionId != nil → update existing session status to .scanning
-    Else → scanStore.createSession() → new UUID
+1. Fetch image assets whose creation dates fall within the inclusive range, newest first. The full asset metadata list is loaded into memory.
+2. Create a session, or best-effort mark the supplied session scanning.
+3. For each asset:
+   - Check task cancellation.
+   - Derive a stable vector UUID from its local identifier using XOR hashing.
+   - Check Qdrant for that UUID. Existing points count as indexed and processed, but are not embedded or searched again.
+   - Request a 224×224 thumbnail and generate a Vision feature print.
+   - Read float elements from the observation; dimensions come from the returned element count, not a fixed model size.
+   - On the first successful embedding in this run, configure the vector store dimensions.
+   - Add the point and photo metadata to a batch. Payload JSON includes asset ID, creation date, and pixel dimensions.
+   - Advance processed progress even if image loading or embedding failed.
+4. Flush each batch of 20 successfully embedded points, then any remaining points.
+5. Best-effort mark the session completed with the indexed count and transition scan state to completed.
 
-Step 3: For each photo in the fetched list:
-    a) Generate a deterministic UUID from the photo's localIdentifier
-       deterministicUUID(from: asset.localIdentifier) → stable point ID
+The indexed count includes existing points and newly flushed points. It differs from the processed count, which also includes assets whose embedding failed.
 
-    b) Check if already indexed:
-       vectorStore.exists(id: pointId)
-       If exists → skip, increment counter
+### Batch flush
 
-    c) Load a 224×224 thumbnail:
-       photoLibrary.loadThumbnail(for: asset, size: CGSize(224, 224)) → CGImage
-
-    d) Generate embedding:
-       embeddingService.embed(image: cgImage) → [Float]
-       Uses VNGenerateImageFeaturePrintRequest (Apple Vision framework)
-       Returns a float vector (typically 768 dimensions on modern devices)
-
-    e) On first successful embedding, propagate dimensions:
-       configureDimensions(vector.count) → QdrantVectorStore.updateDimensions()
-
-    f) Batch the vector point (id, vector, payload JSON)
-
-    g) Every 20 photos, flush the batch with inline detection:
-       1. vectorStore.upsert(points: batch)
-       2. scanStore.recordIndexedPhoto(...) — records in SwiftData with full metadata
-       3. For each point in the batch:
-            vectorStore.search(vector, limit: 10, threshold: 0.92)
-            For each neighbor found:
-              scanStore.recordSimilarityEdge(source, target, score, sessionId)
-       4. If new edges were found:
-            scanStore.computeGroupsFromEdges(sessionId) → [DuplicateGroup]
-            onGroupsUpdated(groups) — callback to coordinator
-
-Step 4: Flush remaining batch (same inline detection)
-
-Step 5: Update session status to .completed
+```text
+upsert all batch vectors
+ → record each photo's metadata in SwiftData
+ → search each batch vector (limit 10, configured threshold)
+ → discard self matches
+ → persist each remaining similarity edge under the current session
+ → if matches were found and a count callback exists:
+      compute and persist groups
+      report groups.count when nonempty
 ```
 
-**Cancellation**: Checked every iteration via `Task.isCancelled`. On cancel, session is marked `.interrupted`.
+Foreground scans capture `settings.similarityThreshold` when the pipeline is created. Background scans omit that argument and use the default, 0.92. Changing the slider does not alter an already-created pipeline.
 
-**Progress reporting**: The coordinator polls `ScanState.status` every 150ms from a separate observation `Task` and updates `phase = .scanning(processed:, total:, groupsFound:)`.
+### Errors and cancellation
 
-**Streaming groups**: The `onGroupsUpdated` callback fires after each batch that discovers new edges. The coordinator updates `discoveredGroups` on the main actor, which the `ScanView` observes and feeds into its embedded `ReviewState`.
+Image loading/embedding failures skip that asset. Metadata writes, edge writes, group computation, and session status updates use best-effort error handling. Asset fetch, existence checks, upserts, searches, and new-session creation can fail the pipeline.
 
----
+Cancellation at the main asset-loop boundary marks the session interrupted and the scan state cancelled without flushing the pending in-memory batch. Cancellation inside the search loop returns from that flush, potentially after vectors were written but before all edges or groups were computed.
 
-## 6. Inline Duplicate Detection Algorithm
+The foreground coordinator converts task cancellation or failed/cancelled scan state into interruption and best-effort interrupts all scanning sessions. It does not expose the pipeline error as a review failure.
 
-Detection happens **inside `ScanPipeline.flushBatchWithDetection()`**, interleaved with scanning:
+## 6. Inline Duplicate Detection
 
-```
-For each newly-upserted point in the batch:
-    vectorStore.search(vector, limit: 10, threshold: 0.92)
-    → Returns up to 10 nearest neighbors above the similarity threshold
+Qdrant is configured with one unnamed dense vector using cosine distance. Searches have no date/session filter and can match any retained point in the shard, including points from previous scans outside the currently selected range. The limit of 10 applies before self matches are removed.
 
-    For each result where result.id != point.id:
-        scanStore.recordSimilarityEdge(source, target, score, sessionId)
-        → Persists a SimilarityEdgeEntity in SwiftData
-```
+`SwiftDataScanStore.computeGroupsFromEdges(sessionId:)`:
 
-### Group Computation from Edges
+1. Fetches all edges for the session.
+2. Unions source and target UUIDs into connected components.
+3. Records each UUID's maximum incident edge score.
+4. Fetches all stored photo metadata and builds a UUID lookup.
+5. Converts components into groups, omitting missing metadata and components with fewer than two remaining photos.
+6. Sorts photos by megapixels and selects the highest-resolution photo as the initial keep candidate.
+7. Deletes the session's existing pending group records, then creates fresh group/member records.
+8. Saves and returns in-memory groups sorted by size, largest first.
 
-After edges are discovered, `SwiftDataScanStore.computeGroupsFromEdges(sessionId:)` runs:
+Persisted group IDs are newly generated during each recomputation. The temporary returned group IDs are not reused for persistence; callers currently consume only the count. Review queries order persisted groups by detection time, not group size.
 
-```
-Step 1: Fetch all SimilarityEdgeEntity for the session from SwiftData
+Edges are inserted individually without pair deduplication. Reviewed/deleted group records remain, but their members and edges are not excluded when recomputing components.
 
-Step 2: Build Union-Find from edges
-    For each edge: union(source, target)
+Union-Find is transitive: A–B and B–C can produce one group even if A and C do not meet the threshold. The score on a member is its maximum incident edge score, not a guarantee of similarity to every member.
 
-Step 3: Extract connected components
-    unionFind.components() → [[String]]
-    Each component = a group of transitively similar photos
+## 7. Review and Deletion
 
-Step 4: Enrich with metadata from PhotoPointEntity
-    For each vector UUID → look up assetLocalId, pixelWidth, pixelHeight, creationDate
+### Card review
 
-Step 5: Replace existing pending DuplicateGroupEntity records
-    Delete old pending groups for this session
-    Create new DuplicateGroupEntity + GroupMemberEntity for each group
+`ReviewState` owns one `currentGroup`, its keep selections, pending count, and in-memory review statistics. `LoadNextGroupUseCase` reads the next pending group and pending count from SwiftData. The best candidate is selected initially, and users can toggle selections.
 
-Step 6: Return sorted groups (largest first)
-```
+Actual states are:
 
-**Key advantage**: Union-Find runs on edge data from SwiftData, **not** on in-memory vectors. For 17K photos with ~5% duplicate rate, expect ~1K edges — trivial to load and process.
+```text
+idle → loading → reviewing → deletingGroup → loading
+                    │
+                    └─ skip → loading
 
-**Complexity**: Each new point triggers one search (O(K) where K is current index size). Over N total inserts, the amortized cost is O(N²/2) for brute-force — same total as the old approach, but spread over time. The user sees results immediately instead of waiting for two sequential phases.
-
----
-
-## 7. Review & Deletion Flow
-
-### Database-Driven Review (one group at a time)
-
-The review UI is completely decoupled from the scanning pipeline. Groups are never held in memory as an array — instead, `ReviewState` fetches **one group at a time** from SwiftData via `LoadNextGroupUseCase`:
-
-```
-1. useCases.loadNextGroup.execute(())
-   → scanStore.loadNextPendingGroup()  (fetch first pending DuplicateGroupEntity)
-   → scanStore.pendingGroupCount()     (count remaining for progress display)
-   → View dispatches: reviewState.reduce(.didLoadGroup(group, pendingCount: count))
-
-2. User reviews the group (select photos to keep)
-
-3. On skip:
-   → useCases.skipGroup.execute(group)
-   → reviewState.reduce(.didSkipGroup) → status = .loading → triggers next fetch
-
-4. On delete:
-   → useCases.deleteGroup.execute(group, keptIds)
-   → Handles photoLibrary.deleteAssets, vectorStore.delete, scanStore.markGroupDeleted
-   → reviewState.reduce(.didFinishGroupDeletion) → status = .loading → triggers next fetch
-
-5. When no pending groups remain:
-   → .allReviewed if any were reviewed, .noMoreGroups otherwise
+loading with no group → noMoreGroups / allReviewed
+operation failure → failed(error)
 ```
 
-This ensures the UI **never shifts** when new groups are discovered during scanning — the pipeline writes to the database, and the review UI reads one-at-a-time on user action.
+`ScanInteractor` observes coordinator count changes, review loading, coordinator phase/activity, view mode, and rescan requests using re-armed `withObservationTracking` callbacks.
 
-### Inline Review (during scanning — ScanView + ScanInteractor)
+- A changed positive group count fetches a card only when review is idle or noMoreGroups; the same handler reloads the grid if visible.
+- Completion shows a three-second badge, conditionally fetches a card, and reloads a visible grid.
+- These automatic card refreshes do not include allReviewed.
+- Loading state triggers another database fetch after advancing.
+- Current cards are not replaced merely because a new batch is discovered.
+- Coordinator activity controls the application idle timer; teardown re-enables it.
 
-The `ScanView` is the **permanent root screen** and a **pure rendering layer**. All orchestration logic lives in `ScanInteractor` — an `@Observable @MainActor` class that owns the coordinator, review state, and grid state.
+A count notification is not a complete database change stream: a changed group composition with the same count does not trigger the count-based refresh.
 
-The `ScanInteractor` acts as a **database-driven controller** fully decoupled from the scan pipeline's lifecycle. The pipeline writes to SwiftData; the interactor reads from it. The user never sees error or failure screens from the pipeline.
+### Skip and delete
 
-- **On launch**: `ScanInteractor` receives `.launched` intent → calls `LoadInitialStateUseCase` to auto-detect the right action (resume/review/new scan)
-- **Scanning**: Progress bar at top shows scan progress and groups-found count. Cancel button in toolbar.
-- **Interrupted**: A subtle "Resuming scan…" banner replaces the progress bar. The pipeline auto-resumes.
-- **Completed**: Brief "Scan complete" badge (interactor manages 3-second timer), then only the review UI remains.
-- In **all three states**, the review section is visible and functional:
-  - When `coordinator.groupsFoundCount` increases and the review is idle, the interactor triggers a DB fetch (via internal observation loop)
-  - **Group cards** are stable — only replaced when the user explicitly skips/deletes
-  - If all groups reviewed before scan ends: shows scanning placeholder
-  - If scan completes with no groups: shows "No duplicates found"
-- **View mode toggle**: Toolbar button sends `.switchViewMode` intent to interactor
+Skipping marks the group reviewed with all member UUIDs kept. In card mode, the interactor advances review state before the asynchronous persistence call completes and ignores its errors.
 
-### Persistence Resume Review
+Deletion is sequential:
 
-Review of pending groups happens automatically: when the app launches and finds pending groups in the DB, `ScanView` enters review mode directly without starting a scan.
+1. Compute unselected asset IDs.
+2. If none are unselected, mark the group reviewed and return without deleting.
+3. Delete assets through Photos.
+4. Delete corresponding deterministic UUIDs from Qdrant.
+5. Mark the SwiftData group deleted and record kept/deleted member flags.
+6. Update review statistics and advance.
 
-### Group Grid (inline view mode)
+These operations are not one transaction. Failure after Photos deletion can leave later stores unchanged. Deletion does not remove indexed-photo metadata or similarity edges.
 
-`ScanView` offers a toolbar toggle to switch between cards and grid view modes:
+### Grid review
 
-```
-InlineGroupGridView (2-column LazyVGrid, paginated from DB)
-  └── Tap group → NavigationLink to SingleGroupReviewView
-       ├── Skip/delete → pop back to grid, group removed from list
-       └── Grid scroll position and loaded pages are preserved
-```
+`InlineGroupGridView` displays a two-column grid of summaries in pages of 20. Its view performs initial/next-page use cases and reduces the shared `GroupGridState`; the interactor also has grid reload/loading paths. The state object belongs to the interactor, so loaded summaries survive mode changes unless explicitly reset or reloaded.
 
-The grid uses the parent's `NavigationStack` for drill-down (no separate NavigationStack). `GroupGridState` is owned by `ScanInteractor` so it persists across view mode toggles.
+Navigation uses the parent stack. A detail loader fetches a full group by ID and presents `SingleGroupReviewView`, which owns local keep selections. Skip or successful delete notifies the parent to remove the summary, then dismisses. A delete error restores the detail controls without presenting an error message; skip errors are ignored.
 
-```
-GroupGridFeature.UseCases:
-  - LoadGroupsPageUseCase  → paginated loading via scanStore.loadPendingGroupsPage(offset:, limit:)
-  - LoadGroupByIdUseCase   → fetch full DuplicateGroup for a selected grid cell
+Grid cells load a thumbnail followed by a higher-quality image through Photos helpers. Image views perform image-loading work directly, so the use-case boundary applies to feature operations rather than every framework call.
 
-GroupGridState (pure reducer):
-  - Manages groups: [GroupSummary], totalCount, hasMore, status
-  - Actions: didStartLoading, didLoadPage, didFail, didRemoveGroup(UUID)
-```
+## 8. Persistence
 
-`SingleGroupReviewView` is a self-contained review for one group (reuses `ReviewCardStack` + `ReviewConfirmButton`). Skip/delete calls `ReviewFeature.UseCases`, notifies the grid, and pops via `dismiss()`.
+All scan persistence is exposed through `ScanSessionStoring`. `SwiftDataScanStore` is a model actor with its own model context. DTOs carry Sendable values across isolation boundaries; actor isolation should not be described as a guarantee of a dedicated background thread.
 
-### Review UI State Machine (`ReviewState`)
+| Entity | Stored data | Relationships |
+| --- | --- | --- |
+| `ScanSessionEntity` | Unique UUID, date range, creation-time scannedAt, status, total/indexed counts | Cascades to photo points, groups, edges |
+| `PhotoPointEntity` | Unique assetLocalId, vectorUUID, embedding dimensions, indexedAt, image dimensions, creation date | Optional session |
+| `SimilarityEdgeEntity` | Unique UUID, source/target vector UUIDs, score | Optional session |
+| `DuplicateGroupEntity` | Unique UUID, status, detectedAt | Optional session; cascades to members |
+| `GroupMemberEntity` | Asset/vector identifiers, score, image metadata, optional isKept | Optional group |
 
-```
-.empty                  → No groups found
-.reviewing              → Currently showing group[currentIndex]
-  - User taps photos    → toggles keep/unkeep (bestCandidate pre-selected)
-  - User swipes/skips   → mark as reviewed, advance to next
-  - User taps "Delete"  → transitions to .deletingGroup
-.deletingGroup          → Deletion in progress
-  → On success          → advance to next group
-.allReviewed            → All groups processed, show stats
-.failed(error)          → Error state
-```
+Session statuses are scanning, completed, interrupted, and failed. The pipeline primarily writes scanning/completed/interrupted; a scan-state failure does not itself persist the failed session status. Group statuses are pending, reviewed, and deleted.
 
-### Deletion (immediate per group)
+Photo metadata insertion is skipped when the asset ID already exists; it is not reassigned to the latest session or refreshed. `scannedAt` is set when a session is created, not when it completes.
 
-```
-1. Identify unselected photos → idsToDelete = group.photos - keptIds
-2. Delete from photo library: photoLibrary.deleteAssets(assetLocalIdentifiers)
-   This prompts the iOS system deletion dialog
-3. Delete from vector store: vectorStore.delete(ids: deterministicUUIDs)
-4. Persist in SwiftData: markGroupDeleted(groupId, keptIds, deletedIds)
-5. Advance to next group
-```
+Pending-group list, next-group, and page queries filter across all sessions and sort by detectedAt ascending. Despite its name, `loadPendingGroup(id:)` queries only the ID and does not filter status.
 
-Photos are deleted **immediately after each group confirmation**, not batched.
-
----
-
-## 8. Persistence Layer
-
-### SwiftData Entities
-
-```
-ScanSessionEntity
-├── id: UUID (unique)
-├── rangeStart, rangeEnd: Date
-├── scannedAt: Date
-├── status: String (scanning | completed | interrupted | failed)
-├── totalPhotos, indexedPhotos: Int
-├── photoPoints: [PhotoPointEntity]  (cascade delete)
-├── duplicateGroups: [DuplicateGroupEntity]  (cascade delete)
-└── similarityEdges: [SimilarityEdgeEntity]  (cascade delete)
-
-PhotoPointEntity
-├── assetLocalId: String (unique)
-├── vectorUUID: String
-├── embeddingDimensions: Int
-├── indexedAt: Date
-├── pixelWidth, pixelHeight: Int
-├── creationDate: Date?
-└── session: ScanSessionEntity?
-
-SimilarityEdgeEntity
-├── id: UUID (unique)
-├── sourceVectorUUID: String
-├── targetVectorUUID: String
-├── score: Float
-└── session: ScanSessionEntity?
-
-DuplicateGroupEntity
-├── id: UUID (unique)
-├── status: String (pending | reviewed | deleted)
-├── detectedAt: Date
-├── session: ScanSessionEntity?
-└── members: [GroupMemberEntity]  (cascade delete)
-
-GroupMemberEntity
-├── assetLocalId: String
-├── vectorUUID: String
-├── score: Float
-├── pixelWidth, pixelHeight: Int
-├── creationDate: Date?
-├── isKept: Bool?
-└── group: DuplicateGroupEntity?
-```
-
-### Access Pattern
-
-All persistence goes through the `ScanSessionStoring` protocol. The concrete `SwiftDataScanStore` is a `@ModelActor`, which gives it its own `ModelContext` on a background thread — safe for concurrent access from any actor.
-
-DTOs (`ScanSessionDTO`, `DuplicateGroupDTO`, `GroupSummary`) are plain `Sendable` structs used to transport data across actor boundaries.
-
-Key query methods:
-- `loadNextPendingGroup()` — fetches the first pending group (used by sequential review)
-- `loadPendingGroupsPage(offset:limit:)` — paginated loading (used by GroupGridView)
-- `loadPendingGroup(id:)` — single group by ID (used when navigating from grid to review)
-- `pendingGroupCount()` — total count of pending groups
-
----
+Statistics count stored photo metadata, all group records, and deleted-group members flagged as not kept. They are historical database counts, not a reconciliation with the current photo library or vector shard.
 
 ## 9. Background Processing
 
-### 9.1 Three Layers of Background Execution
+### Continued-processing support
 
-When a scan is active and the user locks the screen or switches apps, three mechanisms work together:
+`ContinuousScanCoordinator.register()` registers the continued task handler at app initialization on iOS 26 and later.
 
-```
-Layer 1: UIApplication.beginBackgroundTask (all iOS versions)
-         → ~30 seconds of extended execution after backgrounding
-         → Enough to finish the current batch and persist progress
+The foreground pipeline starts independently of that handler. After starting work, `BackgroundTaskManager.requestContinuedTaskSupport` registers the active coordinator reference and submits a request with localized title/subtitle. The code does not explicitly set the request strategy.
 
-Layer 2: BGProcessingTask with earliestBeginDate=now (all iOS versions)
-         → Scheduled urgently when backgrounding during active scan
-         → System grants it when conditions allow (plugged in, idle, etc.)
-         → Resumes the interrupted scan from SwiftData checkpoint
+When the handler arrives, it attaches the task to the active coordinator; it does not start the pipeline. If no active coordinator exists, it completes the task unsuccessfully. The manager sets progress to 100 total units, updates completed percentage, and connects expiration to cancellation of the existing work task. There are no dynamic title updates. Submission errors are ignored and the Swift task continues.
 
-Layer 3: BGContinuedProcessingTask (iOS 26+ only)
-         → Work runs INSIDE the launch handler (Apple's required pattern)
-         → Register → submit → system calls launch handler → pipeline runs there
-         → Shows Live Activity with progress, user can cancel from there
-         → Foreground work transparently continues in background
-```
+### Extended UIKit execution
 
-### 9.2 ContinuousScanCoordinator
+On backgrounding during an active scan, the interactor invokes `ManageBackgroundExecutionUseCase`, which begins a UIKit background task and submits an urgent processing request. Expiration cancels work and ends the UIKit token. Foreground activation ends the token and calls `resumeIfInterrupted()`. Pipeline completion also ends background support. No fixed execution duration is guaranteed by this code.
 
-- Created as a property of `ScanInteractor` (which is `@State` on `ScanView`)
-- Uses `Action/reduce` pattern for all state transitions (idle → scanning → completed/interrupted)
-- Delegates background task management to `BackgroundTaskManager`
-- On iOS 26+:
-  1. `startPipeline()` → `startWithContinuedTask()`
-  2. Registers the task handler with `BGTaskScheduler.shared.register(...)`
-  3. Submits `BGContinuedProcessingTaskRequest` with `.queue` strategy
-  4. System invokes the launch handler immediately → pipeline runs inside it
-  5. Progress is reported via `task.progress` and `task.updateTitle()`
-  6. Work continues even when the app is backgrounded (Live Activity shown)
-  7. If submission fails, falls back to plain `Task` (same as iOS < 26)
-- On iOS < 26:
-  - Runs pipeline in a plain Swift `Task`
-  - When app goes to background:
-    - `ScanView` forwards `scenePhase` → `ScanInteractor` → calls `coordinator.beginExtendedBackgroundExecution()`
-    - `ScanInteractor` schedules `BackgroundScanService.schedule(urgent: true)` as fallback
-    - Extended execution buys ~30s to finish the current batch and save state
-    - If the scan doesn't finish in time, it's marked `.interrupted` and auto-resumes when the app returns to foreground
-- Phases: `idle` → `scanning(processed:total:groupsFound:)` → `completed(groupsFound:)` / `interrupted(processed:total:)`
-- **Interrupted auto-resume**: When the pipeline is interrupted (background suspension, error, or system cancellation), the coordinator saves the `dateRange`, `resumeSessionId`, and `deps`. On return to foreground, `resumeIfInterrupted()` automatically restarts the pipeline — no user intervention needed.
-- **Explicit cancel** (user taps Cancel): Transitions to `.idle`, clears saved state — no auto-resume.
+`App` separately submits a deferred processing request on background entry.
 
-### 9.3 BackgroundScanService (BGProcessingTask)
+### BGProcessingTask fallback
 
-- Registered in `App.init()`, scheduled when app enters background
-- **Skips work** when `ContinuousScanCoordinator.isForegroundScanActive` is true — avoids double-opening the Qdrant WAL
-- **Urgent mode** (`earliestBeginDate = now`): scheduled from `ScanView` when backgrounding during active scan
-- **Deferred mode** (`earliestBeginDate = 15 min`): default fallback from `App.swift` scene phase handler
-- Uses `AppDependencies.forBackground(modelContainer:)` to create services — same factory as the foreground path, eliminating duplicated construction logic
-- Priority order:
-  1. Resume interrupted scan session (with inline detection)
-  2. Incremental scan for new photos since last completed session (with inline detection)
-- Posts local notification when duplicates found
-- Re-schedules itself after completion
+`BackgroundScanService`:
 
-### 9.4 Scene Phase Handling
+- Requests neither external power nor network connectivity.
+- Uses now as earliestBeginDate for urgent scheduling, or 15 minutes later for deferred scheduling; these are request dates, not guaranteed start times.
+- Skips work if the foreground coordinator's active flag is true.
+- Creates separate background dependencies and asynchronously closes their vector store on exit.
+- First resumes the latest interrupted session, if any.
+- Then checks for new assets using the latest completed session's scannedAt through its saved range end. If the count is positive, it scans scannedAt through now.
+- Uses the default similarity threshold rather than the user's configured threshold.
+- Tracks the latest group-count callback, not an accumulated count across runs.
+- Posts a local notification for a positive count when notification authorization already permits it. Otherwise it requests authorization and returns without posting that notification.
+- Completes the system task based on a nonnegative result and reschedules itself.
 
-```
-ScanView (forwards scenePhase to ScanInteractor):
-  .background → interactor handles: coordinator.beginExtendedBackgroundExecution()
-              + BackgroundScanService.schedule(urgent: true)
-  .active    → interactor handles: coordinator.endExtendedBackgroundExecution()
-              + coordinator.resumeIfInterrupted() (auto-restarts pipeline if it was interrupted)
+Cancellation returns a negative result, with active sessions interrupted at the post-run cancellation checks. The fallback does not inspect failed scan state, so an uncancelled pipeline failure can still produce a successful system-task result.
 
-App.swift (always):
-  .background → BackgroundScanService.schedule()  (deferred, 15 min)
+### Resume and cancel semantics
+
+The coordinator retains the date range, dependencies, and resume ID originally supplied to startPipeline. Foreground resume uses these values. A newly created session ID is not reported back by the pipeline, so a fresh foreground run resumed in the same coordinator can create another session.
+
+Explicit cancel clears saved range/dependencies and immediately moves to idle. The cancelled task can later execute its interruption cleanup and move the phase to interrupted again. Cleared dependencies prevent that coordinator from automatically restarting, but interrupted sessions remain eligible for later launch/background resumption. Cancellation is not awaited before a rescan starts.
+
+## 10. State Management
+
+Feature state generally uses observable main-actor classes, private-set properties, explicit actions, and synchronous reducers. Feature namespaces bundle use cases.
+
+```text
+ScanView intent
+ → ScanInteractor
+ → use case / coordinator
+ → asynchronous service operation
+ → state action
+ → observable state update
+ → view rendering
 ```
 
-The `beginExtendedBackgroundExecution` / `endExtendedBackgroundExecution` pair ensures the UIKit background task token has a proper lifecycle: created on backgrounding, ended on foregrounding (or when the pipeline finishes, whichever comes first). This prevents the "Background Task created over 30 seconds ago" warning.
+Simpler feature views call use cases and dispatch reducer actions themselves. `SettingsView` composes section views and loads statistics. Its database section owns settings state. `SingleGroupReviewView` uses local SwiftUI state instead of `ReviewState`.
 
----
+Reducers primarily update state; the coordinator reducer also updates the static foreground-active flag used by the background service. The interactor directly manages orchestration state such as view mode and completion-badge visibility. Thus the code does not enforce a universal rule that every mutation goes through a pure reducer.
 
-## 10. State Management Pattern
+Design-system files centralize typography, colors, spacing, icons, animation, components, and localized string access. Image presentation and gestures retain view-local state.
 
-Every feature uses **unidirectional data flow** with three key components:
+## 11. Current Trade-offs and Limitations
 
-### Feature Namespace
+### Cross-store consistency and resume
 
-```swift
-enum ReviewFeature {
-    struct UseCases: Sendable {
-        let deleteGroup: DeleteGroupUseCase
-        let skipGroup: SkipGroupUseCase
-        let loadNextGroup: LoadNextGroupUseCase
-    }
-}
-```
+Qdrant upserts precede metadata, edge, and group writes, with no shared transaction. A failure or cancellation after upsert can leave a vector without complete SwiftData data. Later runs skip existing vectors and do not retry that point's detection or metadata write.
 
-### Pure State Reducer
+Rescan means another pass over the chosen range, not rebuilding existing vectors or recomputing all similarity relationships at a new threshold. Startup only resumes explicitly interrupted sessions; leftover scanning sessions from abrupt termination are not normalized by the initial-state use case.
 
-```swift
-@Observable @MainActor
-final class ReviewState {
-    enum Status: Equatable { ... }
-    enum Action { ... }
-    private(set) var status: Status = .idle
+### Group identity and concurrent review
 
-    func reduce(_ action: Action) {
-        // Pure state transitions only — no async, no service calls
-    }
-}
-```
+Recomputation replaces pending groups with new IDs. A card or grid detail can retain a snapshot whose persistent group was removed. Mark-reviewed/deleted methods return without error if the ID no longer exists. Reviewed/deleted components can also be recreated as pending because their edges remain eligible for grouping.
 
-### View as Orchestrator
+Grid pagination uses offsets into a changing pending set. Loaded pages and the current card are not a transactionally consistent view of the database.
 
-Views own `State` and `UseCases`, call use cases for side effects, and dispatch resulting actions through `reduce(_:)`:
+### Memory and search work
 
-```swift
-private func deleteCurrentGroup() {
-    reviewState.reduce(.didConfirmGroup)
-    Task {
-        let result = try await useCases.deleteGroup.execute(input)
-        reviewState.reduce(.didFinishGroupDeletion(deleted: result.deleted, kept: result.kept))
-    }
-}
-```
+Vectors are retained for the current batch rather than loaded wholesale for detection. However, the pipeline loads all selected asset metadata, and each group recomputation loads all session edges plus all photo-point metadata.
 
-### Interactor Pattern (ScanView)
+Each newly inserted point triggers one nearest-neighbor search. The app does not explicitly build an HNSW index or specify search parameters; actual search cost depends on Qdrant Edge's shard implementation. Repeated full group recomputation adds work beyond vector search.
 
-For complex features with multiple state objects and cross-state reactions, an **Interactor** (`@Observable @MainActor class`) sits between the View and the UseCases/State. This keeps the View as a pure rendering layer:
+### Vector dimensions, IDs, and clearing
 
-```
-View → interactor.send(.intent) → Interactor calls UseCases → Interactor dispatches Actions → States.reduce() → View re-renders (via @Observable)
-```
+Dimensions are restored from the sibling qdrant-edge-dims marker and detected from Vision output. A different stored dimension closes the shard and removes its directory before reuse; SwiftData is not reset with it. The app requests 224×224 thumbnails as its own preprocessing choice, not a documented fixed input requirement in this implementation.
 
-**ScanInteractor** owns `ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`, and all derived properties. It exposes a single `send(_ intent: Intent)` method. The View never calls use cases or dispatches actions directly.
+Deterministic UUIDs use XOR folding with UUID version/variant bits. They provide stable mapping but no collision detection.
 
-Internal observation loops (via `withObservationTracking`) replace all `.onChange` handlers:
-- `coordinator.groupsFoundCount` changes → triggers DB fetch for next group
-- `reviewState.isLoading` becomes true → triggers DB fetch
-- `coordinator.phase` completes → triggers `showCompletedBadge` timer and DB fetch
-- `coordinator.isActive` changes → toggles idle timer
-- `viewMode` changes to `.grid` → reloads grid if idle
-- `settings.rescanRequestId` changes → cancels scan, resets state, starts new scan
+`ClearDatabaseUseCase` scrolls and deletes Qdrant points in pages of 100. It does not clear SwiftData sessions, metadata, edges, groups, or the dimensions marker.
 
-The only `.onChange` remaining on `ScanView` is for `scenePhase` (a SwiftUI `@Environment` value that cannot be observed outside a View).
+### Shard ownership
 
-### Rules
-
-- State is read-only from outside (`private(set)`)
-- All mutations go through `reduce(_:)` with explicit actions
-- `reduce(_:)` is **pure** — no async, no service calls, no side effects
-- Views never call services directly — all business logic lives in `UseCase` structs
-- For complex features, an **Interactor** sits between View and UseCases/State (see above)
-- Shared UI components (like `ReviewCardStack`, `ReviewConfirmButton`) accept data + callbacks, never hold state
-- `ContinuousScanCoordinator` also follows the `Action/reduce` pattern for its phase transitions
-- **Large views split into sections**: `SettingsView` is a thin composition root; each `Sections/` view handles one concern (stats, scan period, detection, database, about). Database section owns its own `SettingsState`; others receive data as props.
-
-### Use Cases
-
-Each business operation is a small `UseCase` struct conforming to the shared protocol:
-
-```swift
-struct DeleteGroupUseCase: UseCase {
-    let photoLibrary: any PhotoLibraryProviding
-    let vectorStore: any VectorStoring
-    let scanStore: any ScanSessionStoring
-
-    func execute(_ input: DeleteGroupInput) async throws -> DeleteGroupOutput { ... }
-}
-```
-
-**State classes**: `ScanState`, `ReviewState`, `GroupGridState`, `OnboardingState`, `SettingsState`, `ContinuousScanCoordinator`.
-
-**Interactors**: `ScanInteractor` (orchestrates `ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`).
-
-**Feature namespaces**: `ScanFeature`, `ReviewFeature`, `GroupGridFeature`, `OnboardingFeature`, `SettingsFeature`.
-
----
-
-## 11. Known Architectural Decisions & Trade-offs
-
-### Inline Search-on-Upsert (streaming detection)
-- Scanning and duplicate detection are merged into a **single phase**
-- After each batch of 20 photos is upserted, the pipeline immediately searches for neighbors
-- Discovered edges are persisted as `SimilarityEdgeEntity` in SwiftData
-- Groups are recomputed from edges (Union-Find) and streamed to the UI
-- This replaces the old two-phase approach (scan all, then detect all)
-
-### No in-memory vector loading
-- The old `scrollAllPoints()` approach that loaded ALL vectors into RAM is eliminated
-- Edge data and group computation now live in SwiftData
-- For 17K photos with ~5% duplicates: ~1K edges, trivially small to process
-
-### O(N²) total cost, but spread over time
-- Qdrant Edge uses plain (appendable) segments with no HNSW index
-- Each search is O(K) where K = current index size
-- Total: O(N²/2) amortized — same theoretical cost as before
-- But: earlier photos are searched against smaller indexes, and the user sees groups immediately
-- **Future improvement**: Build HNSW index in Qdrant Edge (Rust changes) for O(N log N) total
-
-### Vector Store Dimensions
-- Dimensions are detected dynamically from the first embedding (usually 768)
-- Persisted to a marker file (`qdrant-edge-dims`) so the store can be restored without a new scan
-- If dimensions change (unlikely), old shard data is deleted and recreated
-
-### Deterministic UUIDs
-- `deterministicUUID(from: asset.localIdentifier)` generates a stable UUID via XOR hashing
-- Same photo always maps to same vector ID → enables skip-if-exists during resume
-
-### Transitive grouping via Union-Find
-- If A is similar to B and B is similar to C, all three end up in the same group
-- This can create large groups with photos that are not directly similar to each other
-- Groups are sorted by size (largest first) and within a group by megapixels (highest first)
-
-### Embedding model
-- Uses `VNGenerateImageFeaturePrintRequest` from Apple's Vision framework
-- This produces a "feature print" — a compact representation of the image's visual content
-- Resolution: always loads 224×224 thumbnails for embedding (model's expected input size)
-- The same 224×224 thumbnail is used regardless of the original photo's resolution
-
-### Unified scan + review screen (DB-driven, pipeline-decoupled, root screen)
-- `ScanView` is the **permanent root screen** — there is no Home screen
-- On launch, `LoadInitialStateUseCase` queries the DB to auto-detect the right action:
-  1. Interrupted session → auto-resume scan
-  2. Pending groups → show review UI
-  3. Nothing pending → auto-start new scan with saved date range
-- The UI is a **read-only projection of the database** — it never displays pipeline errors or failure screens
-- Pipeline interruptions (background suspension, errors, cancellation) are transparent to the user:
-  - Coordinator transitions to `.interrupted`, auto-resumes on return to foreground
-  - A small "Resuming scan…" banner shows while the pipeline restarts
-- Only an **explicit user cancel** (toolbar button) stops the scan
-- Users can review and delete duplicates while scanning is still in progress
-- Statistics (previously on Home) are available in Settings
-
-### Group Grid as inline view mode
-- `ScanView` offers a toolbar toggle between cards (one-at-a-time review) and grid (browse all groups)
-- The grid view is **inline** in the root screen, not a separate sheet
-- `GroupGridState` is owned by `ScanInteractor` so it persists across view mode toggles
-- Grid cells use `NavigationLink` for drill-down to `SingleGroupReviewView`
-- After reviewing a group, the user pops back to the same scroll position with the reviewed group removed
-- Grid loads groups in pages of 20 from SwiftData (`loadPendingGroupsPage`)
-- Two-phase image loading in grid cells (fast thumbnail → higher-quality image) with correct aspect ratios
-
-### WAL lock resilience
-- Qdrant Edge uses a WAL (Write-Ahead Log) file that only one process can lock at a time
-- `QdrantVectorStore.ensureShard()` retries up to 3 times with 500ms/1s backoff on `WouldBlock` errors
-- `BackgroundScanService` checks `ContinuousScanCoordinator.isForegroundScanActive` and skips work if a foreground scan already holds the lock
-- This prevents the "Resource temporarily unavailable" crash when background and foreground tasks overlap
-
-### Settings decomposition
-- `SettingsView` is a thin composition root — no business logic, just assembles section views in a `Form`
-- Each `Sections/` view is responsible for one concern:
-  - `SettingsStatsSectionView` — receives `ScanStats` as a prop, purely presentational
-  - `SettingsScanPeriodSectionView` — binds to `AppSettings`, calls `onRescan` callback
-  - `SettingsDetectionSectionView` — binds to `AppSettings` for the threshold slider
-  - `SettingsDatabaseSectionView` — owns its own `SettingsState`, calls use cases directly
-  - `SettingsAboutSectionView` — static, no state
-- This keeps each section independently testable and prevents the type-checker issues that arise from large view bodies
-
-### Rescan via signal (AppSettings.rescanRequestId)
-- When the user taps "Rescan with New Period" in Settings, `AppSettings.requestRescan()` bumps a `UUID`
-- `ScanInteractor` internally observes this property via `withObservationTracking`
-- On change: cancel current scan → reset review/grid state → start fresh scan with `settings.currentDateRange`
-- No callback threading through navigation — the shared `@Observable AppSettings` acts as the signal bus
-
-### ScanInteractor (replaces ScanEventHandlers ViewModifier)
-- `ScanView` previously had 8+ chained `.onChange` modifiers (later extracted into a `ScanEventHandlers: ViewModifier`)
-- The Interactor pattern eliminates ALL `.onChange` handlers from the view (except `scenePhase`, which is SwiftUI-only)
-- `ScanInteractor` uses `withObservationTracking` loops to internally observe: `coordinator.phase`, `coordinator.groupsFoundCount`, `coordinator.isActive`, `reviewState.isLoading`, `viewMode`, `settings.rescanRequestId`
-- This keeps the view as a pure rendering layer: it reads state and forwards user intents via `interactor.send(_:)`
-- The interactor owns all state objects (`ContinuousScanCoordinator`, `ReviewState`, `GroupGridState`) and all derived properties (`hasGroups`, `reviewGroupCounter`, `reviewProgressTotal`)
-- Intent enum provides a type-safe contract for all user actions (`launched`, `scenePhaseChanged`, `cancelScan`, `skipGroup`, `deleteGroup`, `toggleKeep`, `switchViewMode`, etc.)
+`QdrantVectorStore` opens lazily and retries recognized transient lock errors up to three attempts, sleeping 500 ms and then 1 second. Foreground and background dependencies can own separate store actors for the same path. The foreground-active check reduces overlap, but it is not an exclusive ownership lock; inactive foreground dependencies can still retain an open shard.

@@ -13,7 +13,7 @@ final class BackgroundTaskManager {
         guard uiBackgroundTaskId == .invalid else { return }
         uiBackgroundTaskId = UIApplication.shared.beginBackgroundTask(
             withName: "PhotoSweep.scan"
-        ) {
+        ) { [weak self] in
             onExpiration()
             Task { @MainActor [weak self] in
                 self?.endUIBackgroundTask()
