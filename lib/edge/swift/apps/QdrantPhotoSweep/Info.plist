@@ -5,7 +5,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.qdrant.edge.PhotoSweep.backgroundScan</string>
-		<string>com.qdrant.edge.PhotoSweep.continuousScan</string>
+		<string>com.qdrant.edge.QdrantPhotoSweep.continuousScan.*</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>

@@ -1,4 +1,5 @@
 import CoreGraphics
+import CoreML
 import Vision
 
 actor VisionEmbeddingService: EmbeddingProviding {
@@ -16,6 +17,17 @@ actor VisionEmbeddingService: EmbeddingProviding {
         let request = VNGenerateImageFeaturePrintRequest()
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         do {
+            // Both execution paths can enter the background without a GPU entitlement.
+            // Pin every supported stage to CPU rather than relying on Vision's device selection.
+            for (stage, devices) in try request.supportedComputeStageDevices {
+                guard let cpu = devices.first(where: {
+                    if case .cpu = $0 { return true }
+                    return false
+                }) else {
+                    throw AppError.embedding("No CPU compute device is available for this Vision request")
+                }
+                request.setComputeDevice(cpu, for: stage)
+            }
             try handler.perform([request])
         } catch {
             throw .embedding("Vision request failed: \(error.localizedDescription)")

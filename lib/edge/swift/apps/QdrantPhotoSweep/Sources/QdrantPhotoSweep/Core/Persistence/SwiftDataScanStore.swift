@@ -67,7 +67,15 @@ actor SwiftDataScanStore: ScanSessionStoring {
 
         let existing = #Predicate<PhotoPointEntity> { $0.assetLocalId == assetLocalId }
         let existingDescriptor = FetchDescriptor(predicate: existing)
-        guard try modelContext.fetch(existingDescriptor).isEmpty else { return }
+        if let point = try modelContext.fetch(existingDescriptor).first {
+            point.pixelWidth = pixelWidth
+            point.pixelHeight = pixelHeight
+            point.creationDate = creationDate
+            point.embeddingDimensions = dimensions
+            point.detectionThreshold = nil
+            try modelContext.save()
+            return
+        }
 
         let point = PhotoPointEntity(
             assetLocalId: assetLocalId,
@@ -79,6 +87,21 @@ actor SwiftDataScanStore: ScanSessionStoring {
             session: session
         )
         modelContext.insert(point)
+        try modelContext.save()
+    }
+
+    func isDetectionComplete(vectorUUID: String, threshold: Float) throws -> Bool {
+        let predicate = #Predicate<PhotoPointEntity> { $0.vectorUUID == vectorUUID }
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first?.detectionThreshold == threshold
+    }
+
+    func markDetectionComplete(vectorUUIDs: [String], threshold: Float) throws {
+        let predicate = #Predicate<PhotoPointEntity> { vectorUUIDs.contains($0.vectorUUID) }
+        for point in try modelContext.fetch(FetchDescriptor(predicate: predicate)) {
+            point.detectionThreshold = threshold
+        }
         try modelContext.save()
     }
 
@@ -197,9 +220,21 @@ actor SwiftDataScanStore: ScanSessionStoring {
         descriptor.fetchLimit = 1
         let session = try modelContext.fetch(descriptor).first
 
+        // Retrying an interrupted batch must not accumulate duplicate edges.
+        let first = min(source, target)
+        let second = max(source, target)
+        let existingPredicate = #Predicate<SimilarityEdgeEntity> {
+            $0.session?.id == sessionId &&
+            $0.sourceVectorUUID == first && $0.targetVectorUUID == second
+        }
+        if let existing = try modelContext.fetch(FetchDescriptor(predicate: existingPredicate)).first {
+            existing.score = max(existing.score, score)
+            try modelContext.save()
+            return
+        }
         let edge = SimilarityEdgeEntity(
-            sourceVectorUUID: source,
-            targetVectorUUID: target,
+            sourceVectorUUID: first,
+            targetVectorUUID: second,
             score: score,
             session: session
         )
@@ -232,7 +267,6 @@ actor SwiftDataScanStore: ScanSessionStoring {
 
         let components = unionFind.components()
 
-        let allVectorUUIDs = Set(edges.flatMap { [$0.sourceVectorUUID, $0.targetVectorUUID] })
         let photoPoints = try modelContext.fetch(FetchDescriptor<PhotoPointEntity>())
         let pointsByUUID = Dictionary(
             photoPoints.map { ($0.vectorUUID, $0) },

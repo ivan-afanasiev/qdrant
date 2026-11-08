@@ -122,33 +122,24 @@ struct QdrantPhotoSweepApp: App {
             }
         }
 
-        let embeddingService = VisionEmbeddingService()
-
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
-
-        let vectorStore = QdrantVectorStore(
-            path: shardDir.path,
-            dimensions: 0
-        )
-        await vectorStore.restoreDimensionsFromDisk()
-
-        let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
-
-        bootstrapStatus = .ready(AppDependencies(
-            vectorStore: vectorStore,
-            embeddingService: embeddingService,
-            photoLibrary: photoLibrary,
-            scanStore: scanStore,
-            settings: settings
-        ))
+        do {
+            bootstrapStatus = .ready(try await AppDependencies.shared(
+                modelContainer: modelContainer,
+                settings: settings
+            ))
+        } catch {
+            bootstrapStatus = .failed(error as? AppError ?? .unknown(error.localizedDescription))
+        }
     }
 
     private func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .background:
             guard case .ready = bootstrapStatus else { return }
-            BackgroundScanService.schedule()
+            // An active scan schedules its urgent fallback through the interactor.
+            if !ContinuousScanCoordinator.hasActiveScan {
+                BackgroundScanService.schedule()
+            }
         case .active:
             break
         case .inactive:

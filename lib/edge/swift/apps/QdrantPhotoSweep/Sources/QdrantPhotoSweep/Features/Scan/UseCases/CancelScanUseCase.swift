@@ -5,6 +5,6 @@ struct CancelScanUseCase: UseCase {
 
     @MainActor
     func execute(_ input: Void) async throws -> Void {
-        coordinator.cancel()
+        await coordinator.cancel()
     }
 }

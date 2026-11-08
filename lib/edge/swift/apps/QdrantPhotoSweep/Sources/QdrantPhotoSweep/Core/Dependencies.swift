@@ -94,29 +94,39 @@ final class AppDependencies: DependencyProviding {
         self.settings = settings
     }
 
+    @MainActor private static var liveTask: Task<AppDependencies, Error>?
+
+    /// Both launch paths await the same initialization and retain one shard owner.
     @MainActor
-    static func forBackground(modelContainer: ModelContainer) async -> AppDependencies {
-        let photoLibrary = PhotoLibraryService()
-        let embeddingService = VisionEmbeddingService()
-
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let shardDir = documentsPath.appendingPathComponent("qdrant-edge")
-        let vectorStore = QdrantVectorStore(path: shardDir.path, dimensions: 0)
-        await vectorStore.restoreDimensionsFromDisk()
-
-        let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
-        let settings = AppSettings()
-
-        return AppDependencies(
-            vectorStore: vectorStore,
-            embeddingService: embeddingService,
-            photoLibrary: photoLibrary,
-            scanStore: scanStore,
-            settings: settings
-        )
+    static func shared(modelContainer: ModelContainer, settings: AppSettings? = nil) async throws -> AppDependencies {
+        if let liveTask { return try await liveTask.value }
+        let task = Task { @MainActor in
+            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let vectorStore = QdrantVectorStore(
+                path: documentsPath.appendingPathComponent("qdrant-edge").path,
+                dimensions: 0
+            )
+            await vectorStore.restoreDimensionsFromDisk()
+            let scanStore = SwiftDataScanStore(modelContainer: modelContainer)
+            // Run once per process, before any worker can acquire the shared services.
+            try await scanStore.interruptActiveSessions()
+            return AppDependencies(
+                vectorStore: vectorStore,
+                embeddingService: VisionEmbeddingService(),
+                photoLibrary: PhotoLibraryService(),
+                scanStore: scanStore,
+                settings: settings ?? AppSettings()
+            )
+        }
+        liveTask = task
+        do {
+            return try await task.value
+        } catch {
+            liveTask = nil
+            throw error
+        }
     }
 }
-
 // MARK: - SwiftUI Environment
 
 private struct DependencyContainerKey: EnvironmentKey {

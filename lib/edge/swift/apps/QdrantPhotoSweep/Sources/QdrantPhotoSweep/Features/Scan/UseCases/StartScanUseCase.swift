@@ -3,8 +3,10 @@ import Foundation
 struct StartScanInput: Sendable {
     let dateRange: DateRange
     let resumeSessionId: UUID?
+    var requestContinuedSupport: Bool = false
 }
 
+@MainActor
 struct StartScanUseCase: UseCase {
     let coordinator: ContinuousScanCoordinator
     let deps: any DependencyProviding
@@ -15,7 +17,8 @@ struct StartScanUseCase: UseCase {
         coordinator.startPipeline(
             dateRange: input.dateRange,
             resumeSessionId: input.resumeSessionId,
-            deps: deps
+            deps: deps,
+            requestContinuedSupport: input.requestContinuedSupport
         )
     }
 }

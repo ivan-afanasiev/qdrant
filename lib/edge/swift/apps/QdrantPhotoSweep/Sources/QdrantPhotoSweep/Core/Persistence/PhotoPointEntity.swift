@@ -6,6 +6,8 @@ final class PhotoPointEntity {
     @Attribute(.unique) var assetLocalId: String
     var vectorUUID: String
     var embeddingDimensions: Int
+    // Nil until this point's edges and groups have been persisted.
+    var detectionThreshold: Float? = nil
     var indexedAt: Date
     var pixelWidth: Int
     var pixelHeight: Int

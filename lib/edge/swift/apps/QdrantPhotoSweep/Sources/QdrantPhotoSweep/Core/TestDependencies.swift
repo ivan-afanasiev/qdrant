@@ -81,6 +81,9 @@ final class MockScanStore: ScanSessionStoring, @unchecked Sendable {
 
     func recordIndexedPhoto(sessionId: UUID, assetLocalId: String, vectorUUID: String, dimensions: Int, pixelWidth: Int, pixelHeight: Int, creationDate: Date?) async throws {}
 
+    func isDetectionComplete(vectorUUID: String, threshold: Float) async throws -> Bool { false }
+    func markDetectionComplete(vectorUUIDs: [String], threshold: Float) async throws {}
+
     func saveDuplicateGroups(_ groups: [DuplicateGroup], sessionId: UUID) async throws {}
     func loadPendingGroups() async throws -> [DuplicateGroupDTO] { groups }
     func loadPendingGroupsPage(offset: Int, limit: Int) async throws -> [DuplicateGroupDTO] {

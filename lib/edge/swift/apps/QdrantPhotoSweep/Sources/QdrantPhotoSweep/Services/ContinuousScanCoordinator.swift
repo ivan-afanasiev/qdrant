@@ -5,44 +5,40 @@ import UIKit
 @Observable
 @MainActor
 final class ContinuousScanCoordinator {
-    static let continuedTaskIdentifier = "com.qdrant.edge.PhotoSweep.continuousScan"
+    nonisolated static let continuedTaskIdentifier = "com.qdrant.edge.QdrantPhotoSweep.continuousScan"
 
     enum Phase: Equatable {
         case idle
         case scanning(processed: Int, total: Int, groupsFound: Int)
         case completed(groupsFound: Int)
-        /// Pipeline was interrupted (background suspension, error, cancellation).
-        /// Holds the last known progress so UI can still show it.
         case interrupted(processed: Int, total: Int)
     }
 
-    enum Action {
-        case didStartPipeline
-        case didUpdateProgress(processed: Int, total: Int)
-        case didFindGroups(count: Int)
-        case didCompleteScan(groupsFound: Int)
-        case didInterrupt
-        case didCancel
-    }
-
     private(set) var phase: Phase = .idle
-    private(set) var groupsFoundCount: Int = 0
-    private var workTask: Task<Void, Never>?
-    private var backgroundTaskManager = BackgroundTaskManager()
-    private var lastDateRange: DateRange?
-    private var lastResumeSessionId: UUID?
-    private var lastDeps: (any DependencyProviding)?
+    private(set) var groupsFoundCount = 0
+
+    @ObservationIgnored private var workTask: Task<ScanOutcome?, Never>?
+    @ObservationIgnored private var currentRunId: UUID?
+    @ObservationIgnored private var cancelledRuns: Set<UUID> = []
+    @ObservationIgnored private var isStopping = false
+    @ObservationIgnored private var backgroundTaskManager = BackgroundTaskManager()
+    @ObservationIgnored private var lastDateRange: DateRange?
+    @ObservationIgnored private var lastResumeSessionId: UUID?
+    @ObservationIgnored private var lastDeps: (any DependencyProviding)?
+    @ObservationIgnored private var allowsContinuedSupport = false
+    @ObservationIgnored private var pendingIdentifier: String?
+
+    private static weak var foregroundCoordinator: ContinuousScanCoordinator?
+    private static var requests: [String: (ContinuousScanCoordinator, UUID)] = [:]
+    static var hasActiveScan: Bool { foregroundCoordinator?.isActive == true }
 
     var scanProgress: Double {
         switch phase {
-        case .scanning(let processed, let total, _) where total > 0:
+        case .scanning(let processed, let total, _) where total > 0,
+             .interrupted(let processed, let total) where total > 0:
             Double(processed) / Double(total)
-        case .interrupted(let processed, let total) where total > 0:
-            Double(processed) / Double(total)
-        case .completed:
-            1.0
-        default:
-            0
+        case .completed: 1
+        default: 0
         }
     }
 
@@ -56,138 +52,106 @@ final class ContinuousScanCoordinator {
         return false
     }
 
-    nonisolated static var isForegroundScanActive: Bool {
-        get async {
-            await MainActor.run {
-                _isForegroundScanActive
-            }
-        }
-    }
-
-    @MainActor private static var _isForegroundScanActive = false
-
-    // MARK: - Reducer
-
-    func reduce(_ action: Action) {
-        switch action {
-        case .didStartPipeline:
-            phase = .scanning(processed: 0, total: 0, groupsFound: 0)
-            groupsFoundCount = 0
-            Self._isForegroundScanActive = true
-
-        case .didUpdateProgress(let processed, let total):
-            if case .scanning(_, _, let groups) = phase {
-                phase = .scanning(processed: processed, total: total, groupsFound: groups)
-            }
-
-        case .didFindGroups(let count):
-            groupsFoundCount = count
-            if case .scanning(let p, let t, _) = phase {
-                phase = .scanning(processed: p, total: t, groupsFound: count)
-            }
-
-        case .didCompleteScan(let groupsFound):
-            phase = .completed(groupsFound: groupsFound)
-            Self._isForegroundScanActive = false
-
-        case .didInterrupt:
-            let (p, t) = lastProgress
-            phase = .interrupted(processed: p, total: t)
-            Self._isForegroundScanActive = false
-
-        case .didCancel:
-            phase = .idle
-            Self._isForegroundScanActive = false
-        }
-    }
-
-    private var lastProgress: (processed: Int, total: Int) {
-        if case .scanning(let p, let t, _) = phase { return (p, t) }
-        return (0, 0)
-    }
-
-    // MARK: - Registration (called from App.init on iOS 26+)
-
     nonisolated static func register() {
         guard #available(iOS 26.0, *) else { return }
         BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: continuedTaskIdentifier,
-            using: nil
+            forTaskWithIdentifier: continuedTaskIdentifier + ".*", using: nil
         ) { task in
-            guard let continuedTask = task as? BGContinuedProcessingTask else {
+            guard let task = task as? BGContinuedProcessingTask else {
                 task.setTaskCompleted(success: false)
                 return
             }
             Task { @MainActor in
-                ContinuousScanCoordinator.handleContinuedTask(continuedTask)
+                guard let (coordinator, runId) = requests.removeValue(forKey: task.identifier),
+                      coordinator.currentRunId == runId else {
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                coordinator.backgroundTaskManager.attachContinuedTask(task) { [weak coordinator] in
+                    // A system-UI cancellation must not automatically restart on foreground entry.
+                    Task { @MainActor in
+                        guard coordinator?.currentRunId == runId else { return }
+                        await coordinator?.cancel()
+                    }
+                }
+                coordinator.runPipeline(runId: runId)
             }
         }
     }
-
-    @available(iOS 26.0, *)
-    private static var activeCoordinator: ContinuousScanCoordinator?
-
-    @available(iOS 26.0, *)
-    @MainActor
-    private static func handleContinuedTask(_ task: BGContinuedProcessingTask) {
-        guard let coordinator = activeCoordinator else {
-            task.setTaskCompleted(success: false)
-            return
-        }
-        coordinator.backgroundTaskManager.attachContinuedTask(task, cancelWork: { [weak coordinator] in
-            Task { @MainActor in
-                coordinator?.workTask?.cancel()
-            }
-        })
-    }
-
-    // MARK: - Start Pipeline
 
     func startPipeline(
         dateRange: DateRange,
         resumeSessionId: UUID?,
-        deps: any DependencyProviding
+        deps: any DependencyProviding,
+        requestContinuedSupport: Bool = false
     ) {
-        guard !isActive else { return }
-
+        guard !isActive, !isStopping, workTask == nil else { return }
         lastDateRange = dateRange
         lastResumeSessionId = resumeSessionId
         lastDeps = deps
+        allowsContinuedSupport = requestContinuedSupport
+        let runId = UUID()
+        currentRunId = runId
+        Self.foregroundCoordinator = self
+        groupsFoundCount = 0
+        phase = .scanning(processed: 0, total: 0, groupsFound: 0)
 
-        reduce(.didStartPipeline)
-        runPipeline(dateRange: dateRange, resumeSessionId: resumeSessionId, deps: deps)
-        backgroundTaskManager.requestContinuedTaskSupport(
-            identifier: Self.continuedTaskIdentifier,
-            registerSelf: { self.setActiveCoordinator() }
+        // Continued processing is for user-initiated jobs; automatic scans use the fallback.
+        if requestContinuedSupport, UIApplication.shared.applicationState == .active {
+            let identifier = Self.continuedTaskIdentifier + "." + runId.uuidString
+            pendingIdentifier = identifier
+            Self.requests[identifier] = (self, runId)
+            if backgroundTaskManager.requestContinuedTaskSupport(identifier: identifier) { return }
+            Self.requests.removeValue(forKey: identifier)
+            pendingIdentifier = nil
+        }
+        runPipeline(runId: runId)
+    }
+
+    func cancel() async {
+        guard !isStopping else {
+            _ = await workTask?.value
+            return
+        }
+        isStopping = true
+        let runId = currentRunId
+        if let runId { cancelledRuns.insert(runId) }
+        currentRunId = nil
+        removePendingRequest()
+        let task = workTask
+        task?.cancel()
+        let outcome = await task?.value
+        // Also handles cancellation while waiting for the system launch handler.
+        if let sessionId = outcome?.sessionId ?? lastResumeSessionId, let deps = lastDeps {
+            do {
+                try await deps.scanStore.updateSessionStatus(sessionId, status: .cancelled, indexedPhotos: nil)
+            } catch {
+                AppLog.scan.error("Unable to persist user cancellation: \(error)")
+            }
+        }
+        backgroundTaskManager.finish(success: false)
+        workTask = nil
+        if let runId { cancelledRuns.remove(runId) }
+        lastDateRange = nil
+        lastResumeSessionId = nil
+        lastDeps = nil
+        phase = .idle
+        isStopping = false
+    }
+
+    func resumeIfInterrupted() {
+        guard isInterrupted, !isStopping, let range = lastDateRange, let deps = lastDeps else { return }
+        startPipeline(
+            dateRange: range, resumeSessionId: lastResumeSessionId,
+            deps: deps, requestContinuedSupport: allowsContinuedSupport
         )
     }
 
-    /// Explicit user cancel — goes to idle, no auto-resume.
-    func cancel() {
-        workTask?.cancel()
-        workTask = nil
-        lastDateRange = nil
-        lastDeps = nil
-        backgroundTaskManager.completeContinuedTask(success: false)
-        clearActiveCoordinator()
-        backgroundTaskManager.endUIBackgroundTask()
-        reduce(.didCancel)
-    }
-
-    /// Auto-resume an interrupted scan when the app returns to foreground.
-    func resumeIfInterrupted() {
-        guard isInterrupted,
-              let dateRange = lastDateRange,
-              let deps = lastDeps else { return }
-        reduce(.didStartPipeline)
-        runPipeline(dateRange: dateRange, resumeSessionId: lastResumeSessionId, deps: deps)
-    }
-
-    // MARK: - Extended execution (all iOS versions)
-
     func beginExtendedBackgroundExecution() {
+        guard let runId = currentRunId else { return }
         backgroundTaskManager.beginExtendedBackgroundExecution { [weak self] in
             Task { @MainActor in
+                guard self?.currentRunId == runId else { return }
                 self?.workTask?.cancel()
             }
         }
@@ -197,109 +161,89 @@ final class ContinuousScanCoordinator {
         backgroundTaskManager.endUIBackgroundTask()
     }
 
-    // MARK: - Pipeline builder
-
-    private func makePipeline(deps: any DependencyProviding) -> ScanPipeline {
-        ScanPipeline(
-            photoLibrary: deps.photoLibrary,
-            embeddingService: deps.embeddingService,
-            vectorStore: deps.vectorStore,
-            scanStore: deps.scanStore,
-            configureDimensions: { dims in
-                if let store = deps.vectorStore as? QdrantVectorStore {
-                    await store.updateDimensions(dims)
-                }
-            },
-            similarityThreshold: deps.settings.similarityThreshold,
-            onGroupCountChanged: { [weak self] count in
-                Task { @MainActor [weak self] in
-                    self?.reduce(.didFindGroups(count: count))
-                }
-            }
-        )
-    }
-
-    // MARK: - Pipeline execution
-
-    private func runPipeline(
-        dateRange: DateRange,
-        resumeSessionId: UUID?,
-        deps: any DependencyProviding
-    ) {
-        workTask?.cancel()
-        workTask = Task { [weak self] in
-            guard let self else { return }
-
-            let scanState = ScanState()
-            let scanObservation = Task { @MainActor [weak self] in
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .milliseconds(150))
-                    guard let self else { return }
-                    let status = scanState.status
-                    if case .scanning(let processed, let total) = status {
-                        self.reduce(.didUpdateProgress(processed: processed, total: total))
-                        self.backgroundTaskManager.updateContinuedTaskProgress(processed, total)
+    private func runPipeline(runId: UUID) {
+        guard currentRunId == runId, workTask == nil,
+              let range = lastDateRange, let deps = lastDeps else { return }
+        let resumeId = lastResumeSessionId
+        workTask = Task {
+            let outcome = await ScanExecutionController.shared.run(replacingCurrent: true) {
+                let state = ScanState()
+                let observation = Task { @MainActor in
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for: .milliseconds(150)) } catch { break }
+                        guard self.currentRunId == runId else { break }
+                        if case .scanning(let processed, let total) = state.status {
+                            self.phase = .scanning(processed: processed, total: total, groupsFound: self.groupsFoundCount)
+                            self.backgroundTaskManager.updateContinuedTaskProgress(processed, total)
+                        }
                     }
                 }
+                let pipeline = ScanPipeline(
+                    photoLibrary: deps.photoLibrary,
+                    embeddingService: deps.embeddingService,
+                    vectorStore: deps.vectorStore,
+                    scanStore: deps.scanStore,
+                    configureDimensions: { dims in
+                        if let store = deps.vectorStore as? QdrantVectorStore {
+                            await store.updateDimensions(dims)
+                        }
+                    },
+                    similarityThreshold: deps.settings.similarityThreshold,
+                    onGroupCountChanged: { count in
+                        Task { @MainActor in
+                            guard self.currentRunId == runId else { return }
+                            self.groupsFoundCount = count
+                        }
+                    },
+                    onSessionStarted: { sessionId in
+                        await MainActor.run {
+                            guard self.currentRunId == runId else { return }
+                            self.lastResumeSessionId = sessionId
+                        }
+                    }
+                )
+                let result = await pipeline.run(dateRange: range, state: state, resumeSessionId: resumeId)
+                observation.cancel()
+                // Persist cancellation before releasing the scan lease to another worker.
+                if self.cancelledRuns.contains(runId), let sessionId = result.sessionId {
+                    do {
+                        try await deps.scanStore.updateSessionStatus(sessionId, status: .cancelled, indexedPhotos: nil)
+                    } catch {
+                        AppLog.scan.error("Unable to persist cancellation: \(error)")
+                    }
+                }
+                return result
             }
-
-            let pipeline = self.makePipeline(deps: deps)
-
-            await pipeline.run(
-                dateRange: dateRange,
-                state: scanState,
-                resumeSessionId: resumeSessionId
-            )
-
-            scanObservation.cancel()
-
-            if Task.isCancelled {
-                try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run {
-                    self.reduce(.didInterrupt)
-                    self.finishBackgroundTasks(success: false)
+            guard self.currentRunId == runId else { return outcome }
+            self.workTask = nil
+            self.currentRunId = nil
+            self.removePendingRequest()
+            self.backgroundTaskManager.finish(success: outcome?.succeeded == true)
+            self.lastResumeSessionId = outcome?.sessionId ?? self.lastResumeSessionId
+            if let outcome, outcome.succeeded {
+                self.groupsFoundCount = outcome.groupsFound
+                self.phase = .completed(groupsFound: outcome.groupsFound)
+            } else {
+                let progress: (Int, Int)
+                if case .scanning(let processed, let total, _) = self.phase {
+                    progress = (processed, total)
+                } else {
+                    progress = (0, 0)
                 }
-                return
-            }
-
-            let scanStatus = await scanState.status
-            switch scanStatus {
-            case .failed:
-                try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run {
-                    self.reduce(.didInterrupt)
-                    self.finishBackgroundTasks(success: false)
-                }
-            case .cancelled:
-                try? await deps.scanStore.interruptActiveSessions()
-                await MainActor.run {
-                    self.reduce(.didInterrupt)
-                    self.finishBackgroundTasks(success: false)
-                }
-            default:
-                await MainActor.run {
-                    self.reduce(.didCompleteScan(groupsFound: self.groupsFoundCount))
-                    self.finishBackgroundTasks(success: true)
+                self.phase = .interrupted(processed: progress.0, total: progress.1)
+                // Activation can precede cancellation cleanup; do not miss that resume opportunity.
+                if Task.isCancelled, UIApplication.shared.applicationState == .active {
+                    self.resumeIfInterrupted()
                 }
             }
+            return outcome
         }
     }
 
-    private func finishBackgroundTasks(success: Bool) {
-        backgroundTaskManager.completeContinuedTask(success: success)
-        clearActiveCoordinator()
-        backgroundTaskManager.endUIBackgroundTask()
-    }
-
-    // MARK: - Active Coordinator Management
-
-    private func setActiveCoordinator() {
-        guard #available(iOS 26.0, *) else { return }
-        Self.activeCoordinator = self
-    }
-
-    private func clearActiveCoordinator() {
-        guard #available(iOS 26.0, *) else { return }
-        Self.activeCoordinator = nil
+    private func removePendingRequest() {
+        if let pendingIdentifier {
+            Self.requests.removeValue(forKey: pendingIdentifier)
+            self.pendingIdentifier = nil
+        }
     }
 }

@@ -258,6 +258,10 @@ final class ScanInteractor {
         case .active:
             coordinator.endExtendedBackgroundExecution()
             coordinator.resumeIfInterrupted()
+            if reviewState.status == .idle || reviewState.status == .noMoreGroups || reviewState.status == .allReviewed {
+                loadNextGroupFromDB()
+            }
+            if viewMode == .grid { reloadGrid() }
         default:
             break
         }
@@ -265,7 +269,7 @@ final class ScanInteractor {
 
     private func handleGroupsFound(_ count: Int) {
         guard count > 0,
-              reviewState.status == .idle || reviewState.status == .noMoreGroups
+              reviewState.status == .idle || reviewState.status == .noMoreGroups || reviewState.status == .allReviewed
         else { return }
         loadNextGroupFromDB()
         if viewMode == .grid { reloadGrid() }
@@ -279,7 +283,7 @@ final class ScanInteractor {
                 try? await Task.sleep(for: .seconds(3))
                 withAnimation { showCompletedBadge = false }
             }
-            if reviewState.status == .idle || reviewState.status == .noMoreGroups {
+            if reviewState.status == .idle || reviewState.status == .noMoreGroups || reviewState.status == .allReviewed {
                 loadNextGroupFromDB()
             }
             if viewMode == .grid { reloadGrid() }
@@ -357,7 +361,7 @@ final class ScanInteractor {
             reviewState = ReviewState()
             gridState = GroupGridState()
             try? await scanUseCases.startScan.execute(
-                StartScanInput(dateRange: settings.currentDateRange, resumeSessionId: nil)
+                StartScanInput(dateRange: settings.currentDateRange, resumeSessionId: nil, requestContinuedSupport: true)
             )
         }
     }

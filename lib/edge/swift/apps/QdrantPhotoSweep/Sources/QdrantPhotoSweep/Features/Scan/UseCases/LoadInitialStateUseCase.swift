@@ -6,6 +6,7 @@ enum InitialAction: Sendable {
     case startNewScan(dateRange: DateRange)
 }
 
+@MainActor
 struct LoadInitialStateUseCase: UseCase {
     let scanStore: any ScanSessionStoring
     let settings: AppSettings

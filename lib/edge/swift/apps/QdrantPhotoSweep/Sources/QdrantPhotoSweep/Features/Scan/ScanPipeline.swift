@@ -1,6 +1,23 @@
 import CoreGraphics
 import Foundation
 
+struct ScanOutcome: Sendable {
+    enum Status: Sendable {
+        case completed
+        case interrupted
+        case failed(AppError)
+    }
+
+    let sessionId: UUID?
+    let status: Status
+    let groupsFound: Int
+
+    var succeeded: Bool {
+        if case .completed = status { return true }
+        return false
+    }
+}
+
 struct ScanPipeline {
     let photoLibrary: any PhotoLibraryProviding
     let embeddingService: any EmbeddingProviding
@@ -8,6 +25,7 @@ struct ScanPipeline {
     let scanStore: any ScanSessionStoring
     let configureDimensions: @Sendable (Int) async -> Void
     let onGroupCountChanged: (@Sendable (Int) -> Void)?
+    let onSessionStarted: (@Sendable (UUID) async -> Void)?
     let similarityThreshold: Float
     let upsertBatchSize: Int = 20
 
@@ -18,7 +36,8 @@ struct ScanPipeline {
         scanStore: any ScanSessionStoring,
         configureDimensions: @Sendable @escaping (Int) async -> Void,
         similarityThreshold: Float = AppSettings.defaultSimilarityThreshold,
-        onGroupCountChanged: (@Sendable (Int) -> Void)? = nil
+        onGroupCountChanged: (@Sendable (Int) -> Void)? = nil,
+        onSessionStarted: (@Sendable (UUID) async -> Void)? = nil
     ) {
         self.photoLibrary = photoLibrary
         self.embeddingService = embeddingService
@@ -27,6 +46,7 @@ struct ScanPipeline {
         self.configureDimensions = configureDimensions
         self.similarityThreshold = similarityThreshold
         self.onGroupCountChanged = onGroupCountChanged
+        self.onSessionStarted = onSessionStarted
     }
 
     private struct BatchEntry {
@@ -37,97 +57,119 @@ struct ScanPipeline {
         let creationDate: Date?
     }
 
-    func run(dateRange: DateRange, state: ScanState, resumeSessionId: UUID? = nil) async {
+    func run(dateRange: DateRange, state: ScanState, resumeSessionId: UUID? = nil) async -> ScanOutcome {
+        var sessionId = resumeSessionId
+        var indexed = 0
+        var groupCount = 0
         do {
+            try Task.checkCancellation()
             let assets = try await photoLibrary.fetchAssets(in: dateRange)
+            try Task.checkCancellation()
             await state.reduce(.didStartScan(total: assets.count))
 
-            let sessionId: UUID
+            let activeSessionId: UUID
             if let existing = resumeSessionId {
-                try? await scanStore.updateSessionStatus(existing, status: .scanning, indexedPhotos: nil)
-                sessionId = existing
+                try await scanStore.updateSessionStatus(existing, status: .scanning, indexedPhotos: nil)
+                activeSessionId = existing
             } else {
-                sessionId = try await scanStore.createSession(
-                    rangeStart: dateRange.start,
-                    rangeEnd: dateRange.end,
-                    totalPhotos: assets.count
+                activeSessionId = try await scanStore.createSession(
+                    rangeStart: dateRange.start, rangeEnd: dateRange.end, totalPhotos: assets.count
                 )
             }
+            sessionId = activeSessionId
+            await onSessionStarted?(activeSessionId)
 
             var pendingBatch: [BatchEntry] = []
-            var indexed = 0
             var dimensionsPropagated = false
             var currentDimensions = 0
+            var hadEmbeddingFailures = false
 
             for asset in assets {
-                guard !Task.isCancelled else {
-                    try? await scanStore.updateSessionStatus(sessionId, status: .interrupted, indexedPhotos: indexed)
-                    await state.reduce(.didTapCancel)
-                    return
-                }
-
+                try Task.checkCancellation()
                 let pointId = deterministicUUID(from: asset.localIdentifier)
-                let alreadyIndexed = try await vectorStore.exists(id: pointId)
-                guard !alreadyIndexed else {
+                let exists = try await vectorStore.exists(id: pointId)
+                let detectionComplete = try await scanStore.isDetectionComplete(
+                    vectorUUID: pointId, threshold: similarityThreshold
+                )
+                if exists && detectionComplete {
                     indexed += 1
                     await state.reduce(.batchCompleted(count: 1))
                     continue
                 }
 
-                if let point = await embedAsset(asset, id: pointId) {
+                // Re-embedding also repairs points upserted before an interrupted metadata/search write.
+                do {
+                    let image = try await photoLibrary.loadThumbnail(
+                        for: asset, size: CGSize(width: 224, height: 224)
+                    )
+                    try Task.checkCancellation()
+                    let vector = try await embeddingService.embed(image: image)
+                    try Task.checkCancellation()
                     if !dimensionsPropagated {
-                        currentDimensions = point.vector.count
+                        currentDimensions = vector.count
                         await configureDimensions(currentDimensions)
                         dimensionsPropagated = true
                     }
                     pendingBatch.append(BatchEntry(
                         assetLocalId: asset.localIdentifier,
-                        point: point,
+                        point: VectorPoint(id: pointId, vector: vector, payloadJson: assetPayloadJson(asset)),
                         pixelWidth: asset.pixelWidth,
                         pixelHeight: asset.pixelHeight,
                         creationDate: asset.creationDate
                     ))
+                } catch {
+                    try Task.checkCancellation()
+                    hadEmbeddingFailures = true
                 }
                 await state.reduce(.batchCompleted(count: 1))
 
                 if pendingBatch.count >= upsertBatchSize {
-                    try await flushBatchWithDetection(
-                        pendingBatch,
-                        sessionId: sessionId,
-                        dimensions: currentDimensions
+                    groupCount = try await flushBatchWithDetection(
+                        pendingBatch, sessionId: activeSessionId, dimensions: currentDimensions
                     )
                     indexed += pendingBatch.count
                     pendingBatch.removeAll(keepingCapacity: true)
                 }
             }
-
             if !pendingBatch.isEmpty {
-                try await flushBatchWithDetection(
-                    pendingBatch,
-                    sessionId: sessionId,
-                    dimensions: currentDimensions
+                groupCount = try await flushBatchWithDetection(
+                    pendingBatch, sessionId: activeSessionId, dimensions: currentDimensions
                 )
                 indexed += pendingBatch.count
             }
-
-            try? await scanStore.updateSessionStatus(sessionId, status: .completed, indexedPhotos: indexed)
+            try Task.checkCancellation()
+            if hadEmbeddingFailures {
+                throw AppError.embedding("Some photos could not be processed. The scan can be resumed.")
+            }
+            try await scanStore.updateSessionStatus(activeSessionId, status: .completed, indexedPhotos: indexed)
             await state.reduce(.didFinishScan(indexed: indexed))
-        } catch let appError as AppError {
-            await state.reduce(.didFail(appError))
+            return ScanOutcome(sessionId: sessionId, status: .completed, groupsFound: groupCount)
         } catch {
-            await state.reduce(.didFail(.unknown(error.localizedDescription)))
+            if let sessionId {
+                do {
+                    try await scanStore.updateSessionStatus(sessionId, status: .interrupted, indexedPhotos: indexed)
+                } catch {
+                    AppLog.scan.error("Unable to checkpoint interrupted scan: \(error)")
+                }
+            }
+            if Task.isCancelled || error is CancellationError {
+                await state.reduce(.didTapCancel)
+                return ScanOutcome(sessionId: sessionId, status: .interrupted, groupsFound: groupCount)
+            }
+            let appError = error as? AppError ?? .unknown(error.localizedDescription)
+            await state.reduce(.didFail(appError))
+            return ScanOutcome(sessionId: sessionId, status: .failed(appError), groupsFound: groupCount)
         }
     }
 
     private func flushBatchWithDetection(
-        _ batch: [BatchEntry],
-        sessionId: UUID,
-        dimensions: Int
-    ) async throws {
+        _ batch: [BatchEntry], sessionId: UUID, dimensions: Int
+    ) async throws -> Int {
+        try Task.checkCancellation()
         try await vectorStore.upsert(points: batch.map(\.point))
-
         for entry in batch {
-            try? await scanStore.recordIndexedPhoto(
+            try Task.checkCancellation()
+            try await scanStore.recordIndexedPhoto(
                 sessionId: sessionId,
                 assetLocalId: entry.assetLocalId,
                 vectorUUID: entry.point.id,
@@ -137,46 +179,27 @@ struct ScanPipeline {
                 creationDate: entry.creationDate
             )
         }
-
-        var foundEdges = false
         for entry in batch {
-            guard !Task.isCancelled else { return }
-
+            try Task.checkCancellation()
             let results = try await vectorStore.search(
-                vector: entry.point.vector,
-                limit: 10,
-                threshold: similarityThreshold
+                vector: entry.point.vector, limit: 10, threshold: similarityThreshold
             )
-
             for result in results where result.id != entry.point.id {
-                try? await scanStore.recordSimilarityEdge(
-                    source: entry.point.id,
-                    target: result.id,
-                    score: result.score,
-                    sessionId: sessionId
+                try Task.checkCancellation()
+                try await scanStore.recordSimilarityEdge(
+                    source: entry.point.id, target: result.id, score: result.score, sessionId: sessionId
                 )
-                foundEdges = true
             }
         }
-
-        if foundEdges, let callback = onGroupCountChanged {
-            let groups = try? await scanStore.computeGroupsFromEdges(sessionId: sessionId)
-            if let groups, !groups.isEmpty {
-                callback(groups.count)
-            }
-        }
-    }
-
-    private func embedAsset(_ asset: PhotoAsset, id: String) async -> VectorPoint? {
-        let thumbnailSize = CGSize(width: 224, height: 224)
-        do {
-            let image = try await photoLibrary.loadThumbnail(for: asset, size: thumbnailSize)
-            let vector = try await embeddingService.embed(image: image)
-            let payload = assetPayloadJson(asset)
-            return VectorPoint(id: id, vector: vector, payloadJson: payload)
-        } catch {
-            return nil
-        }
+        try Task.checkCancellation()
+        // Recompute even when this retry found no new matches: a previous run may have saved edges.
+        let groups = try await scanStore.computeGroupsFromEdges(sessionId: sessionId)
+        try Task.checkCancellation()
+        try await scanStore.markDetectionComplete(
+            vectorUUIDs: batch.map { $0.point.id }, threshold: similarityThreshold
+        )
+        onGroupCountChanged?(groups.count)
+        return groups.count
     }
 
     private static let isoFormatter = ISO8601DateFormatter()
