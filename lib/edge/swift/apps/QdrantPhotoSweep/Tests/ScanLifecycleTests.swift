@@ -36,7 +36,7 @@ struct ScanLifecycleTests {
         try #require(condition())
     }
 
-    @Test func visionFeaturePrintRunsWithCPUComputeDevices() async throws {
+    @Test func visionFeaturePrintRunsWithSelectedComputeDevices() async throws {
         let photos = FixturePhotos()
         let asset = try #require(try await photos.fetchAssets(
             in: DateRange(start: .distantPast, end: .now)
@@ -57,15 +57,39 @@ struct ScanLifecycleTests {
         coordinator.startPipeline(
             dateRange: DateRange(start: .distantPast, end: .now), resumeSessionId: nil, deps: deps
         )
-        try await waitUntil { coordinator.isInterrupted }
+        try await waitUntil {
+            if case .failed = coordinator.phase { return true }
+            return false
+        }
         let interrupted = try #require(try await store.latestInterruptedSession())
         coordinator.resumeIfInterrupted()
+        #expect(coordinator.phase == .failed(.vectorStore("Injected search failure")))
+        coordinator.retryFailedScan()
         try await waitUntil {
             if case .completed = coordinator.phase { return true }
             return false
         }
         #expect(try await store.latestCompletedSession()?.id == interrupted.id)
         #expect(try ModelContext(container).fetchCount(FetchDescriptor<ScanSessionEntity>()) == 1)
+    }
+
+    @Test func embeddingFailureStopsImmediatelyAndPreservesTheError() async throws {
+        let (_, store) = try makeStore()
+        let embeddings = FailingEmbeddings()
+        let pipeline = ScanPipeline(
+            photoLibrary: FixturePhotos(count: 100), embeddingService: embeddings,
+            vectorStore: RecordingVectors(), scanStore: store, configureDimensions: { _ in }
+        )
+        let outcome = await pipeline.run(
+            dateRange: DateRange(start: .distantPast, end: .now), state: ScanState()
+        )
+        guard case .failed(let error) = outcome.status else {
+            Issue.record("Expected an embedding failure")
+            return
+        }
+        #expect(error == .embedding("Missing model weights"))
+        #expect(await embeddings.calls == 1)
+        #expect(try await store.latestCompletedSession() == nil)
     }
 
     @Test func failedSearchIsRetriedEvenAfterVectorUpsert() async throws {
@@ -275,10 +299,15 @@ private final class Signal {
 }
 
 private final class FixturePhotos: PhotoLibraryProviding, @unchecked Sendable {
+    let count: Int
+    init(count: Int = 1) { self.count = count }
     func requestAuthorization() async throws(AppError) {}
     func fetchAssets(in dateRange: DateRange) async throws(AppError) -> [PhotoAsset] {
-        [PhotoAsset(id: "fixture-photo", localIdentifier: "fixture-photo", creationDate: .now,
-                    pixelWidth: 1, pixelHeight: 1, fileSize: nil)]
+        (0..<count).map { index in
+            let id = index == 0 ? "fixture-photo" : "fixture-photo-\(index)"
+            return PhotoAsset(id: id, localIdentifier: id, creationDate: .now,
+                              pixelWidth: 1, pixelHeight: 1, fileSize: nil)
+        }
     }
     func countAssets(in dateRange: DateRange) async throws(AppError) -> Int { 1 }
     func loadThumbnail(for asset: PhotoAsset, size: CGSize) async throws(AppError) -> CGImage {
@@ -342,4 +371,12 @@ private actor RecordingVectors: VectorStoring {
     func delete(ids: [String]) async throws(AppError) { self.ids.subtract(ids) }
     func count() async throws(AppError) -> Int { ids.count }
     func close() async {}
+}
+
+private actor FailingEmbeddings: EmbeddingProviding {
+    private(set) var calls = 0
+    func embed(image: CGImage) async throws(AppError) -> [Float] {
+        calls += 1
+        throw .embedding("Missing model weights")
+    }
 }

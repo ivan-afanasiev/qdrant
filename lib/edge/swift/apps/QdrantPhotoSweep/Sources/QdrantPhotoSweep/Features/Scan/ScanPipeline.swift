@@ -82,7 +82,6 @@ struct ScanPipeline {
             var pendingBatch: [BatchEntry] = []
             var dimensionsPropagated = false
             var currentDimensions = 0
-            var hadEmbeddingFailures = false
 
             for asset in assets {
                 try Task.checkCancellation()
@@ -119,7 +118,7 @@ struct ScanPipeline {
                     ))
                 } catch {
                     try Task.checkCancellation()
-                    hadEmbeddingFailures = true
+                    throw error
                 }
                 await state.reduce(.batchCompleted(count: 1))
 
@@ -138,9 +137,6 @@ struct ScanPipeline {
                 indexed += pendingBatch.count
             }
             try Task.checkCancellation()
-            if hadEmbeddingFailures {
-                throw AppError.embedding("Some photos could not be processed. The scan can be resumed.")
-            }
             try await scanStore.updateSessionStatus(activeSessionId, status: .completed, indexedPhotos: indexed)
             await state.reduce(.didFinishScan(indexed: indexed))
             return ScanOutcome(sessionId: sessionId, status: .completed, groupsFound: groupCount)
@@ -157,6 +153,7 @@ struct ScanPipeline {
                 return ScanOutcome(sessionId: sessionId, status: .interrupted, groupsFound: groupCount)
             }
             let appError = error as? AppError ?? .unknown(error.localizedDescription)
+            AppLog.scan.error("Scan failed: \(appError.localizedDescription)")
             await state.reduce(.didFail(appError))
             return ScanOutcome(sessionId: sessionId, status: .failed(appError), groupsFound: groupCount)
         }

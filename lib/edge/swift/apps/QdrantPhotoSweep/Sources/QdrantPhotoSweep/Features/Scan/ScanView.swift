@@ -98,6 +98,13 @@ struct ScanView: View {
             scanProgressBar
                 .padding(.horizontal)
                 .padding(.top, QSpacing.sm)
+        } else if case .failed(let error) = interactor.coordinator.phase {
+            VStack(alignment: .leading, spacing: QSpacing.sm) {
+                Text(error.localizedDescription)
+                    .font(QTypography.bodyMedium)
+                Button(L10n.retry) { interactor.send(.retryScan) }
+            }
+            .padding()
         } else if interactor.coordinator.isInterrupted {
             interruptedBanner
                 .padding(.horizontal)
@@ -159,8 +166,10 @@ struct ScanView: View {
             case .noMoreGroups, .idle:
                 if case .completed = interactor.coordinator.phase {
                     completedEmptyView
-                } else {
+                } else if interactor.coordinator.isActive {
                     scanningPlaceholder
+                } else {
+                    Spacer()
                 }
             }
         }
@@ -204,9 +213,8 @@ struct ScanView: View {
 
     private var interruptedBanner: some View {
         HStack(spacing: QSpacing.xs) {
-            ProgressView()
-                .controlSize(.small)
-            Text(L10n.scanResuming)
+            Button(L10n.retry) { interactor.send(.retryScan) }
+            Text("Scan paused")
                 .font(QTypography.caption)
                 .foregroundStyle(QColors.textSecondary)
             Spacer()

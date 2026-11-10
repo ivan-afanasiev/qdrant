@@ -44,7 +44,7 @@ ScanPipeline → group count callback → ContinuousScanCoordinator
 
 Scanning and detection share one pipeline. After each batch, groups are persisted and a count is reported; full group arrays are not delivered to the coordinator or review UI. Review can proceed while scanning continues. The card UI holds one group snapshot, and the grid holds paginated summaries.
 
-Pipeline failures become the coordinator's interrupted phase rather than a pipeline error screen. Review and grid operations have their own error handling. Foreground activation attempts to resume an interrupted coordinator. If activation races with cancellation cleanup, the cancelled run also checks for foreground activation on exit. Pipeline errors do not trigger an unbounded retry loop.
+Pipeline failures become the coordinator's failed(error) phase, showing the original error and an explicit Retry button. Only interruptions automatically resume on foreground activation; paused work displays a Retry control without an activity spinner. Review and grid operations have their own error handling. Foreground activation attempts to resume an interrupted coordinator. If activation races with cancellation cleanup, the cancelled run also checks for foreground activation on exit. Pipeline errors do not trigger an unbounded retry loop.
 
 ## 2. Project Structure
 
@@ -152,7 +152,7 @@ Sources/QdrantPhotoSweep/
 | Dependency | Implementation | Responsibility |
 | --- | --- | --- |
 | Vector store | `QdrantVectorStore` actor | Owns one lazily opened Edge shard |
-| Embeddings | `VisionEmbeddingService` actor | Generates CPU-backed Vision feature prints |
+| Embeddings | `VisionEmbeddingService` actor | Generates Vision feature prints with default foreground devices and CPU background devices |
 | Photos | `PhotoLibraryService` | Authorization, asset queries, cancellable image loading, deletion |
 | Persistence | `SwiftDataScanStore` model actor | Sessions, photo metadata, detection checkpoints, edges, groups |
 | Settings | `AppSettings` observable class | UserDefaults preferences and rescan signal |
@@ -218,7 +218,7 @@ A foreground observation task polls scan state every 150 ms for UI and system-ta
 6. Flush every 20 successful embeddings and the final partial batch.
 7. Check cancellation before completion and persist the session's indexed count/status.
 
-The processed count includes attempted photos; indexed count includes skipped completed points and successfully flushed points. Embedding failures allow other photos to proceed, but the run ends failed/interrupted so unavailable photos can be retried.
+The processed count includes successfully embedded or skipped photos; indexed count includes skipped completed points and successfully flushed points. Thumbnail or embedding failures stop immediately, preserving and logging the original error rather than retrying a broken model for every photo. Explicit retry reuses the session and its durable detection checkpoints.
 
 ### Durable detection checkpoint
 
@@ -243,7 +243,7 @@ Foreground and background builders both capture the user's configured threshold.
 
 Cancellation is checked between asynchronous processing steps and before marking completion. Search-loop cancellation throws instead of returning a successful partial flush. Failures and cancellation checkpoint only the affected session as interrupted; checkpoint-write failures are logged.
 
-Photos image requests bridge task cancellation to `PHImageManager.cancelImageRequest` and resume their continuations exactly once, including cancellation before request-ID publication. Vision requests explicitly choose supported CPU devices for every compute stage, allowing background work without requiring GPU access.
+Photos image requests bridge task cancellation to `PHImageManager.cancelImageRequest` and resume their continuations exactly once, including cancellation before request-ID publication. Vision requests use default device selection while foregrounded and supported CPU devices for every stage when the app is in the background. A foreground-to-background transition during a synchronous request can still produce a surfaced error.
 
 Explicit user cancellation is handled by the coordinator after the pipeline unwinds and persists the session as cancelled. The worker saves this status before relinquishing its scan lease.
 
@@ -348,7 +348,7 @@ On iOS 26 and later, `ContinuousScanCoordinator.register()` registers the wildca
 
 Explicit Settings rescans opt into continued processing. Each request has a unique run UUID suffix and uses the fail-if-not-immediately-admitted strategy. A request-to-run map ensures late delivery cannot attach to another scan.
 
-When admitted, the launch handler attaches the system task and starts that run's pipeline. If submission fails, an ordinary foreground task starts instead and the error is logged. Automatic launch scans do not submit user-initiated system tasks.
+When admitted, the launch handler attaches the system task and starts that run's pipeline. If registration or submission fails, an ordinary foreground task starts instead and the error is logged. Registration rejection logs the running bundle’s permitted identifiers for device diagnosis. Automatic launch scans do not submit user-initiated system tasks.
 
 The manager reports percentage progress, completes the system task after cleanup, and cancels any outstanding request when the run finishes. System expiration/cancellation follows the explicit-cancel path and does not automatically restart the job. Because the callback does not distinguish user cancellation from other expiration, both conservatively persist cancelled status.
 
@@ -418,10 +418,10 @@ Grid pagination uses offsets into a changing pending set. Loaded pages and curre
 
 The pipeline loads the selected asset metadata list and retains vectors for the current batch. Each group computation loads all session edges and all photo-point metadata. Search cost depends on Qdrant Edge's implementation; the app does not explicitly build an HNSW index.
 
-Vision is pinned to CPU for reliable execution without background GPU privileges, which can trade throughput for predictable execution across app states. Individual synchronous Vision/Qdrant calls finish before the next cancellation check.
+Background Vision requests are pinned to CPU to avoid background GPU privileges; foreground requests use Vision’s default selection. Missing system model weights are surfaced as errors and still require device verification. Individual synchronous Vision/Qdrant calls finish before the next cancellation check.
 
 ### Validation
 
-The shared Xcode scheme includes the Swift Testing target under `Tests/ScanLifecycleTests.swift`. Coverage includes interrupted upserts, final-batch cancellation, detection without UI callbacks, threshold propagation, idempotent edges, stale-session recovery, incremental ranges, exclusive scan handoff, continuation cancellation races, coordinator resume, explicit cancellation/replacement, and CPU Vision execution.
+The shared Xcode scheme includes the Swift Testing target under `Tests/ScanLifecycleTests.swift`. Coverage includes interrupted upserts, final-batch cancellation, detection without UI callbacks, threshold propagation, idempotent edges, stale-session recovery, incremental ranges, exclusive scan handoff, continuation cancellation races, coordinator resume, explicit cancellation/replacement, selected-device Vision execution, fail-fast embedding errors, and explicit retry after failure.
 
 System scheduling, continued-task Live Activity delivery, device locking, and physical-device expiration behavior still require device validation. Simulator tests establish application logic, not system scheduling guarantees.

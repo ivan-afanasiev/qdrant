@@ -9,6 +9,7 @@ final class ContinuousScanCoordinator {
 
     enum Phase: Equatable {
         case idle
+        case failed(AppError)
         case scanning(processed: Int, total: Int, groupsFound: Int)
         case completed(groupsFound: Int)
         case interrupted(processed: Int, total: Int)
@@ -52,9 +53,11 @@ final class ContinuousScanCoordinator {
         return false
     }
 
-    nonisolated static func register() {
+    private static var continuedRegistrationSucceeded = false
+
+    static func register() {
         guard #available(iOS 26.0, *) else { return }
-        BGTaskScheduler.shared.register(
+        continuedRegistrationSucceeded = BGTaskScheduler.shared.register(
             forTaskWithIdentifier: continuedTaskIdentifier + ".*", using: nil
         ) { task in
             guard let task = task as? BGContinuedProcessingTask else {
@@ -77,6 +80,9 @@ final class ContinuousScanCoordinator {
                 coordinator.runPipeline(runId: runId)
             }
         }
+        if !continuedRegistrationSucceeded {
+            AppLog.scan.error("Continued processing registration rejected; using ordinary scan execution. Permitted identifiers: \(String(describing: Bundle.main.object(forInfoDictionaryKey: "BGTaskSchedulerPermittedIdentifiers")))")
+        }
     }
 
     func startPipeline(
@@ -97,7 +103,7 @@ final class ContinuousScanCoordinator {
         phase = .scanning(processed: 0, total: 0, groupsFound: 0)
 
         // Continued processing is for user-initiated jobs; automatic scans use the fallback.
-        if requestContinuedSupport, UIApplication.shared.applicationState == .active {
+        if requestContinuedSupport, Self.continuedRegistrationSucceeded, UIApplication.shared.applicationState == .active {
             let identifier = Self.continuedTaskIdentifier + "." + runId.uuidString
             pendingIdentifier = identifier
             Self.requests[identifier] = (self, runId)
@@ -145,6 +151,13 @@ final class ContinuousScanCoordinator {
             dateRange: range, resumeSessionId: lastResumeSessionId,
             deps: deps, requestContinuedSupport: allowsContinuedSupport
         )
+    }
+
+    func retryFailedScan() {
+        guard case .failed = phase, !isStopping,
+              let range = lastDateRange, let deps = lastDeps else { return }
+        startPipeline(dateRange: range, resumeSessionId: lastResumeSessionId,
+                      deps: deps, requestContinuedSupport: allowsContinuedSupport)
     }
 
     func beginExtendedBackgroundExecution() {
@@ -223,6 +236,8 @@ final class ContinuousScanCoordinator {
             if let outcome, outcome.succeeded {
                 self.groupsFoundCount = outcome.groupsFound
                 self.phase = .completed(groupsFound: outcome.groupsFound)
+            } else if let outcome, case .failed(let error) = outcome.status {
+                self.phase = .failed(error)
             } else {
                 let progress: (Int, Int)
                 if case .scanning(let processed, let total, _) = self.phase {

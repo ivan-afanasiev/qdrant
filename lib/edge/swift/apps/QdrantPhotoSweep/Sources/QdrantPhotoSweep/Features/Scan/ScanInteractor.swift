@@ -7,6 +7,7 @@ final class ScanInteractor {
     enum Intent {
         case launched
         case scenePhaseChanged(ScenePhase)
+        case retryScan
         case cancelScan
         case skipGroup
         case deleteGroup
@@ -83,6 +84,9 @@ final class ScanInteractor {
             Task { await autoDetectAndLaunch() }
         case .scenePhaseChanged(let phase):
             handleScenePhaseChange(phase)
+        case .retryScan:
+            coordinator.retryFailedScan()
+            coordinator.resumeIfInterrupted()
         case .cancelScan:
             Task { try? await scanUseCases?.cancelScan.execute(()) }
         case .skipGroup:

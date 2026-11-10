@@ -1,6 +1,7 @@
 import CoreGraphics
 import CoreML
 import Vision
+import UIKit
 
 actor VisionEmbeddingService: EmbeddingProviding {
     private var _detectedDimensions: Int?
@@ -17,20 +18,27 @@ actor VisionEmbeddingService: EmbeddingProviding {
         let request = VNGenerateImageFeaturePrintRequest()
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         do {
-            // Both execution paths can enter the background without a GPU entitlement.
-            // Pin every supported stage to CPU rather than relying on Vision's device selection.
-            for (stage, devices) in try request.supportedComputeStageDevices {
-                guard let cpu = devices.first(where: {
-                    if case .cpu = $0 { return true }
-                    return false
-                }) else {
-                    throw AppError.embedding("No CPU compute device is available for this Vision request")
+            // Let Vision select its normal devices while active. Background requests
+            // must avoid GPU execution without a background GPU entitlement.
+            let isBackground = await MainActor.run {
+                UIApplication.shared.applicationState == .background
+            }
+            if isBackground {
+                for (stage, devices) in try request.supportedComputeStageDevices {
+                    guard let cpu = devices.first(where: {
+                        if case .cpu = $0 { return true }
+                        return false
+                    }) else {
+                        throw AppError.embedding("No CPU compute device is available for this Vision request")
+                    }
+                    request.setComputeDevice(cpu, for: stage)
                 }
-                request.setComputeDevice(cpu, for: stage)
             }
             try handler.perform([request])
         } catch {
-            throw .embedding("Vision request failed: \(error.localizedDescription)")
+            let underlying = error as NSError
+            AppLog.scan.error("Vision request failed: \(String(reflecting: underlying))")
+            throw .embedding("Vision request failed (\(underlying.domain), \(underlying.code)): \(underlying.localizedDescription)")
         }
 
         guard let observation = request.results?.first else {
