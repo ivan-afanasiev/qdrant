@@ -1,6 +1,6 @@
 # PhotoSweep rewrite plan
 
-Status: product decisions recorded; implementation plan consolidated. No application implementation changes are included.
+Status: product decisions recorded; shared agent rules and tool entry points implemented (step 1). Structural/traceability/relocation validation passes; Claude/Cursor session-loading smoke checks remain unexercised as documented in .agents/tooling.md. Application implementation has not started.
 Based on ARCHITECTURE.md and inspection of the scan pipeline, Photos and Qdrant adapters, deletion/reset use cases, and lifecycle tests.
 
 ## 1. Confirmed requirements
@@ -285,7 +285,7 @@ Recording image fakes must prove that vectorization/card thumbnails never load f
 
 ## 10. Delivery sequence and exit criteria
 
-1. **Establish shared agent rules.** Extract this plan into the canonical .agents ruleset, requirement map and verified tool entry points/symlinks described in section 10.1. Exit: complete requirement coverage, concise task-scoped loading and validated links before architecture implementation begins.
+1. **Establish shared agent rules — implemented, runtime loading checks outstanding.** Canonical .agents rules, requirement map, project map, AGENTS/Claude entry symlinks and manual Cursor adapters are in place. The validator passes 49 requirement groups, all 16 decisions and relocated symlink checks. See .agents/tooling.md for measured context sizes and the unexercised client-session loading checks; do not equate filesystem checks with runtime ingestion.
 1. **Establish the baseline.** Product decisions are complete. Inventory preserved SDK/image helpers and UI components, map existing tests, select representative iPhones and record baseline resource behavior. Exit: regression inventory and measurable validation protocol.
 2. **Create SPM boundaries and validate SafeDI.** Add iOS 26 package targets and tests, retain an iPhone-only app host, extract preserved adapters/design system, and implement the minimal SafeDI composition milestone in section 4.2. Exit: DI checks pass with a pinned release; app builds, resources/localization resolve, dependency direction is enforced.
 3. **Build domain/state contracts.** Implement separate vectorization/discovery models, native reducers/effects, policies and fakes. Exit: deterministic tests cover the agreed gates, retries, pause, buffer and review semantics.
