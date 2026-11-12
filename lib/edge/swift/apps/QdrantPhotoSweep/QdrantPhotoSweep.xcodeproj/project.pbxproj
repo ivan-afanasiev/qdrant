@@ -22,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		3F924D6E309F313C0057D648 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
+		3FADD11A30A39D8E00F3ADF4 /* REWRITE_PLAN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = REWRITE_PLAN.md; sourceTree = "<group>"; };
 		AA0000000000000000000001 /* QdrantPhotoSweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = QdrantPhotoSweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B583F606A9024581BBDB2C6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QdrantPhotoSweep.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,6 +68,7 @@
 				AA0000000000000000000002 /* Tests */,
 				B583F606A9024581BBDB2C6A /* Info.plist */,
 				EE000001000000000000EE01 /* Sources */,
+				3FADD11A30A39D8E00F3ADF4 /* REWRITE_PLAN.md */,
 				6D47939F097641369B8C2033 /* Products */,
 			);
 			sourceTree = "<group>";
