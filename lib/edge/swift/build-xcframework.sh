@@ -45,6 +45,41 @@ for arg in "$@"; do
     esac
 done
 
+# ── Deployment targets ───────────────────────────────────────────────────────
+
+# Minimum OS versions for rustc and for C/assembly objects compiled by the `cc`
+# crate. Without them, `cc` stamps objects with the installed SDK version and
+# linking into apps with a lower deployment target emits "built for newer
+# version" warnings. Keep in sync with `platforms` in Package.swift.
+export IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET:-15.0}"
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-13.0}"
+export TVOS_DEPLOYMENT_TARGET="${TVOS_DEPLOYMENT_TARGET:-15.0}"
+export XROS_DEPLOYMENT_TARGET="${XROS_DEPLOYMENT_TARGET:-1.0}"
+
+echo "==> Deployment targets: iOS $IPHONEOS_DEPLOYMENT_TARGET, macOS $MACOSX_DEPLOYMENT_TARGET, tvOS $TVOS_DEPLOYMENT_TARGET, visionOS $XROS_DEPLOYMENT_TARGET"
+
+# Fails if any object in a static library declares a minimum OS newer than
+# the expected deployment target (reads LC_BUILD_VERSION and LC_VERSION_MIN_*).
+verify_min_os() {
+    local lib="$1" expected="$2" newest
+    newest=$(otool -l "$lib" | awk '
+        /cmd LC_BUILD_VERSION/ { build = 1; next }
+        /cmd LC_VERSION_MIN_/  { legacy = 1; next }
+        build && $1 == "minos"    { print $2; build = 0 }
+        legacy && $1 == "version" { print $2; legacy = 0 }
+    ' | sort -V | tail -1)
+    if [[ -z "$newest" ]]; then
+        echo "error: no minimum OS version found in $lib" >&2
+        exit 1
+    fi
+    if [[ "$(printf '%s\n%s\n' "$expected" "$newest" | sort -V | tail -1)" != "$expected" ]]; then
+        echo "error: $lib contains objects requiring OS $newest (expected <= $expected)." >&2
+        echo "       Stale objects may be cached; run 'cargo clean' in $WORKSPACE_ROOT and rebuild." >&2
+        exit 1
+    fi
+    echo "    $lib: newest minimum OS $newest (<= $expected)"
+}
+
 # ── Targets ──────────────────────────────────────────────────────────────────
 
 # Tier 1/2 — build with stable toolchain
@@ -170,6 +205,17 @@ MODULEMAP
 done
 
 # ── XCFramework ──────────────────────────────────────────────────────────────
+
+echo "==> Verifying minimum OS versions..."
+verify_min_os "$WORKSPACE_ROOT/target/aarch64-apple-ios/$PROFILE/$LIB_NAME" "$IPHONEOS_DEPLOYMENT_TARGET"
+verify_min_os "$OUT_DIR/ios-simulator-universal/$LIB_NAME" "$IPHONEOS_DEPLOYMENT_TARGET"
+verify_min_os "$OUT_DIR/macos-universal/$LIB_NAME" "$MACOSX_DEPLOYMENT_TARGET"
+if $ALL_PLATFORMS; then
+    verify_min_os "$WORKSPACE_ROOT/target/aarch64-apple-tvos/$PROFILE/$LIB_NAME" "$TVOS_DEPLOYMENT_TARGET"
+    verify_min_os "$OUT_DIR/tvos-simulator-universal/$LIB_NAME" "$TVOS_DEPLOYMENT_TARGET"
+    verify_min_os "$WORKSPACE_ROOT/target/aarch64-apple-visionos/$PROFILE/$LIB_NAME" "$XROS_DEPLOYMENT_TARGET"
+    verify_min_os "$WORKSPACE_ROOT/target/aarch64-apple-visionos-sim/$PROFILE/$LIB_NAME" "$XROS_DEPLOYMENT_TARGET"
+fi
 
 echo "==> Building XCFramework..."
 rm -rf "$XCFRAMEWORK_DIR"

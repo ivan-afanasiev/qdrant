@@ -21,7 +21,7 @@ This XCFramework contains seven slices:
 ## How it works
 
 1. The Rust crate `qdrant-edge-swift` wraps Qdrant Edge types with [UniFFI](https://github.com/mozilla/uniffi-rs) attributes
-2. `build-xcframework.sh` cross-compiles the crate for all ten Apple targets, strips binaries, creates universal (fat) libraries via `lipo`, and packages them into an XCFramework
+2. `build-xcframework.sh` cross-compiles the crate for all ten Apple targets, strips binaries, creates universal (fat) libraries via `lipo`, and packages them into an XCFramework. It builds against the minimum OS versions declared in `Package.swift` (iOS 15, macOS 13, tvOS 15, visionOS 1); override with `IPHONEOS_DEPLOYMENT_TARGET`, `MACOSX_DEPLOYMENT_TARGET`, `TVOS_DEPLOYMENT_TARGET` or `XROS_DEPLOYMENT_TARGET`. The build fails if any object requires a newer OS; run `cargo clean` and rebuild if stale objects remain
 3. UniFFI generates a Swift source file (`QdrantEdge.swift`) with idiomatic Swift types that call into the static library via FFI
 
 ## Quick start

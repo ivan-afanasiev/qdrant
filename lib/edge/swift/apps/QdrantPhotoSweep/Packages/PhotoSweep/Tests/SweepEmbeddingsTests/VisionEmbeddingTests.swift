@@ -14,7 +14,7 @@ struct VisionEmbeddingTests {
         let service = VisionEmbeddingService()
         let vector = try await service.embed(image: image)
         #expect(!vector.isEmpty)
-        #expect(vector.allSatisfy(\.isFinite))
+        #expect(vector.allSatisfy { $0.isFinite })
         #expect(await service.dimensions == vector.count)
     }
 }
