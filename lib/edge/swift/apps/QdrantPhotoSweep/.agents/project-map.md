@@ -58,7 +58,6 @@ HandleAppActivation, HandleExecutionExpiration, EvaluateBackgroundEligibility, S
 
 - In Xcode: BuildProject for application build; discover Xcode test tools and select the QdrantPhotoSweepTests target in the shared scheme. XcodeRefreshCodeIssuesInFile is a focused diagnostic, not a full build.
 - Agent rules: `python3 .agents/validate.py` checks traceability, links, wrappers and relocatability. It does not verify app behavior or editor runtime loading.
-- The project and shared scheme/test membership above were verified from their files. No app build/test was run for this instruction-only change.
+- Baseline evidence is in docs/baseline/README.md: simulator build/launch/UI capture succeeded and 13/13 existing Swift Testing tests passed on iPhone 17, iOS 27.0.1. This does not establish device performance or scheduling behavior.
 - CLI fallback when Xcode tools are unavailable: `xcodebuild -project QdrantPhotoSweep.xcodeproj -scheme QdrantPhotoSweep -showdestinations`, then build/test with an actual available destination ID. This fallback has not been executed in this milestone; do not invent a simulator name.
 - No root `swift test` command applies yet. Record verified package test commands when SPM targets are created.
-

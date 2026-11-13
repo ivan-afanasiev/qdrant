@@ -1,0 +1,83 @@
+{
+  "count": 13,
+  "tests": [
+    {
+      "name": "visionFeaturePrintRunsWithSelectedComputeDevices",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 39,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "coordinatorResumesTheSessionCreatedByItsPipeline",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 51,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "embeddingFailureStopsImmediatelyAndPreservesTheError",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 76,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "failedSearchIsRetriedEvenAfterVectorUpsert",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 95,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "cancellationInFinalBatchDoesNotMarkScanComplete",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 117,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "detectionDoesNotRequireUICallbackAndUsesConfiguredThreshold",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 134,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "repeatedEdgesAreIdempotent",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 155,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "recoveryFindsScanningSessionsButNotUserCancelledSessions",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 165,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "incrementalRangeIncludesPhotosAfterPreviousRangeEnd",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 174,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "foregroundWaitsForBackgroundCleanupAndBackgroundCannotOverlap",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 187,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "cancellationBeforePhotosContinuationInstallationResumesImmediately",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 223,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "photosCancellationCompletesContinuationOnlyOnce",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 236,
+      "framework": "Swift Testing"
+    },
+    {
+      "name": "explicitCancelPersistsCancellationBeforeReplacementStarts",
+      "file": "Tests/ScanLifecycleTests.swift",
+      "line": 251,
+      "framework": "Swift Testing"
+    }
+  ]
+}

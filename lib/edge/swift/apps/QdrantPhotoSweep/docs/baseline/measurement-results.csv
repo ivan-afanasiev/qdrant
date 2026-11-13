@@ -1,0 +1,3 @@
+run_id,revision,device_tier,model,os,fixture,configuration,scenario,duration_s,successful_count,deferred_count,peak_footprint_bytes,cpu_time_s,thermal_states,evidence_path,status
+pending-D1,1f4dd09bb8189e023ce2c1d495924ef72d55c17d,D1,iPhone 17,27.0.1,not-loaded,Release,physical-baseline,,,,,,,,not-measured-tests-only-physical-ui-tool-unavailable
+pending-D2,1f4dd09bb8189e023ce2c1d495924ef72d55c17d,D2,not-selected,26.x,not-loaded,Release,physical-baseline,,,,,,,,not-run-no-device

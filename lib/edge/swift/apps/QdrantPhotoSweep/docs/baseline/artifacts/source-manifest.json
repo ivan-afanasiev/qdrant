@@ -1,0 +1,436 @@
+{
+  "revision": "1f4dd09bb8189e023ce2c1d495924ef72d55c17d",
+  "purpose": "Pre-rewrite source/resource snapshot; hashes detect changes, not correctness.",
+  "files": [
+    {
+      "path": "Info.plist",
+      "bytes": 1875,
+      "sha256": "e526e5ddfd57d8cba6facd4f322969e4aeebd974ba56476fb614a8ea3a6b4b82"
+    },
+    {
+      "path": "QdrantPhotoSweep.xcodeproj/project.pbxproj",
+      "bytes": 14215,
+      "sha256": "24e62520c8b4ce43854aaca03b908d9f4011151bcae685b8a080071238a52c53"
+    },
+    {
+      "path": "QdrantPhotoSweep.xcodeproj/xcshareddata/xcschemes/QdrantPhotoSweep.xcscheme",
+      "bytes": 2542,
+      "sha256": "0951f0bfc909a5f17f998cbf6aa90c46b7f7facfee2f9f40104dcfe70fe08ed0"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/App.swift",
+      "bytes": 4463,
+      "sha256": "27b0736ab587b75912c54e09d07b9e8ce581a7dc3a4fb1abdbef30cbfbc3ee01"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Assets.xcassets/AccentColor.colorset/Contents.json",
+      "bytes": 123,
+      "sha256": "9af65086fa30b49252fae1a1225731691de794f7775af74d71befeb507d12b7c"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "bytes": 18826,
+      "sha256": "e6d218ed70c490f4bf8fcb71be3ddb358b3ddb115a659f11ff87610fc19e5db4"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "bytes": 211,
+      "sha256": "3725fefca1cc2f15dcff52b03b7db47884c8141e5be1d4e559367b76117f8c48"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Assets.xcassets/Contents.json",
+      "bytes": 63,
+      "sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/AppError.swift",
+      "bytes": 712,
+      "sha256": "798202186d5436bc905f64db84278fb48ee995890cf019a3a64b54520bc9e3ce"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/DatePreset.swift",
+      "bytes": 1541,
+      "sha256": "225e474f540385d17761bf9548c040e709aa4d47aa425bf2fcda4250f48b05d3"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Dependencies.swift",
+      "bytes": 4978,
+      "sha256": "057c4e16a44506528e602382e3c7efdaabba51e98a77c11ec8065ea56216120b"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/DuplicateGroupDTO.swift",
+      "bytes": 1895,
+      "sha256": "5b7b68785eca1b8a008c57774d42cabefc4354afdb0bc23ce3c2c2f03e277eed"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/DuplicateGroupEntity.swift",
+      "bytes": 720,
+      "sha256": "49873513b16190324ce71d97e549a45959aa17f10e2a26902b3712d833a0cbd2"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/GroupMemberEntity.swift",
+      "bytes": 832,
+      "sha256": "d587a54494c27156f0ee6591c8036d0f8dc0cc72880be9839d6ee8ab107ff755"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/PhotoPointEntity.swift",
+      "bytes": 1033,
+      "sha256": "9f2e184d7ae4161a47a0aece7c60af238a796f1a2f66f13bb2ed8d3ec6499073"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/ScanSessionDTO.swift",
+      "bytes": 642,
+      "sha256": "c98af946d1a5e2429fe82b908b71e6f335ceb3f4b70fb8e2abf3d60f6fc93d7b"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/ScanSessionEntity.swift",
+      "bytes": 1274,
+      "sha256": "b633c917d37e6a978327a59be1bf74e03ad5554b82cd8ba940e8b8ed7160447a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/ScanSessionStoring.swift",
+      "bytes": 1958,
+      "sha256": "137f4e4ee70ea15d8e16eacbe2226b64c4dceffc95985e217c6b3aee17faa525"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/SimilarityEdgeEntity.swift",
+      "bytes": 602,
+      "sha256": "45f467baeacce3396bc0bf7ce3c1e6d36b6cb66a1bd9ea3274fc15e2c3c3c467"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Persistence/SwiftDataScanStore.swift",
+      "bytes": 15147,
+      "sha256": "31ced947ece0187ae85484af8a7c2f7a15dceab585d4e90dee2b8c8784df2c92"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Protocols/EmbeddingProviding.swift",
+      "bytes": 146,
+      "sha256": "5413ff37be6dd881cddb4434931f166fe33c8f400b43bd1a313114fe4d4442fb"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Protocols/PhotoLibraryProviding.swift",
+      "bytes": 1006,
+      "sha256": "31ad9945fa03b25ba16d79bb0eb2573c7c415d3a8af7f072b68de517a5603bc7"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/Protocols/VectorStoring.swift",
+      "bytes": 956,
+      "sha256": "aa05a512be802f883e1963b6b5e1c1e6b9780dfc33ee1242e6fdd8b2d9ab9a28"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/TestDependencies.swift",
+      "bytes": 5011,
+      "sha256": "0a0584ebf39bfe4f238c353720a480a0d603da06aa379fdd0b49aef4c6abb6f9"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Core/UseCase.swift",
+      "bytes": 192,
+      "sha256": "d3c84a569662e8fd23453a42b5f519de1aa9133d503344f317247bb6d2dca160"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/L10n.swift",
+      "bytes": 9281,
+      "sha256": "31ffac2d3a4060207d982b099a4e3b0f4f02a51899f083deb8d7bb5620f5cfdb"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QAnimation.swift",
+      "bytes": 269,
+      "sha256": "7c950b8526d1d340b5daa9b0e93c0f812d6e73beafff5944203fe471db696d26"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QColors.swift",
+      "bytes": 2512,
+      "sha256": "328b52f0ea91c81261eaff9f7ef12416bf0d9a8b136c0af98d118ee36a5dad5a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QComponents.swift",
+      "bytes": 3955,
+      "sha256": "8067abcf176707dd733472c77e81cd2f72248e44beda390ae376c533f7e28a45"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QIcons.swift",
+      "bytes": 1263,
+      "sha256": "2e99db3376b58bb066d1b1bc97302ea3117560a93dd53d285ac1277136261178"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QLayout.swift",
+      "bytes": 1607,
+      "sha256": "afc6dbda1984a8331bf3f32775f48aa21f96056bc6394cb98a9a0ded18b768f6"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/DesignSystem/QTypography.swift",
+      "bytes": 1088,
+      "sha256": "70ef9c188dd8d157e110ca0f11680c6ecc46f330eed076f10ad931443926f26f"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/DuplicateDetection/DuplicateGroup.swift",
+      "bytes": 2608,
+      "sha256": "00e48da580869aae8bd6cdcc90c5578597297c0fad3ffd7e879aef3b44d07625"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/DuplicateDetection/UnionFind.swift",
+      "bytes": 1305,
+      "sha256": "5021b09c62bcfc5e77b48e969d4a83896e620e81ff6fb0842730c0b6134f53b6"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/GroupGrid/GroupGridState.swift",
+      "bytes": 1501,
+      "sha256": "2e6d287903c988245ec583c53e138c82e5f4c79d04f50d351f4f7ea63e0964c7"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/GroupGrid/GroupGridView.swift",
+      "bytes": 8688,
+      "sha256": "12d88acd4e983eb1a9b9c7cf6bcf39a167c890ca7e4b3cb5b36202650e19eeaa"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/GroupGrid/SingleGroupReviewView.swift",
+      "bytes": 3653,
+      "sha256": "c4d722556fcef5295fb14546ff8af6a7c575f3325cec05135ca5afc1fd32739c"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/OnboardingPermissionStep.swift",
+      "bytes": 3103,
+      "sha256": "b353fa71ecb368201f5fd62ceffc6a39b3046eb210915b76d81923d04e88da60"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/OnboardingScanPeriodStep.swift",
+      "bytes": 3171,
+      "sha256": "fdf67100ce36659937ea39ba02890036f4d580fa2824889bcff29ba4dc9fa3d6"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/OnboardingState.swift",
+      "bytes": 2731,
+      "sha256": "007ac85443c138dc26d92c12b82ac95ab44f4621286497871b922acff33756d8"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/OnboardingView.swift",
+      "bytes": 2360,
+      "sha256": "19b92ff18ae6b499516c1f845ac8964832b36154f9b329a127b958033875e86a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/OnboardingWelcomeStep.swift",
+      "bytes": 2219,
+      "sha256": "4f9714c0feab01e3c0a82c0627fc9cc653d011ec6778fe1ced00316717fdb3ae"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Onboarding/UseCases/RequestPhotoAccessUseCase.swift",
+      "bytes": 390,
+      "sha256": "cea045fe0beb19db0e93f9030d2df8714d3158bacb32d497dd63365a525a77e8"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/Components/ReviewCardStack.swift",
+      "bytes": 3934,
+      "sha256": "aec87fd6722905d3e504048e4ccf809198d790007231316cf459f21c2ae5bc81"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/Components/ReviewSubviews.swift",
+      "bytes": 3664,
+      "sha256": "a4df57521573d64c7f5128bf21522cd43622073ec08cbff99c68cf5ece1cc66c"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/FullscreenPhotoView.swift",
+      "bytes": 4182,
+      "sha256": "b76477e6e1533bb744a54a0bb317df63386f251994e156fa07eebd3240b5d81f"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/GroupComparisonView.swift",
+      "bytes": 1200,
+      "sha256": "33b5f6080ca1d3f3dcc086edbcd1b59c5395beae9c057e9d2cbd60ced9265bb7"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/PhotoCardView.swift",
+      "bytes": 5007,
+      "sha256": "4e66a22819f9554b5d18da1ef0863eb656f1cd96336ab479ac9792818d66667d"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/ReviewState.swift",
+      "bytes": 4172,
+      "sha256": "3a88c25716bbed9eabcd8137c36b4a50b5667b5718aa16dca1e6e027d7a4eeeb"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/UseCases/DeleteGroupUseCase.swift",
+      "bytes": 1502,
+      "sha256": "94f7c03ef6bbd2e8fd3b671ac4437784d800598c9fff24e353ad355325df0f41"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/UseCases/LoadGroupByIdUseCase.swift",
+      "bytes": 280,
+      "sha256": "bf6a6e5c95f4d1d9af3c5c10af54f9407f8c47f1a9c988647ea79cee352ac517"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/UseCases/LoadGroupsPageUseCase.swift",
+      "bytes": 1566,
+      "sha256": "ad5e336735f53c79871b7eeb5d4a5bee2b3958933c5a520af01c75210b71891a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/UseCases/LoadNextGroupUseCase.swift",
+      "bytes": 513,
+      "sha256": "268cd77236edd5c6eaa85cfbbc184e1eb961a62bd68ab72f53fce6d813542fb2"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Review/UseCases/SkipGroupUseCase.swift",
+      "bytes": 496,
+      "sha256": "95d80f43b29012c650e12e3308c836047a70091051ec88362824f87510ace804"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/ScanInteractor.swift",
+      "bytes": 13651,
+      "sha256": "130604e974395913db707d92175c94a4cc7ec30f92aa1942d7c6145480209b64"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/ScanPipeline.swift",
+      "bytes": 9298,
+      "sha256": "3ae599549a29e5e202684da24d1f5c89442b3876566c8d7f47e3eafde21bf002"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/ScanState.swift",
+      "bytes": 2003,
+      "sha256": "56b992530ce1b015e6b12c80b3dfd946d4f226f7d9b89dcab4fa0578fc0abf51"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/ScanView.swift",
+      "bytes": 11702,
+      "sha256": "24cb60251b80a0b37cfb6ef9a6e8697968b04b53413f2d458989a1be2c9d095a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/UseCases/CancelScanUseCase.swift",
+      "bytes": 216,
+      "sha256": "4d703a56b94b8bb8e270c6834a2b2d4810b7aab8b066b08028d9c0ca52e41ec3"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/UseCases/LoadInitialStateUseCase.swift",
+      "bytes": 843,
+      "sha256": "926b3bc470a97470d9bdf0be4ba187cecf0eefb83de1288e3a8ff1b5dfffa694"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/UseCases/ManageBackgroundExecutionUseCase.swift",
+      "bytes": 304,
+      "sha256": "bdfb8d3b89fadf5f1086d53c194bf8a1a1edaac2be08ef396a909e8772630fdd"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Scan/UseCases/StartScanUseCase.swift",
+      "bytes": 662,
+      "sha256": "9c63e3f7b450e22562683d29238b25a0ce1113366a7248d65655cd4eeed61592"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/Sections/SettingsAboutSectionView.swift",
+      "bytes": 556,
+      "sha256": "67e6d35131601356bdf088d2ab3bea4c89d1cda3a14c2ae543eddc44bfd85b41"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/Sections/SettingsDatabaseSectionView.swift",
+      "bytes": 2404,
+      "sha256": "0a237598a9ac31218ccb9bb99bcaffe7ac7630ca269d24ff05726bb55ac18e40"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/Sections/SettingsDetectionSectionView.swift",
+      "bytes": 897,
+      "sha256": "2b7474954dd376c2c7b56bb585416304ee187e1c1b04dd59ec651a5c40635968"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/Sections/SettingsScanPeriodSectionView.swift",
+      "bytes": 3150,
+      "sha256": "69b98c856911165cf5f16b6298da929c7ab1bd7d24a790ae685c55c9b47bee65"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/Sections/SettingsStatsSectionView.swift",
+      "bytes": 2323,
+      "sha256": "547a287991455e32d235d700e82a1915b7a000ce92e087125a1a9449d4fd325f"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/SettingsState.swift",
+      "bytes": 1346,
+      "sha256": "afba53aa5cd34c279427d6929f7876e0c8989c9fa8996a8aebe28fdddf9052d4"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/SettingsView.swift",
+      "bytes": 1048,
+      "sha256": "c84638c0d28677d572838217d0181b43c4974811600ce6cecc903439060c9d23"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/UseCases/ClearDatabaseUseCase.swift",
+      "bytes": 541,
+      "sha256": "41f91987e43adbfe1a8d3d37fd36860d16dc13e5cc7ddca07577e29509bfea57"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/UseCases/LoadDatabaseInfoUseCase.swift",
+      "bytes": 358,
+      "sha256": "ccf2954303b4590a73d7b796df67acbf2271a23416abd1705296e8e25d9d585d"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Features/Settings/UseCases/LoadStatsUseCase.swift",
+      "bytes": 816,
+      "sha256": "147ac156b808bc51b3931a40d84459da545216b7c05b8543aecae85474d48de0"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Navigation/AppRoute.swift",
+      "bytes": 65,
+      "sha256": "eec5f0820714d4bcae8ba505a8c25f5a92b6419f62e89224892488a17deedb99"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Navigation/RootNavigationView.swift",
+      "bytes": 800,
+      "sha256": "ba8aa3ac94ce8c1e30c95f7844e81434364f29e25e10c5b015e9c3e9025a8c3b"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Resources/Localizable.xcstrings",
+      "bytes": 82580,
+      "sha256": "b4b435b31b584d0c6270b84e2bf4c2e122012e97952c6e78dce487984de75e37"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/BackgroundScanService.swift",
+      "bytes": 5914,
+      "sha256": "1722970b1ce9079ba150ce4b599b6ebab44b1577a69a5a79f7cb9e3bb7b8e325"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/BackgroundTaskManager.swift",
+      "bytes": 3275,
+      "sha256": "c07b551a9646b001aba5decd5b4dd107a3778e19dc2b564b07289176fb168178"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/ContinuousScanCoordinator.swift",
+      "bytes": 11336,
+      "sha256": "2e21f2da5ac606f23090c2a3a9f3dd21807348ab87ddf50e57bf195cf1dc4c6d"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/PhotoLibraryService.swift",
+      "bytes": 3476,
+      "sha256": "aa3a8ef02f7e641c6d9f9fb7a53f4542f8be77a005b0e65244e3b465dd61848d"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/QdrantVectorStore.swift",
+      "bytes": 8661,
+      "sha256": "5a888168c877a1068948dd28bd34ae7ef8408b58b538091cc0c4c64cc0216b73"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/ScanExecutionController.swift",
+      "bytes": 1344,
+      "sha256": "c3054146f96e1751bb79bb731a59398b7b474013ccf3809cde558e116780dc0a"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Services/VisionEmbeddingService.swift",
+      "bytes": 2555,
+      "sha256": "93a7b70f86e3e403f062ebacc6efed57245866d13a9c4ec5c51ac196eb8d9af3"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Utilities/AppLog.swift",
+      "bytes": 589,
+      "sha256": "88f433c0288e25ec423171621194dfeb210f62e555ac0586ca52d2779bff4cde"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Utilities/PHAssetExtensions.swift",
+      "bytes": 4302,
+      "sha256": "feea212ea3d9242b015240d9a86da595f8801b6fb2b616b4095cc7417215a641"
+    },
+    {
+      "path": "Sources/QdrantPhotoSweep/Utilities/UUIDHelpers.swift",
+      "bytes": 834,
+      "sha256": "444a86754ce9ad2311ecb3f29ac4c77244a306f7858624630ce27591f6935550"
+    },
+    {
+      "path": "Tests/ScanLifecycleTests.swift",
+      "bytes": 16457,
+      "sha256": "f8ae21d23c31da6f3da055bc587002cfcd66366100d73a8ea4096c97cae13364"
+    }
+  ]
+}

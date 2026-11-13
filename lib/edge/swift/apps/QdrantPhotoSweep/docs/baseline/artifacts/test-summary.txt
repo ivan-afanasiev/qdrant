@@ -1,0 +1,167 @@
+================================================================================
+TEST RESULTS SUMMARY
+================================================================================
+Generated: 2026-11-12T09:56:55Z
+Total Results: 13
+================================================================================
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 1/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/visionFeaturePrintRunsWithSelectedComputeDevices()
+TEST_DISPLAY_NAME: visionFeaturePrintRunsWithSelectedComputeDevices()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 38
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 2/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/coordinatorResumesTheSessionCreatedByItsPipeline()
+TEST_DISPLAY_NAME: coordinatorResumesTheSessionCreatedByItsPipeline()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 50
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 3/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/embeddingFailureStopsImmediatelyAndPreservesTheError()
+TEST_DISPLAY_NAME: embeddingFailureStopsImmediatelyAndPreservesTheError()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 75
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 4/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/failedSearchIsRetriedEvenAfterVectorUpsert()
+TEST_DISPLAY_NAME: failedSearchIsRetriedEvenAfterVectorUpsert()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 94
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 5/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/cancellationInFinalBatchDoesNotMarkScanComplete()
+TEST_DISPLAY_NAME: cancellationInFinalBatchDoesNotMarkScanComplete()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 116
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 6/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/detectionDoesNotRequireUICallbackAndUsesConfiguredThreshold()
+TEST_DISPLAY_NAME: detectionDoesNotRequireUICallbackAndUsesConfiguredThreshold()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 133
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 7/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/repeatedEdgesAreIdempotent()
+TEST_DISPLAY_NAME: repeatedEdgesAreIdempotent()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 154
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 8/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/recoveryFindsScanningSessionsButNotUserCancelledSessions()
+TEST_DISPLAY_NAME: recoveryFindsScanningSessionsButNotUserCancelledSessions()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 164
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 9/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/incrementalRangeIncludesPhotosAfterPreviousRangeEnd()
+TEST_DISPLAY_NAME: incrementalRangeIncludesPhotosAfterPreviousRangeEnd()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 173
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 10/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/foregroundWaitsForBackgroundCleanupAndBackgroundCannotOverlap()
+TEST_DISPLAY_NAME: foregroundWaitsForBackgroundCleanupAndBackgroundCannotOverlap()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 186
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 11/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/cancellationBeforePhotosContinuationInstallationResumesImmediately()
+TEST_DISPLAY_NAME: cancellationBeforePhotosContinuationInstallationResumesImmediately()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 222
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 12/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/photosCancellationCompletesContinuationOnlyOnce()
+TEST_DISPLAY_NAME: photosCancellationCompletesContinuationOnlyOnce()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 235
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+--------------------------------------------------------------------------------
+TEST_RESULT_INDEX: 13/13
+TEST_TARGET: QdrantPhotoSweepTests
+TEST_IDENTIFIER: ScanLifecycleTests/explicitCancelPersistsCancellationBeforeReplacementStarts()
+TEST_DISPLAY_NAME: explicitCancelPersistsCancellationBeforeReplacementStarts()
+TEST_STATE: Passed
+TEST_FILE_PATH: QdrantPhotoSweep/Tests/ScanLifecycleTests.swift
+TEST_LINE_NUMBER: 250
+TEST_TAGS: (none)
+
+TEST_ISSUE_COUNT: 0
+
+
+================================================================================
+END OF TEST RESULTS SUMMARY
+================================================================================

@@ -1,0 +1,27 @@
+Device orientation: Unknown
+------------------------
+Application bundle identifier: com.qdrant.edge.QdrantPhotoSweep
+Application UI orientation: Portrait
+Application, pid: 7141, label: 'Qdrant PhotoSweep'
+ Window, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+  Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+   Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+    Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+     Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+      Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+       NavigationBar, {{0.0, 62.0}, {402.0, 106.0}}, identifier: 'Qdrant PhotoSweep', hitPoint: {201.0, 115.0}
+        Other, {{346.0, 66.0}, {36.0, 36.0}}, hitPoint: {364.0, 84.0}
+         Other, {{346.0, 66.0}, {36.0, 36.0}}, hitPoint: {364.0, 84.0}
+          Button, {{347.7, 66.0}, {33.0, 36.0}}, identifier: 'gear', label: 'Settings', hitPoint: {364.2, 84.0}
+        StaticText, {{16.0, 119.7}, {319.0, 40.7}}, label: 'Qdrant PhotoSweep', hitPoint: {175.5, 140.0}
+       Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+        Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+         Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+          Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+           Image, {{17.3, 189.3}, {17.0, 17.0}}, identifier: 'checkmark.circle.fill', label: 'Selected', Selected, hitPoint: {25.8, 197.8}
+           StaticText, {{43.7, 190.7}, {86.0, 14.3}}, label: 'Scan Complete', hitPoint: {86.7, 197.8}
+           Image, {{179.3, 461.7}, {43.7, 53.7}}, identifier: 'sparkles', label: 'Sparkle', hitPoint: {201.2, 488.5}
+           StaticText, {{94.8, 535.7}, {212.3, 26.3}}, label: 'No Duplicates Found', hitPoint: {201.0, 548.8}
+           StaticText, {{86.3, 578.0}, {229.3, 20.3}}, label: 'Your photo library looks clean!', hitPoint: {201.0, 588.2}
+       Toolbar, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar', hitPoint: {201.0, 437.0}
+        Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}

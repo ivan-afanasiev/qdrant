@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-12",
+  "revision": "1f4dd09bb8189e023ce2c1d495924ef72d55c17d",
+  "tool": "Xcode RunAllTests",
+  "scheme": "QdrantPhotoSweep",
+  "target": "QdrantPhotoSweepTests",
+  "framework": "Swift Testing",
+  "device": {
+    "model": "iPhone 17",
+    "hardware": "iPhone18,3",
+    "os": "27.0.1 (24A446)",
+    "physical": true
+  },
+  "counts": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "notRun": 0
+  },
+  "suiteDurationSeconds": 0.176,
+  "durationQualification": "Test console duration only; not build duration or performance baseline.",
+  "results": [
+    {
+      "name": "visionFeaturePrintRunsWithSelectedComputeDevices()",
+      "state": "Passed"
+    },
+    {
+      "name": "coordinatorResumesTheSessionCreatedByItsPipeline()",
+      "state": "Passed"
+    },
+    {
+      "name": "embeddingFailureStopsImmediatelyAndPreservesTheError()",
+      "state": "Passed"
+    },
+    {
+      "name": "failedSearchIsRetriedEvenAfterVectorUpsert()",
+      "state": "Passed"
+    },
+    {
+      "name": "cancellationInFinalBatchDoesNotMarkScanComplete()",
+      "state": "Passed"
+    },
+    {
+      "name": "detectionDoesNotRequireUICallbackAndUsesConfiguredThreshold()",
+      "state": "Passed"
+    },
+    {
+      "name": "repeatedEdgesAreIdempotent()",
+      "state": "Passed"
+    },
+    {
+      "name": "recoveryFindsScanningSessionsButNotUserCancelledSessions()",
+      "state": "Passed"
+    },
+    {
+      "name": "incrementalRangeIncludesPhotosAfterPreviousRangeEnd()",
+      "state": "Passed"
+    },
+    {
+      "name": "foregroundWaitsForBackgroundCleanupAndBackgroundCannotOverlap()",
+      "state": "Passed"
+    },
+    {
+      "name": "cancellationBeforePhotosContinuationInstallationResumesImmediately()",
+      "state": "Passed"
+    },
+    {
+      "name": "photosCancellationCompletesContinuationOnlyOnce()",
+      "state": "Passed"
+    },
+    {
+      "name": "explicitCancelPersistsCancellationBeforeReplacementStarts()",
+      "state": "Passed"
+    }
+  ]
+}

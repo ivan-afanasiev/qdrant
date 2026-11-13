@@ -1,0 +1,138 @@
+Device orientation: Unknown
+------------------------
+Application bundle identifier: com.qdrant.edge.QdrantPhotoSweep
+Application UI orientation: Portrait
+Application, pid: 7141, label: 'Qdrant PhotoSweep'
+ Window, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+  Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+   Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+    Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+     Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+      Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+       NavigationBar, {{0.0, 62.0}, {402.0, 54.0}}, identifier: 'Settings', hitPoint: {201.0, 89.0}
+        Button, {{16.0, 62.0}, {44.0, 44.0}}, identifier: 'BackButton', label: 'Qdrant PhotoSweep', hitPoint: {38.0, 84.0}
+        StaticText, {{167.7, 73.7}, {66.7, 20.7}}, label: 'Settings', hitPoint: {201.0, 84.0}
+       Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+        Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+         Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+          Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+           CollectionView, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+            Other, {{-16.0, -70.0}, {434.0, 398.7}}, hitPoint: {201.0, 164.3}
+            Cell, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+             Other, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+              Other, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+             Other, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+              Other, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+               Other, {{16.0, -29.7}, {370.0, 166.0}}, hitPoint: {201.0, 68.2}
+                Other, {{32.0, -17.7}, {338.0, 142.0}}, hitPoint: {201.0, 62.2}
+                 Button, {{32.0, -17.7}, {165.0, 42.0}}, label: 'Last Week', hitPoint: {114.5, 12.2}
+                 Button, {{205.0, -17.7}, {165.0, 42.0}}, label: 'Last Month', hitPoint: {287.5, 12.2}
+                 Button, {{32.0, 32.3}, {165.0, 42.0}}, label: 'Last 3 Months', hitPoint: {114.5, 53.3}
+                 Button, {{205.0, 32.3}, {165.0, 42.0}}, label: 'Last 6 Months', hitPoint: {287.5, 53.3}
+                 Button, {{32.0, 82.3}, {165.0, 42.0}}, label: 'Last Year', hitPoint: {114.5, 103.3}
+                 Button, {{205.0, 82.3}, {165.0, 42.0}}, label: 'All Time', hitPoint: {287.5, 103.3}
+            Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+             Other, {{0.0, 0.0}, {402.0, 156.0}}, hitPoint: {201.0, 78.0}
+            Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
+             Other, {{0.0, 0.0}, {402.0, 156.0}}, hitPoint: {201.0, 78.0}
+            Cell, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+             Other, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+              Other, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+             Other, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+              Other, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+               Other, {{16.0, 136.3}, {370.0, 94.7}}, hitPoint: {201.0, 183.7}
+                StaticText, {{32.0, 151.5}, {100.7, 18.0}}, label: 'Custom Range', hitPoint: {82.3, 160.5}
+                DatePicker, {{32.0, 181.3}, {122.7, 34.7}}, label: 'From', hitPoint: {93.3, 198.7}
+                 Button, {{32.0, 181.3}, {122.7, 34.7}}, label: 'Date Picker', value: 12. Oct 2026, hitPoint: {93.3, 198.7}
+                StaticText, {{162.7, 188.5}, {15.3, 20.3}}, label: 'to', hitPoint: {170.3, 198.7}
+                DatePicker, {{186.0, 181.3}, {125.0, 34.7}}, label: 'To', hitPoint: {248.5, 198.7}
+                 Button, {{186.0, 181.3}, {125.0, 34.7}}, label: 'Date Picker', value: 12. Nov 2026, hitPoint: {248.5, 198.7}
+            Other, {{32.0, 135.3}, {338.0, 1.0}}, hitPoint: {201.0, 135.8}
+            Cell, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+             Other, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+              Other, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+             Other, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+              Other, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+               Other, {{16.0, 230.7}, {370.0, 52.0}}, hitPoint: {201.0, 256.7}
+                Button, {{16.0, 230.7}, {370.0, 52.0}}, label: 'Rescan with New Period', hitPoint: {201.0, 256.7}
+                 StaticText, {{32.0, 246.7}, {223.7, 20.3}}, label: 'Rescan with New Period', hitPoint: {143.8, 256.8}
+                 Image, {{34.7, 245.3}, {19.0, 23.0}}, identifier: 'arrow.clockwise', label: 'Refresh', hitPoint: {44.2, 256.8}
+            Other, {{32.0, 229.7}, {338.0, 1.0}}, hitPoint: {201.0, 230.2}
+            Cell, {{16.0, 283.0}, {370.0, 45.7}}, hitPoint: {201.0, 305.8}
+             Other, {{16.0, 283.0}, {370.0, 45.7}}, hitPoint: {201.0, 305.8}
+             Other, {{16.0, 283.0}, {370.0, 45.7}}, hitPoint: {201.0, 305.8}
+              Other, {{16.0, 283.0}, {370.0, 45.7}}, hitPoint: {201.0, 305.8}
+               Other, {{16.0, 283.0}, {370.0, 45.7}}, hitPoint: {201.0, 305.8}
+                StaticText, {{16.0, 283.0}, {370.0, 45.7}}, label: 'Choose which time range to scan when looking for duplicate photos.', hitPoint: {201.0, 305.8}
+            Other, {{-16.0, 328.7}, {434.0, 185.7}}, hitPoint: {201.0, 421.5}
+            Cell, {{16.0, 328.7}, {370.0, 40.3}}, hitPoint: {201.0, 348.8}
+             Other, {{16.0, 328.7}, {370.0, 40.3}}, hitPoint: {201.0, 348.8}
+             Other, {{16.0, 328.7}, {370.0, 40.3}}, hitPoint: {201.0, 348.8}
+              Other, {{16.0, 328.7}, {370.0, 40.3}}, hitPoint: {201.0, 348.8}
+               Other, {{16.0, 328.7}, {370.0, 40.3}}, hitPoint: {201.0, 348.8}
+                StaticText, {{16.0, 328.7}, {370.0, 40.3}}, label: 'Detection', hitPoint: {201.0, 348.8}
+            Cell, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+             Other, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+              Other, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+             Other, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+              Other, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+               Other, {{16.0, 369.0}, {370.0, 127.7}}, hitPoint: {201.0, 432.8}
+                StaticText, {{32.0, 384.0}, {150.7, 20.3}}, label: 'Similarity Threshold', hitPoint: {107.3, 394.2}
+                StaticText, {{334.0, 384.0}, {36.0, 20.3}}, label: '92%', hitPoint: {352.0, 394.2}
+                Slider, {{32.0, 412.3}, {338.0, 31.0}}, value: 0,92, hitPoint: {201.0, 427.8}
+                StaticText, {{32.0, 451.3}, {323.3, 30.3}}, label: 'Higher values find only very similar photos. Lower values find more potential duplicates.', hitPoint: {193.7, 466.5}
+            Other, {{-16.0, 514.0}, {434.0, 162.0}}, hitPoint: {201.0, 595.0}
+            Cell, {{16.0, 514.0}, {370.0, 40.3}}, hitPoint: {201.0, 534.2}
+             Other, {{16.0, 514.0}, {370.0, 40.3}}, hitPoint: {201.0, 534.2}
+             Other, {{16.0, 514.0}, {370.0, 40.3}}, hitPoint: {201.0, 534.2}
+              Other, {{16.0, 514.0}, {370.0, 40.3}}, hitPoint: {201.0, 534.2}
+               Other, {{16.0, 514.0}, {370.0, 40.3}}, hitPoint: {201.0, 534.2}
+                StaticText, {{16.0, 514.0}, {370.0, 40.3}}, label: 'Database', hitPoint: {201.0, 534.2}
+            Cell, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+             Other, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+              Other, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+             Other, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+              Other, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+               Other, {{16.0, 554.3}, {370.0, 52.0}}, hitPoint: {201.0, 580.3}
+                StaticText, {{32.0, 570.2}, {117.7, 20.3}}, label: 'Indexed Photos', hitPoint: {90.8, 580.3}
+                StaticText, {{359.7, 570.2}, {10.3, 20.3}}, label: '0', hitPoint: {364.8, 580.3}
+            Cell, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+             Other, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+              Other, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+             Other, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+              Other, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+               Other, {{16.0, 606.3}, {370.0, 52.0}}, hitPoint: {201.0, 632.3}
+                Button, {{16.0, 606.3}, {370.0, 52.0}}, label: 'Clear Database', Disabled, hitPoint: {201.0, 632.3}
+                 StaticText, {{32.0, 622.3}, {156.7, 20.3}}, label: 'Clear Database', Disabled, hitPoint: {110.3, 632.5}
+                 Image, {{33.7, 620.3}, {20.7, 24.0}}, identifier: 'trash', label: 'Trash', Disabled, hitPoint: {44.0, 632.3}
+            Other, {{32.0, 605.3}, {338.0, 1.0}}, hitPoint: {201.0, 605.8}
+            Other, {{-16.0, 676.0}, {434.0, 1912.3}}, hitPoint: {201.0, 775.0}
+            Cell, {{16.0, 676.0}, {370.0, 40.3}}, hitPoint: {201.0, 696.2}
+             Other, {{16.0, 676.0}, {370.0, 40.3}}, hitPoint: {201.0, 696.2}
+             Other, {{16.0, 676.0}, {370.0, 40.3}}, hitPoint: {201.0, 696.2}
+              Other, {{16.0, 676.0}, {370.0, 40.3}}, hitPoint: {201.0, 696.2}
+               Other, {{16.0, 676.0}, {370.0, 40.3}}, hitPoint: {201.0, 696.2}
+                StaticText, {{16.0, 676.0}, {370.0, 40.3}}, label: 'About', hitPoint: {201.0, 696.2}
+            Cell, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+             Other, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+              Other, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+             Other, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+              Other, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+               Other, {{16.0, 716.0}, {370.0, 52.0}}, hitPoint: {201.0, 742.0}
+                StaticText, {{32.0, 731.8}, {51.7, 20.3}}, label: 'Engine', hitPoint: {57.8, 742.0}
+                StaticText, {{273.7, 731.8}, {96.3, 20.3}}, label: 'Qdrant Edge', hitPoint: {321.8, 742.0}
+            Cell, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+             Other, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+              Other, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+             Other, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+              Other, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+               Other, {{16.0, 768.0}, {370.0, 52.0}}, hitPoint: {201.0, 794.0}
+                StaticText, {{32.0, 783.8}, {95.3, 20.3}}, label: 'Embeddings', hitPoint: {79.7, 794.0}
+                StaticText, {{275.3, 783.8}, {94.7, 20.3}}, label: 'Apple Vision', hitPoint: {322.7, 794.0}
+            Other, {{32.0, 767.0}, {338.0, 1.0}}, hitPoint: {201.0, 767.5}
+            Other, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 2 pages', value: 100 %, hitPoint: {384.0, 464.0}
+             Other, {{396.0, 386.3}, {3.0, 422.7}}, hitPoint: {397.5, 597.7}
+            Other, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 2 pages', value: 100 %, hitPoint: {384.0, 464.0}
+             Other, {{396.0, 386.3}, {3.0, 422.7}}, hitPoint: {397.5, 597.7}
+       Toolbar, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar', hitPoint: {201.0, 437.0}
+        Other, {{0.0, 0.0}, {402.0, 874.0}}, hitPoint: {201.0, 437.0}
