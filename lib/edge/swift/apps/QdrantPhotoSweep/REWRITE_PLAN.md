@@ -1,6 +1,6 @@
 # PhotoSweep rewrite plan
 
-Status: shared agent rules/entry points implemented (step 1); baseline inventory, source snapshot, simulator UI evidence, 13 passing device tests and measurement protocol recorded (step 2). Step 3 is in progress: SPM boundaries, extracted adapters/resources and an inert SafeDI validation slice exist; see docs/implementation/step-3.md for validation status. Physical performance measurements and Claude/Cursor session-loading checks remain outstanding. The legacy engine remains active until cutover.
+Status: shared agent rules/entry points implemented (step 1); baseline inventory, source snapshot, simulator UI evidence, 13 passing device tests and measurement protocol recorded (step 2). Step 3 delivered SPM boundaries, extracted adapters/resources and an inert SafeDI validation slice (stub graph accepted; see docs/implementation/step-3.md). Step 4 delivered domain policies, native store/reducer infrastructure, Library/Review reducers and test fakes without persistence or live pipelines; see docs/implementation/step-4.md. Physical performance measurements and Claude/Cursor session-loading checks remain outstanding. The legacy engine remains active until cutover.
 Based on ARCHITECTURE.md and inspection of the scan pipeline, Photos and Qdrant adapters, deletion/reset use cases, and lifecycle tests.
 
 ## 1. Confirmed requirements
@@ -81,14 +81,14 @@ Use one local package, Packages/PhotoSweep, with compiler-enforced target bounda
 | SweepSystem | Background execution, lifecycle/resource signals and notification adapters | SweepDomain, platform frameworks |
 | SweepDesignSystem | Existing tokens, shared Liquid Glass presentation, localization and reusable components | SwiftUI |
 | SweepFeatureState | Minimal native store/effect infrastructure | Foundation, Observation |
-| SweepLibraryFeature | Vectorization progress, availability, Pause/Resume/Retry UI | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepReviewFeature | Tinder-like cards, group comparison and fullscreen preview | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepSettingsFeature | Scope, threshold, rescan, reset and statistics UI | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepOnboardingFeature | Authorization and onboarding UI | SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepLibraryFeature | Vectorization progress, availability, Pause/Resume/Retry UI | SweepDomain value types, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepReviewFeature | Tinder-like cards, group comparison and fullscreen preview | SweepDomain value types, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepSettingsFeature | Scope, threshold, rescan, reset and statistics UI | SweepDomain value types, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepOnboardingFeature | Authorization and onboarding UI | SweepDomain value types, SweepUseCases, SweepFeatureState, SweepDesignSystem |
 | SweepComposition | SafeDI production graph and feature factories; exported app entry point | SafeDI, feature/use-case and adapter targets |
 | SweepTestSupport | Deterministic fakes and fixtures, test-only | SweepDomain |
 
-The app retains one composition root exported by SweepComposition, which injects narrow use cases into feature stores. The app routes system callbacks into application use cases from that same graph. Features do not import concrete adapters, QdrantEdge, Photos or SwiftData. Domain and use cases do not import UI modules. Adapters do not depend on each other. Isolate image transport behind a small image contract; do not expose PHAsset or SwiftData model objects to feature state.
+The app retains one composition root exported by SweepComposition, which injects narrow use cases into feature stores. The app routes system callbacks into application use cases from that same graph. Features use SweepDomain value types and contracts but do not import concrete adapters, QdrantEdge, Photos or SwiftData. Domain and use cases do not import UI modules. Adapters do not depend on each other. Isolate image transport behind a small image contract; do not expose PHAsset or SwiftData model objects to feature state.
 
 No TCA, Combine-based orchestration, grid module or grid pagination API. Keep test support out of production dependency graphs. Move resources and string catalogs with their owning modules, update bundle lookup, and verify localization/previews.
 
@@ -288,7 +288,7 @@ Recording image fakes must prove that vectorization/card thumbnails never load f
 1. **Establish shared agent rules — implemented, runtime loading checks outstanding.** Canonical .agents rules, requirement map, project map, AGENTS/Claude entry symlinks and manual Cursor adapters are in place. The validator passes 49 requirement groups, all 16 decisions and relocated symlink checks. See .agents/tooling.md for measured context sizes and the unexercised client-session loading checks; do not equate filesystem checks with runtime ingestion.
 2. **Establish the baseline — inventory and test/UI evidence recorded; physical performance pending.** See docs/baseline/README.md for preserved-code/resource inventory, 86-file source snapshot, all 13 test mappings/results, simulator screenshots and the device measurement protocol. All 13 existing tests pass on iPhone 17 / iOS 27.0.1. Device heat, energy, controlled workload throughput and scheduler acceptance remain unmeasured; do not treat passing tests as those measurements.
 3. **Create SPM boundaries and validate SafeDI.** Add iOS 26 package targets and tests, retain an iPhone-only app host, extract preserved adapters/design system, and implement the minimal SafeDI composition milestone in section 4.2. Exit: DI checks pass with a pinned release; app builds, resources/localization resolve, dependency direction is enforced.
-4. **Build domain/state contracts.** Implement separate vectorization/discovery models, native reducers/effects, policies and fakes. Exit: deterministic tests cover the agreed gates, retries, pause, buffer and review semantics.
+4. **Build domain/state contracts — delivered; see docs/implementation/step-4.md.** Implement separate vectorization/discovery models, native reducers/effects, policies and fakes. Exit: deterministic tests cover the agreed gates, retries, pause, buffer and review semantics.
 5. **Implement durable persistence.** Add redesigned SwiftData schema, journals, stable IDs, revisions, cursors and clean-start transition. Exit: crash/reopen/reset tests pass without legacy migration or library-photo modification.
 6. **Deliver foreground vectorization.** Authorization → reconciliation → thumbnails → Vision → Qdrant → durable pass completion/deferred outcomes. Exit: cache reuse, automatic triggers, Pause/Resume/Retry and initial review gate pass end to end.
 7. **Deliver lazy discovery and card review.** Component expansion → 2–3-group buffer → selection/skip → recoverable deletion/refill. Exit: scoped chain semantics, incremental arrivals, suppression and failure recovery pass; grid is removed.

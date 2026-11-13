@@ -13,7 +13,7 @@ allowed = {
     "SweepDesignSystem": set(),
     "SweepTestSupport": {"SweepDomain"},
     **{name: {"SweepDomain"} for name in adapters},
-    **{name: {"SweepUseCases", "SweepFeatureState", "SweepDesignSystem"} for name in features},
+    **{name: {"SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"} for name in features},
     "SweepComposition": adapters | features | {"SweepDomain", "SweepUseCases"},
 }
 safe_di_free = {"SweepDomain", "SweepDesignSystem", "SweepFeatureState", "SweepTestSupport"}

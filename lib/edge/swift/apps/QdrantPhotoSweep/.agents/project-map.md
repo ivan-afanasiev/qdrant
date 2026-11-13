@@ -20,7 +20,7 @@ Filesystem paths are project-root relative. Xcode paths prepend QdrantPhotoSweep
 | Xcode project/scheme | QdrantPhotoSweep.xcodeproj; shared scheme QdrantPhotoSweep; test target QdrantPhotoSweepTests |
 | SDK | Existing QdrantEdge package (outside app directory); Xcode exposes QdrantEdge/Package.swift and generated bindings |
 
-The host deployment setting is now iOS 26. Packages/PhotoSweep contains Swift 6 module boundaries, extracted adapters/design resources and an inert SafeDI 2.2.0 validation graph. The host retains this graph without running a second engine. Legacy adapter/design originals remain until cutover; feature/state/persistence targets are scaffolds. See docs/implementation/step-3.md for validation status. The package's macOS declaration supports host-side tests, not a Mac app.
+The host deployment setting is now iOS 26. Packages/PhotoSweep contains Swift 6 module boundaries, extracted adapters/design resources and an inert SafeDI 2.2.0 validation graph. The host retains this graph without running a second engine. Legacy adapter/design originals remain until cutover. SweepDomain holds the step 4 pure policies (gate, retry, pause, component expansion, discovery/buffer, review queue/selection); SweepFeatureState holds Store/Reducer/Effect; Library/Review features hold reducers without views; persistence, settings and onboarding targets are scaffolds. See docs/implementation/step-3.md and step-4.md for validation status. The package's macOS declaration supports host-side tests, not a Mac app.
 
 ## Package target graph
 
@@ -35,10 +35,10 @@ The host deployment setting is now iOS 26. Packages/PhotoSweep contains Swift 6 
 | SweepSystem | Lifecycle/background/resource/notification adapters | SweepDomain, platform frameworks |
 | SweepDesignSystem | Tokens, Liquid Glass, localization/components | SwiftUI |
 | SweepFeatureState | Minimal native stores/effects | Foundation, Observation |
-| SweepLibraryFeature | Vectorization/progress/pause/retry | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepReviewFeature | Cards/comparison/preview | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepSettingsFeature | Scope/threshold/rescan/reset/stats | SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepOnboardingFeature | Access/onboarding | SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepLibraryFeature | Vectorization/progress/pause/retry | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepReviewFeature | Cards/comparison/preview | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepSettingsFeature | Scope/threshold/rescan/reset/stats | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepOnboardingFeature | Access/onboarding | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
 | SweepComposition | Generated graph, feature factories, app entry | SafeDI, feature/use-case/adapter targets |
 | SweepTestSupport | Deterministic fixtures/fakes | SweepDomain; test targets only |
 
@@ -60,4 +60,4 @@ HandleAppActivation, HandleExecutionExpiration, EvaluateBackgroundEligibility, S
 - Agent rules: `python3 .agents/validate.py` checks traceability, links, wrappers and relocatability. It does not verify app behavior or editor runtime loading.
 - Baseline evidence is in docs/baseline/README.md: simulator build/launch/UI capture succeeded and 13/13 existing Swift Testing tests passed on iPhone 17, iOS 27.0.1. This does not establish device performance or scheduling behavior.
 - CLI fallback when Xcode tools are unavailable: `xcodebuild -project QdrantPhotoSweep.xcodeproj -scheme QdrantPhotoSweep -showdestinations`, then build/test with an actual available destination ID. This fallback has not been executed in this milestone; do not invent a simulator name.
-- Package validation: `swift test --package-path Packages/PhotoSweep`; iOS-only tests additionally require an iOS destination. `python3 Scripts/check-module-boundaries.py` checks dependency direction. See docs/implementation/step-3.md for actual results and limitations.
+- Package validation: `swift test --package-path Packages/PhotoSweep`; iOS-only tests additionally require an iOS destination. `python3 Scripts/check-module-boundaries.py` checks dependency direction. See docs/implementation/step-3.md and step-4.md for actual results and limitations.
