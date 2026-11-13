@@ -4,6 +4,12 @@ import SwiftData
 import Testing
 @testable import QdrantPhotoSweep
 
+#if targetEnvironment(simulator)
+private let isPhysicalDevice = false
+#else
+private let isPhysicalDevice = true
+#endif
+
 @Suite(.serialized)
 @MainActor
 struct ScanLifecycleTests {
@@ -36,7 +42,8 @@ struct ScanLifecycleTests {
         try #require(condition())
     }
 
-    @Test func visionFeaturePrintRunsWithSelectedComputeDevices() async throws {
+    @Test(.enabled(if: isPhysicalDevice, "Vision feature prints need a physical device; simulators fail to create an espresso context"))
+    func visionFeaturePrintRunsWithSelectedComputeDevices() async throws {
         let photos = FixturePhotos()
         let asset = try #require(try await photos.fetchAssets(
             in: DateRange(start: .distantPast, end: .now)

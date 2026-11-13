@@ -4,11 +4,11 @@ Classification: C = confirmed product requirement; T = planned technical constra
 
 ## REV-01 (C) — Discovery
 
-Discover only in foreground after the initial gate. Search committed compatible vectors; query seeds AND candidates must satisfy the date range. Use cosine threshold and connected components: A–B–C can be one group without A–C matching. Do not claim exact equality or all-pairs similarity.
+Discover only in foreground after the initial gate. Search committed compatible vectors; query seeds AND candidates must satisfy the date range. Use an inclusive cosine threshold (score ≥ threshold, 0–1) and inclusive date bounds; undated assets are outside every scope. Use connected components: A–B–C can be one group without A–C matching. Do not claim exact equality or all-pairs similarity.
 
 ## REV-02 (C) — Ready buffer
 
-Keep 2–3 unreviewed groups including current card. Review/skip triggers refill. Pause discovery when full, truly exhausted or backgrounded; never pause vectorization because buffer is full. An empty buffer is not exhaustion.
+Keep 2–3 unreviewed groups including current card. Review/skip triggers refill. Pause discovery when full, truly exhausted or backgrounded; never pause vectorization because buffer is full. An empty buffer is not exhaustion. Skipped groups do not count toward the buffer.
 
 ## REV-03 (T) — Lazy algorithm
 

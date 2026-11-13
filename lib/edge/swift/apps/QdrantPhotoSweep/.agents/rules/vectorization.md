@@ -12,7 +12,7 @@ Initial review/discovery waits until every scoped photo is successfully vectoriz
 
 ## VEC-03 (C) — Failure policy
 
-Retry temporary failures finitely, preserving progress; inject clock and classify errors. Defer individually unavailable photos after applicable attempts and continue. Systemic store/model failures stop the pass and expose Retry after applicable attempts; do not mislabel every photo unavailable or loop indefinitely. Retry limits are validation parameters.
+Retry temporary failures finitely, preserving progress; inject clock and classify errors. Defer individually unavailable photos after applicable attempts and continue. Systemic store/model failures stop the pass and expose Retry after applicable attempts; do not mislabel every photo unavailable or loop indefinitely. Only per-asset load failures defer; transient infrastructure failures count toward the systemic limit. Retry limits are validation parameters.
 
 ## VEC-04 (C) — Photos/images
 

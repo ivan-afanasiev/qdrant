@@ -12,7 +12,7 @@ Qdrant and metadata have no shared transaction. Journal intent → external writ
 
 ## LIFE-03 (C) — Pause
 
-Pause checkpoints and persists suppression of foreground/background automatic vectorization until Resume or next app opening. Activation clears manual pause. System interruption is distinct and resumable. No user Cancel control; internal cancellation remains for replacement/reset/expiration.
+Pause checkpoints and persists suppression of foreground/background automatic vectorization until Resume or next app opening. Activation and explicit Retry clear manual pause. System interruption is distinct and resumable. No user Cancel control; internal cancellation remains for replacement/reset/expiration.
 
 ## LIFE-04 (C) — Background
 

@@ -3,8 +3,15 @@ import CoreGraphics
 import Testing
 import SweepEmbeddings
 
+#if targetEnvironment(simulator)
+private let isPhysicalDevice = false
+#else
+private let isPhysicalDevice = true
+#endif
+
 struct VisionEmbeddingTests {
-    @Test func syntheticThumbnailProducesConsistentDimensions() async throws {
+    @Test(.enabled(if: isPhysicalDevice, "Vision feature prints need a physical device; simulators fail to create an espresso context"))
+    func syntheticThumbnailProducesConsistentDimensions() async throws {
         let context = try #require(CGContext(data: nil, width: 224, height: 224,
             bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))

@@ -27,9 +27,9 @@ No views, SafeDI annotations or use-case bindings were added for the new reducer
 | Vector reuse | VEC-05 | `VectorReusePolicyTests` — uncommitted points, edits, model revision/preprocessing changes, stale generation |
 | State infrastructure | ARC-03, ARC-04 | `StoreTests` — synchronous reduction, effect feedback, cancel-in-flight, cancellation drops stale sends, merge |
 
-## Interpretations to confirm
+## Confirmed decisions
 
-These choices are implemented and tested but not spelled out in the plan:
+These choices were not spelled out in the plan; the owner confirmed all eight as implemented on 2026-11-13. Items 2–4, 6 and 7 are also recorded in the agent rules.
 
 1. **Feature targets depend on SweepDomain** for value types (`VectorizationStatus`, `ReviewGroupSnapshot`, IDs). Plan §4, project-map and the boundary script are updated; features still cannot import adapters, Photos, SwiftData or QdrantEdge.
 2. **Similarity threshold is inclusive** (`score >= threshold`), values limited to 0…1.
