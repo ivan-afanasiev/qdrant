@@ -52,6 +52,14 @@ public struct VectorizationPass: Equatable, Sendable {
         self.outcomes = Dictionary(workSet.map { ($0, AssetOutcome.pending) }, uniquingKeysWith: { first, _ in first })
     }
 
+    /// Restores a persisted pass with its recorded outcomes.
+    public init(id: VectorizationPassID, kind: Kind, scope: DateRange, outcomes: [AssetID: AssetOutcome]) {
+        self.id = id
+        self.kind = kind
+        self.scope = scope
+        self.outcomes = outcomes
+    }
+
     /// Records an outcome for an asset in the captured work set.
     /// Returns false for assets outside the work set, which belong to a later pass.
     @discardableResult

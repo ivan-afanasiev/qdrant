@@ -67,6 +67,53 @@ public struct ComponentExpansion: Equatable, Sendable {
         self.queue = [seed]
     }
 
+    /// Persistable form of an expansion, so an interrupted component resumes instead of restarting.
+    public struct Snapshot: Equatable, Sendable {
+        public let seed: AssetID
+        public let scope: DateRange
+        public let threshold: SimilarityThreshold
+        public let generation: IndexGeneration
+        /// Members in visit order; the first `queriedCount` have been fully queried.
+        public let visited: [AssetID]
+        public let queriedCount: Int
+
+        public init(
+            seed: AssetID,
+            scope: DateRange,
+            threshold: SimilarityThreshold,
+            generation: IndexGeneration,
+            visited: [AssetID],
+            queriedCount: Int
+        ) {
+            self.seed = seed
+            self.scope = scope
+            self.threshold = threshold
+            self.generation = generation
+            self.visited = visited
+            self.queriedCount = queriedCount
+        }
+    }
+
+    public var snapshot: Snapshot {
+        Snapshot(seed: seed, scope: scope, threshold: threshold, generation: generation, visited: queue, queriedCount: head)
+    }
+
+    /// Restores a persisted expansion. Returns nil for inconsistent snapshots
+    /// (seed not first, duplicate members or an out-of-range position).
+    public init?(restoring snapshot: Snapshot) {
+        guard snapshot.visited.first == snapshot.seed,
+              (0...snapshot.visited.count).contains(snapshot.queriedCount) else { return nil }
+        let members = Set(snapshot.visited)
+        guard members.count == snapshot.visited.count else { return nil }
+        self.seed = snapshot.seed
+        self.scope = snapshot.scope
+        self.threshold = snapshot.threshold
+        self.generation = snapshot.generation
+        self.members = members
+        self.queue = snapshot.visited
+        self.head = snapshot.queriedCount
+    }
+
     /// The asset whose neighborhood must be retrieved next, or nil when expansion is complete.
     public var nextQuery: AssetID? { head < queue.count ? queue[head] : nil }
 
