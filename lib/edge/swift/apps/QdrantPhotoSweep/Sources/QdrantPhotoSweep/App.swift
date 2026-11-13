@@ -1,3 +1,4 @@
+import SweepComposition
 import SwiftData
 import SwiftUI
 import Photos
@@ -13,6 +14,9 @@ struct QdrantPhotoSweepApp: App {
 
     @State private var bootstrapStatus: BootstrapStatus = .loading
     @Environment(\.scenePhase) private var scenePhase
+
+    // Inert rewrite graph, retained outside body. Legacy execution remains active until cutover.
+    private let rewriteComposition = PhotoSweepComposition()
 
     let modelContainer: ModelContainer
 

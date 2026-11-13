@@ -17,7 +17,7 @@ Read only the applicable rule files from this table; cross-cutting changes requi
 | Scale, heat, resource scheduling | .agents/rules/performance.md |
 | Instructions or tool configuration | .agents/rules/maintenance.md; .agents/tooling.md |
 
-Read .agents/project-map.md to locate current code and validation entry points. Planned SPM modules are not implemented yet. ARCHITECTURE.md describes old code, not the target behavior.
+Read .agents/project-map.md to locate current code and validation entry points. SPM boundaries and an inert DI validation slice exist; the legacy app remains active. ARCHITECTURE.md describes old code, not the target behavior.
 
 ## Non-negotiable boundaries
 
@@ -33,4 +33,3 @@ Read .agents/project-map.md to locate current code and validation entry points. 
 Use Xcode project tools when available, BuildProject for app builds, and DocumentationSearch for current Apple APIs. Otherwise use targeted rg searches. Use 4-space Swift indentation, PascalCase types, camelCase members, private SwiftUI state and explicit types; avoid force unwraps. Prefer async/await over Combine.
 
 Run relevant checks from testing.md/project-map.md; report actual results and untested limitations. Edit canonical .agents files rather than symlink aliases. Detailed requirement traceability is in .agents/requirements.md; rationale and sequencing are in REWRITE_PLAN.md. Read those only for ambiguity or coverage audits.
-

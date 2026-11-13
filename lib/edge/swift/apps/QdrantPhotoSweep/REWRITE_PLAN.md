@@ -1,6 +1,6 @@
 # PhotoSweep rewrite plan
 
-Status: shared agent rules/entry points implemented (step 1); baseline inventory, source snapshot, simulator UI evidence, 13 passing device tests and measurement protocol recorded (step 2). Physical performance measurements and Claude/Cursor session-loading checks remain outstanding. Application rewrite code has not started.
+Status: shared agent rules/entry points implemented (step 1); baseline inventory, source snapshot, simulator UI evidence, 13 passing device tests and measurement protocol recorded (step 2). Step 3 is in progress: SPM boundaries, extracted adapters/resources and an inert SafeDI validation slice exist; see docs/implementation/step-3.md for validation status. Physical performance measurements and Claude/Cursor session-loading checks remain outstanding. The legacy engine remains active until cutover.
 Based on ARCHITECTURE.md and inspection of the scan pipeline, Photos and Qdrant adapters, deletion/reset use cases, and lifecycle tests.
 
 ## 1. Confirmed requirements

@@ -24,7 +24,7 @@ Distinguish transient infrastructure failure, unavailable asset, authorization, 
 
 ## ARC-06 (V) — SafeDI adoption
 
-SafeDI is proposed, not installed/validated. Pin a tested release; validate a graph spanning contract, adapter, use case and main-actor feature store before broad adoption. Verify protocol bindings, visibility, concurrency, clean/incremental/Release builds and package tests; record build cost/generated wiring and developer/CI setup. Report blockers before reconsidering Factory; do not weaken boundaries or add both frameworks.
+SafeDI 2.2.0 is pinned for the early validation slice; adoption remains gated by docs/implementation/step-3.md. Validate a graph spanning contract, adapter, use case and main-actor feature store before broad adoption. Verify protocol bindings, visibility, concurrency, clean/incremental/Release builds and package tests; record build cost/generated wiring and developer/CI setup. Report blockers before reconsidering Factory; do not weaken boundaries or add both frameworks.
 
 ## ARC-07 (T) — DI graph
 
@@ -37,4 +37,3 @@ App scope owns one vector repository/shard, metadata repository, vectorization e
 ## ARC-09 (T) — Resources/use cases
 
 Move resources/localization with owning modules and fix bundle lookups. Cover bootstrap/access/preferences/recovery; vectorization/reconciliation; discovery/refill/suspend; review/selection/skip/deletion; thumbnail/preview; scope/threshold/rescan/reset/stats; lifecycle/scheduling/readiness; resource-budget policies with use cases. Keep presentation-only drag/zoom state local.
-
