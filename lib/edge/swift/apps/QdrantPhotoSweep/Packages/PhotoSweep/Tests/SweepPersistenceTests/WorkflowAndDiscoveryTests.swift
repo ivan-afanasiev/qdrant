@@ -18,6 +18,7 @@ import SweepTestSupport
         let file = try TemporaryStore()
         var state = try workflow(revision: 4, generation: 2, paused: true)
         state.gate = InitialPassGate(state: gate)
+        state.indexCompatibility = compatibility
         try await file.open().saveWorkflowState(state)
         #expect(try await file.open().loadWorkflowState() == state)
     }

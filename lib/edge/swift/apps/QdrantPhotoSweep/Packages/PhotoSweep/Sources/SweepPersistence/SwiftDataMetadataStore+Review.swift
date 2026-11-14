@@ -22,7 +22,8 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
                 pause: PauseState(isPausedByUser: entity.isPausedByUser),
                 gate: InitialPassGate(state: gate),
                 discoveryRevision: DiscoveryRevision(entity.discoveryRevision),
-                indexGeneration: IndexGeneration(entity.indexGeneration)
+                indexGeneration: IndexGeneration(entity.indexGeneration),
+                indexCompatibility: Self.indexCompatibility(of: entity)
             )
         }
     }
@@ -32,6 +33,12 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
             try applyWorkflowState(state)
             try save()
         }
+    }
+
+    static func indexCompatibility(of entity: WorkflowStateEntity) -> EmbeddingCompatibility? {
+        guard let model = entity.indexModel, let revision = entity.indexModelRevision,
+              let preprocessing = entity.indexPreprocessing, let dimensions = entity.indexDimensions else { return nil }
+        return EmbeddingCompatibility(model: model, modelRevision: revision, preprocessing: preprocessing, dimensions: dimensions)
     }
 
     func workflowEntity() throws -> WorkflowStateEntity? {
@@ -53,6 +60,10 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
         entity.isPausedByUser = state.pause.isPausedByUser
         entity.discoveryRevision = state.discoveryRevision.rawValue
         entity.indexGeneration = state.indexGeneration.rawValue
+        entity.indexModel = state.indexCompatibility?.model
+        entity.indexModelRevision = state.indexCompatibility?.modelRevision
+        entity.indexPreprocessing = state.indexCompatibility?.preprocessing
+        entity.indexDimensions = state.indexCompatibility?.dimensions
         switch state.gate.state {
         case .awaitingInitialPass(let pass):
             entity.gateIsOpen = false

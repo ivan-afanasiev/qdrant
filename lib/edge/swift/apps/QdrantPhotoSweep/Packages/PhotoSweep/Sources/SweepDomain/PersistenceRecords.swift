@@ -105,6 +105,8 @@ public struct WorkflowState: Equatable, Sendable {
     public var gate: InitialPassGate
     public var discoveryRevision: DiscoveryRevision
     public var indexGeneration: IndexGeneration
+    /// Compatibility of vectors in `indexGeneration`; nil until the first vector is written.
+    public var indexCompatibility: EmbeddingCompatibility?
 
     public init(
         scope: DateRange,
@@ -112,7 +114,8 @@ public struct WorkflowState: Equatable, Sendable {
         pause: PauseState,
         gate: InitialPassGate,
         discoveryRevision: DiscoveryRevision,
-        indexGeneration: IndexGeneration
+        indexGeneration: IndexGeneration,
+        indexCompatibility: EmbeddingCompatibility? = nil
     ) {
         self.scope = scope
         self.threshold = threshold
@@ -120,6 +123,7 @@ public struct WorkflowState: Equatable, Sendable {
         self.gate = gate
         self.discoveryRevision = discoveryRevision
         self.indexGeneration = indexGeneration
+        self.indexCompatibility = indexCompatibility
     }
 
     /// State after a local-data reset: preferences kept, everything else restarted
@@ -131,7 +135,8 @@ public struct WorkflowState: Equatable, Sendable {
             pause: .none,
             gate: InitialPassGate(),
             discoveryRevision: discoveryRevision.next(),
-            indexGeneration: indexGeneration.next()
+            indexGeneration: indexGeneration.next(),
+            indexCompatibility: nil
         )
     }
 }

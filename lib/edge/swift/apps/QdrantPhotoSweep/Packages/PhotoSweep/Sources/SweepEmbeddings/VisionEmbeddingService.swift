@@ -5,9 +5,37 @@ import CoreML
 import Vision
 import UIKit
 
-public actor VisionEmbeddingService: EmbeddingProviding {
+public actor VisionEmbeddingService: EmbeddingProviding, EmbeddingModelDescribing {
     public init() {}
     private var _detectedDimensions: Int?
+    private var descriptor: EmbeddingModelDescriptor?
+
+    /// Model identity for vector compatibility. Dimensions are measured once by embedding
+    /// a small synthetic image, because Vision does not publish them up front.
+    public func modelDescriptor() async throws(AdapterError) -> EmbeddingModelDescriptor {
+        if let descriptor { return descriptor }
+        guard let probe = Self.probeImage() else {
+            throw .embedding("Could not create the model probe image")
+        }
+        let dimensions = try await embed(image: probe).count
+        let descriptor = EmbeddingModelDescriptor(
+            model: "VNGenerateImageFeaturePrintRequest",
+            revision: VNGenerateImageFeaturePrintRequest.currentRevision,
+            dimensions: dimensions
+        )
+        self.descriptor = descriptor
+        return descriptor
+    }
+
+    private static func probeImage() -> CGImage? {
+        let context = CGContext(
+            data: nil, width: 32, height: 32, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+        )
+        context?.setFillColor(CGColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1))
+        context?.fill(CGRect(x: 0, y: 0, width: 32, height: 32))
+        return context?.makeImage()
+    }
 
     public var dimensions: Int {
         _detectedDimensions ?? 0

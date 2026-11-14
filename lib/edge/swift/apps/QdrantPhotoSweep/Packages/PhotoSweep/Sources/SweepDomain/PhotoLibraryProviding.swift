@@ -8,17 +8,35 @@ public struct PhotoAsset: Identifiable, Hashable, Sendable {
     public let pixelWidth: Int
     public let pixelHeight: Int
     public let fileSize: Int64?
+    /// Last content edit reported by Photos; drives re-vectorization of edited photos.
+    public let modificationDate: Date?
 
     public var resolution: String {
         "\(pixelWidth) × \(pixelHeight)"
     }
-    public init(id: String, localIdentifier: String, creationDate: Date?, pixelWidth: Int, pixelHeight: Int, fileSize: Int64?) {
+    public init(
+        id: String,
+        localIdentifier: String,
+        creationDate: Date?,
+        pixelWidth: Int,
+        pixelHeight: Int,
+        fileSize: Int64?,
+        modificationDate: Date? = nil
+    ) {
         self.id = id
         self.localIdentifier = localIdentifier
         self.creationDate = creationDate
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.fileSize = fileSize
+        self.modificationDate = modificationDate
+    }
+
+    /// Content revision used for vector reuse. Assets without a modification date
+    /// share one revision, so they are vectorized once and reused afterwards.
+    public var contentRevision: AssetContentRevision {
+        guard let modificationDate else { return AssetContentRevision("unknown") }
+        return AssetContentRevision(String(modificationDate.timeIntervalSince1970))
     }
 }
 

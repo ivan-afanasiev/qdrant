@@ -12,7 +12,8 @@ public extension PHAsset {
             creationDate: creationDate,
             pixelWidth: pixelWidth,
             pixelHeight: pixelHeight,
-            fileSize: nil
+            fileSize: nil,
+            modificationDate: modificationDate
         )
     }
 }

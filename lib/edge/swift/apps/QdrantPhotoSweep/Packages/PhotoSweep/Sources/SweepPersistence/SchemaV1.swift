@@ -86,6 +86,10 @@ enum PhotoSweepSchemaV1: VersionedSchema {
         var gateDeferredCount: Int
         var discoveryRevision: Int
         var indexGeneration: Int
+        var indexModel: String?
+        var indexModelRevision: Int?
+        var indexPreprocessing: String?
+        var indexDimensions: Int?
 
         init(key: String) {
             self.key = key

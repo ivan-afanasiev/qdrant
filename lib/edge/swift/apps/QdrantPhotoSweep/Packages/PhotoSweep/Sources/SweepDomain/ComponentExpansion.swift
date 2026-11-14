@@ -4,6 +4,13 @@ import Foundation
 public struct SimilarityThreshold: Hashable, Sendable {
     public let value: Float
 
+    /// Default for new installs, matching the pre-rewrite app.
+    public static let standard = SimilarityThreshold(uncheckedValue: 0.92)
+
+    private init(uncheckedValue: Float) {
+        value = uncheckedValue
+    }
+
     /// Returns nil for values outside 0...1 or non-finite values.
     public init?(_ value: Float) {
         guard value.isFinite, (0...1).contains(value) else { return nil }

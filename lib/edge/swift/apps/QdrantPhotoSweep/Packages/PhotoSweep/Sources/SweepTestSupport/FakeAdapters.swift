@@ -34,6 +34,10 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
         authorizationError = error
     }
 
+    public func setAssets(_ assets: [PhotoAsset]) {
+        self.assets = assets
+    }
+
     public func requestAuthorization() async throws(AdapterError) {
         if let authorizationError { throw authorizationError }
     }
@@ -163,14 +167,30 @@ public actor FakeVectorStore: VectorStoring {
 }
 
 /// Embedding provider that returns scripted results in order, then a default vector.
-public actor FakeEmbeddingProvider: EmbeddingProviding {
+public actor FakeEmbeddingProvider: EmbeddingProviding, EmbeddingModelDescribing {
     public private(set) var embedCount = 0
     private var scripted: [Result<[Float], AdapterError>]
-    private let defaultVector: [Float]
+    private var defaultVector: [Float]
+    private var descriptor: EmbeddingModelDescriptor
 
-    public init(scripted: [Result<[Float], AdapterError>] = [], defaultVector: [Float] = [1, 0, 0]) {
+    public init(scripted: [Result<[Float], AdapterError>] = [], defaultVector: [Float] = [1, 0, 0], modelRevision: Int = 1) {
         self.scripted = scripted
         self.defaultVector = defaultVector
+        self.descriptor = EmbeddingModelDescriptor(model: "fake", revision: modelRevision, dimensions: defaultVector.count)
+    }
+
+    public func modelDescriptor() async throws(AdapterError) -> EmbeddingModelDescriptor {
+        descriptor
+    }
+
+    /// Simulates an OS update that changes the model.
+    public func changeModel(revision: Int, defaultVector: [Float]) {
+        self.defaultVector = defaultVector
+        descriptor = EmbeddingModelDescriptor(model: "fake", revision: revision, dimensions: defaultVector.count)
+    }
+
+    public func script(_ results: [Result<[Float], AdapterError>]) {
+        scripted.append(contentsOf: results)
     }
 
     public func embed(image: CGImage) async throws(AdapterError) -> [Float] {
@@ -191,5 +211,81 @@ public enum FakeImages {
         context?.setFillColor(CGColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1))
         context?.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
         return context?.makeImage()
+    }
+}
+
+/// Vector store provider handing out one in-memory store per generation.
+public actor FakeVectorStoreProvider: VectorStoreProviding {
+    public private(set) var stores: [Int: FakeVectorStore] = [:]
+    public private(set) var removedBelow: [Int] = []
+    private var dimensions: [Int: Int] = [:]
+
+    public init() {}
+
+    public func store(for generation: IndexGeneration, dimensions: Int) async throws(AdapterError) -> any VectorStoring {
+        try fakeStore(for: generation, dimensions: dimensions)
+    }
+
+    /// Typed access for assertions.
+    public func fakeStore(for generation: IndexGeneration, dimensions: Int) throws(AdapterError) -> FakeVectorStore {
+        if let existing = stores[generation.rawValue] {
+            guard self.dimensions[generation.rawValue] == dimensions else {
+                throw .vectorStore("Dimension mismatch for generation \(generation.rawValue)")
+            }
+            return existing
+        }
+        let store = FakeVectorStore()
+        stores[generation.rawValue] = store
+        self.dimensions[generation.rawValue] = dimensions
+        return store
+    }
+
+    public func removeStores(olderThan generation: IndexGeneration) async {
+        removedBelow.append(generation.rawValue)
+        for key in stores.keys where key < generation.rawValue {
+            stores[key] = nil
+            dimensions[key] = nil
+        }
+    }
+}
+
+/// Manually triggered library change notifications.
+public final class FakePhotoLibraryChanges: PhotoLibraryChangeObserving, @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuations: [UUID: AsyncStream<Void>.Continuation] = [:]
+
+    public init() {}
+
+    public var observerCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return continuations.count
+    }
+
+    public func libraryChanges() -> AsyncStream<Void> {
+        let (stream, continuation) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        let id = UUID()
+        continuation.onTermination = { [weak self] _ in
+            self?.remove(id)
+        }
+        lock.lock()
+        continuations[id] = continuation
+        lock.unlock()
+        return stream
+    }
+
+    public func send() {
+        lock.lock()
+        let active = Array(continuations.values)
+        lock.unlock()
+        for continuation in active {
+            continuation.yield()
+        }
+    }
+
+    private func remove(_ id: UUID) {
+        lock.lock()
+        continuations[id] = nil
+        lock.unlock()
     }
 }
