@@ -88,12 +88,15 @@ private let fivePhotos = (1...5).map { photo("p\($0)") }
 
         let changes = FakePhotoLibraryChanges()
         await executor.startObservingLibraryChanges(changes)
-        try await eventually("change observer registered") { changes.observerCount == 1 }
+        #expect(changes.observerCount == 1)
         await harness.library.setAssets(threePhotos + [photo("d")])
+        let fetchesBefore = await harness.library.fetchCount
         changes.send()
 
-        try await eventually("new photo vectorized") { try await harness.vectors().count() == 4 }
+        // The triggered pass is running once it fetches the library; then wait for it to end.
+        await harness.library.waitForFetches(fetchesBefore + 1)
         await executor.waitUntilIdle()
+        #expect(try await harness.vectors().count() == 4)
         #expect(try await store.loadWorkflowState()?.gate.isOpen == true)
         #expect(await embedder.embedCount == 4)
         await executor.stopObservingLibraryChanges()

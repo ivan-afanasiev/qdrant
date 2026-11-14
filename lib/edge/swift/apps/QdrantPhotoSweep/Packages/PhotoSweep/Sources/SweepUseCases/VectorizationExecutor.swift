@@ -295,7 +295,7 @@ public actor VectorizationExecutor {
                             compatibility: compatibility, generation: state.indexGeneration
                         ),
                         vector: vector,
-                        payloadJson: Self.payload(for: id)
+                        payloadJson: VectorPayload(asset: id, creationDate: photo.creationDate).json
                     ))
                 case .deferred(let reason, _):
                     deferrals[id] = reason
@@ -438,18 +438,22 @@ public actor VectorizationExecutor {
         return state
     }
 
-    /// Loads fresh state, applies `change` and saves, always keeping the in-memory pause.
-    private func updateWorkflowState(_ change: (inout WorkflowState) -> Void) async throws(PersistenceError) -> WorkflowState {
-        var state = try await loadOrCreateWorkflowState()
-        change(&state)
-        if let isManuallyPaused {
-            state.pause = PauseState(isPausedByUser: isManuallyPaused)
+    /// Applies `change` atomically in the store, always keeping the in-memory pause, so fields
+    /// owned by discovery or settings are never overwritten with stale values.
+    private func updateWorkflowState(_ change: @Sendable (inout WorkflowState) -> Void) async throws(PersistenceError) -> WorkflowState {
+        _ = try await loadOrCreateWorkflowState()
+        let pause = isManuallyPaused.map { PauseState(isPausedByUser: $0) }
+        let updated = try await dependencies.workflow.modifyWorkflowState { state in
+            change(&state)
+            if let pause {
+                state.pause = pause
+            }
         }
-        try await dependencies.workflow.saveWorkflowState(state)
-        return state
+        guard let updated else { throw .notFound("Workflow state") }
+        return updated
     }
 
-    private func updateWorkflow(_ change: (inout WorkflowState) -> Void) async throws -> WorkflowState {
+    private func updateWorkflow(_ change: @Sendable (inout WorkflowState) -> Void) async throws -> WorkflowState {
         try await stopOnFailure { () async throws(VectorizationFailure) -> WorkflowState in
             do {
                 return try await updateWorkflowState(change)
@@ -479,9 +483,4 @@ public actor VectorizationExecutor {
         }
     }
 
-    static func payload(for asset: AssetID) -> String {
-        guard let data = try? JSONEncoder().encode(["asset": asset.rawValue]),
-              let json = String(data: data, encoding: .utf8) else { return "{}" }
-        return json
-    }
 }

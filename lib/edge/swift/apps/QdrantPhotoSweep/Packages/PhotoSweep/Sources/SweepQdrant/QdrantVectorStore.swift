@@ -105,7 +105,7 @@ public actor QdrantVectorStore: VectorStoring {
                 params: nil,
                 withVector: .bool(enable: false),
                 withPayload: .bool(enable: true),
-                scoreThreshold: threshold
+                scoreThreshold: Self.inclusiveThreshold(threshold)
             )
             let results = try shard.search(request: request)
             return results.map { scored in
@@ -119,6 +119,96 @@ public actor QdrantVectorStore: VectorStoring {
         } catch {
             throw .vectorStore("Search failed: \(error.localizedDescription)")
         }
+    }
+
+    public nonisolated func searchPage(
+        vector: [Float],
+        threshold: Float,
+        filter: VectorSearchFilter?,
+        offset: Int,
+        limit: Int
+    ) async throws(AdapterError) -> [ScoredResult] {
+        try await _searchPage(vector: vector, threshold: threshold, filter: filter, offset: offset, limit: limit)
+    }
+
+    private func _searchPage(
+        vector: [Float],
+        threshold: Float,
+        filter: VectorSearchFilter?,
+        offset: Int,
+        limit: Int
+    ) throws(AdapterError) -> [ScoredResult] {
+        let shard = try ensureShard()
+        let edgeFilter = filter.map { filter in
+            Filter(
+                must: [.field(condition: FieldCondition(
+                    key: VectorPayload.creationKey,
+                    match: nil,
+                    range: RangeFloat(gte: filter.creationRange.lowerBound, gt: nil, lte: filter.creationRange.upperBound, lt: nil),
+                    geoBoundingBox: nil,
+                    geoRadius: nil,
+                    valuesCount: nil
+                ))],
+                should: nil,
+                mustNot: nil
+            )
+        }
+        do {
+            let request = SearchRequest(
+                query: .nearest(vector: vector, using: nil),
+                limit: UInt64(limit),
+                offset: UInt64(offset),
+                filter: edgeFilter,
+                // Exact search keeps the order stable across pages.
+                params: SearchParams(hnswEf: nil, exact: true, indexedOnly: false),
+                withVector: .bool(enable: false),
+                withPayload: .bool(enable: true),
+                scoreThreshold: Self.inclusiveThreshold(threshold)
+            )
+            return try shard.search(request: request).map { scored in
+                ScoredResult(id: pointIdString(scored.id), score: scored.score, payloadJson: scored.payload, vectorJson: nil)
+            }
+        } catch {
+            throw .vectorStore("Search failed: \(error.localizedDescription)")
+        }
+    }
+
+    public nonisolated func vector(id: String) async throws(AdapterError) -> [Float]? {
+        try await _vector(id: id)
+    }
+
+    private func _vector(id: String) throws(AdapterError) -> [Float]? {
+        let shard = try ensureShard()
+        let records: [Record]
+        do {
+            records = try shard.retrieve(pointIds: [.uuid(value: id)], withPayload: .bool(enable: false), withVector: .bool(enable: true))
+        } catch {
+            throw .vectorStore("Retrieve failed: \(error.localizedDescription)")
+        }
+        guard let json = records.first?.vector else { return nil }
+        guard let vector = Self.decodeVector(json) else {
+            throw .vectorStore("Unreadable vector for point \(id)")
+        }
+        return vector
+    }
+
+    /// Qdrant Edge treats `scoreThreshold` as exclusive (score > threshold); the domain rule is
+    /// inclusive. No float lies strictly between `threshold.nextDown` and `threshold`, so this
+    /// returns exactly the scores >= threshold without client-side filtering that could shorten pages.
+    static func inclusiveThreshold(_ threshold: Float) -> Float {
+        threshold.nextDown
+    }
+
+    /// Accepts a plain array or a single named vector (`{"": [...]}`).
+    static func decodeVector(_ json: String) -> [Float]? {
+        guard let data = json.data(using: .utf8) else { return nil }
+        if let plain = try? JSONDecoder().decode([Float].self, from: data) {
+            return plain
+        }
+        if let named = try? JSONDecoder().decode([String: [Float]].self, from: data), named.count == 1 {
+            return named.values.first
+        }
+        return nil
     }
 
     public nonisolated func scroll(offset: String?, limit: Int) async throws(AdapterError) -> ScrollPage {

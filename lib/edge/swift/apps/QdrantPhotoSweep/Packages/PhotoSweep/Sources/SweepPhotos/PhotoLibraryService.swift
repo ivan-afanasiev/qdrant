@@ -21,6 +21,24 @@ public final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendab
         }
     }
 
+    public func accessScope() async -> PhotoAccessScope {
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .authorized: .full
+        case .limited: .limited
+        default: .none
+        }
+    }
+
+    public func assets(withIdentifiers identifiers: [String]) async throws(AdapterError) -> [PhotoAsset] {
+        let result = PHAsset.fetchAssets(withLocalIdentifiers: identifiers, options: nil)
+        var assets: [PhotoAsset] = []
+        assets.reserveCapacity(result.count)
+        result.enumerateObjects { phAsset, _, _ in
+            assets.append(phAsset.toPhotoAsset())
+        }
+        return assets
+    }
+
     public func fetchAssets(in dateRange: DateRange) async throws(AdapterError) -> [PhotoAsset] {
         let options = PHFetchOptions()
         options.predicate = datePredicate(for: dateRange)
@@ -73,6 +91,9 @@ public final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendab
                 PHAssetChangeRequest.deleteAssets(assets)
             }
         } catch {
+            if (error as? PHPhotosError)?.code == .userCancelled {
+                throw .deletionDeclined
+            }
             throw .deletion("Failed to delete photos: \(error.localizedDescription)")
         }
     }

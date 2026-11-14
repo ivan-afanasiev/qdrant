@@ -4,4 +4,6 @@ public enum AdapterError: Error, Equatable, Sendable {
     case vectorStore(String)
     case photoLibrary(String)
     case deletion(String)
+    /// The user rejected the Photos deletion prompt.
+    case deletionDeclined
 }

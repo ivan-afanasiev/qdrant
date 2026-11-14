@@ -100,12 +100,3 @@ final class Harness {
         return outcome
     }
 }
-
-/// Yields until `condition` holds; fails instead of hanging. No wall-clock sleeps.
-func eventually(_ description: Comment, _ condition: () async throws -> Bool) async throws {
-    for _ in 0..<20_000 {
-        if try await condition() { return }
-        await Task.yield()
-    }
-    Issue.record("Condition never became true: \(description)")
-}

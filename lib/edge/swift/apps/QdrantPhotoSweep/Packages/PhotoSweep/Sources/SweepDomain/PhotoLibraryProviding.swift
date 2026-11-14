@@ -40,8 +40,18 @@ public struct PhotoAsset: Identifiable, Hashable, Sendable {
     }
 }
 
+/// How much of the library the app can see. Only `.full` lets a missing photo count as deleted.
+public enum PhotoAccessScope: Equatable, Sendable {
+    case full
+    case limited
+    case none
+}
+
 public protocol PhotoLibraryProviding: Sendable {
     func requestAuthorization() async throws(AdapterError)
+    func accessScope() async -> PhotoAccessScope
+    /// The accessible photos among `identifiers`; missing ones are absent from the result.
+    func assets(withIdentifiers identifiers: [String]) async throws(AdapterError) -> [PhotoAsset]
     func fetchAssets(in dateRange: DateRange) async throws(AdapterError) -> [PhotoAsset]
     func countAssets(in dateRange: DateRange) async throws(AdapterError) -> Int
     func loadThumbnail(for asset: PhotoAsset, size: CGSize) async throws(AdapterError) -> CGImage

@@ -29,6 +29,11 @@ enum PhotoSweepSchemaV1: VersionedSchema {
         var generation: Int?
         var vectorContentRevision: String?
         var deferralDetail: String?
+        /// Non-optional sort/filter key for newest-first seeding; undated assets have `isDated == false`.
+        var seedDate: Date
+        var isDated: Bool
+        /// Discovery revision in which this asset was last examined (0 = never).
+        var examinedRevision: Int
 
         init(assetID: String, creationDate: Date?, contentRevision: String, pointID: UUID) {
             self.assetID = assetID
@@ -36,6 +41,9 @@ enum PhotoSweepSchemaV1: VersionedSchema {
             self.contentRevision = contentRevision
             self.pointID = pointID
             self.state = "pending"
+            self.seedDate = creationDate ?? .distantPast
+            self.isDated = creationDate != nil
+            self.examinedRevision = 0
         }
     }
 

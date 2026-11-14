@@ -36,6 +36,10 @@ public protocol WorkflowStateRepository: Sendable {
     /// Nil before the first save.
     func loadWorkflowState() async throws(PersistenceError) -> WorkflowState?
     func saveWorkflowState(_ state: WorkflowState) async throws(PersistenceError)
+    /// Reads, changes and saves the state atomically, so concurrent owners (vectorization,
+    /// discovery, settings) never overwrite each other's fields. Nil if no state exists yet.
+    @discardableResult
+    func modifyWorkflowState(_ change: @Sendable (inout WorkflowState) -> Void) async throws(PersistenceError) -> WorkflowState?
 }
 
 public protocol DiscoveryProgressRepository: Sendable {
@@ -102,4 +106,33 @@ public protocol LocalDataResetting: Sendable {
     /// (nil removes any stored workflow state).
     func clearMetadataForReset(keeping workflow: WorkflowState?) async throws(PersistenceError)
     func finishReset(_ operation: OperationID) async throws(PersistenceError)
+}
+
+/// What happened to a fully expanded component.
+public enum ComponentOutcome: Equatable, Sendable {
+    /// A single photo, or a component overlapping a reviewed group: nothing to review.
+    case discarded
+    /// A new group. Pending groups listed in `derivedFrom` were absorbed and are retired.
+    case published(ReviewGroupSnapshot, derivedFrom: [GroupID])
+    /// The component grew an existing pending group, which keeps its identity.
+    case merged(into: GroupID, members: [AssetID])
+}
+
+/// Storage for lazy discovery.
+public protocol DiscoveryRepository: Sendable {
+    /// The newest photo (by creation date) vectorized in `generation`, inside `scope`,
+    /// that has not been examined in `revision`. Nil when every eligible photo was examined.
+    func nextSeed(revision: DiscoveryRevision, scope: DateRange, generation: IndexGeneration) async throws(PersistenceError) -> AssetRecord?
+    /// Pending (fresh or deferred) groups of the revision containing any of the assets.
+    func pendingGroups(containing assets: Set<AssetID>, revision: DiscoveryRevision) async throws(PersistenceError) -> [GroupID]
+    /// In one save: marks `members` examined in the revision, applies the outcome and stores
+    /// the discovery progress (normally with no expansion in flight).
+    func completeComponent(members: [AssetID], outcome: ComponentOutcome, progress: DiscoveryProgress) async throws(PersistenceError)
+}
+
+/// Final step of a confirmed deletion.
+public protocol DeletionRepository: Sendable {
+    /// In one save: removes the deleted assets, completes the journaled group if it is still
+    /// pending, records the deletion and reviewed-group statistics once, and closes the entry.
+    func finishDeletion(_ operation: OperationID, deleted: [AssetID], estimatedBytes: Int64?, revision: DiscoveryRevision) async throws(PersistenceError)
 }

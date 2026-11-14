@@ -158,7 +158,11 @@ public struct ResetLocalData: Sendable {
 public struct RecoveryReport: Equatable, Sendable {
     public var rolledBackVectorWrites: [OperationID] = []
     public var resumedResets: [OperationID] = []
-    /// Deletions still awaiting reconciliation by the deletion workflow.
+    /// Deletions whose cleanup ran (Photos had confirmed, or photos were missing with full access).
+    public var finishedDeletions: [OperationID] = []
+    /// Deletions that turned out not to have happened; their entries were closed.
+    public var abandonedDeletions: [OperationID] = []
+    /// Deletions that cannot be proven either way yet (for example with limited access).
     public var pendingDeletions: [OperationID] = []
 
     public init() {}
@@ -171,17 +175,21 @@ public struct RecoverPendingOperations: Sendable {
     private let vectorWrites: any VectorWriteJournaling
     private let vectorStore: any VectorStoring
     private let reset: ResetLocalData
+    private let deletions: ReconcileDeletion?
 
+    /// - Parameter deletions: reconciles open deletions; without it they are only reported.
     public init(
         journal: any OperationJournal,
         vectorWrites: any VectorWriteJournaling,
         vectorStore: any VectorStoring,
-        reset: ResetLocalData
+        reset: ResetLocalData,
+        deletions: ReconcileDeletion? = nil
     ) {
         self.journal = journal
         self.vectorWrites = vectorWrites
         self.vectorStore = vectorStore
         self.reset = reset
+        self.deletions = deletions
     }
 
     public func execute() async throws(LocalDataError) -> RecoveryReport {
@@ -206,7 +214,11 @@ public struct RecoverPendingOperations: Sendable {
                 }
                 report.rolledBackVectorWrites.append(entry.id)
             case .deletion:
-                report.pendingDeletions.append(entry.id)
+                switch try await deletions?.execute(entry) {
+                case .finished: report.finishedDeletions.append(entry.id)
+                case .notDeleted: report.abandonedDeletions.append(entry.id)
+                case .uncertain, nil: report.pendingDeletions.append(entry.id)
+                }
             case .reset:
                 break
             }

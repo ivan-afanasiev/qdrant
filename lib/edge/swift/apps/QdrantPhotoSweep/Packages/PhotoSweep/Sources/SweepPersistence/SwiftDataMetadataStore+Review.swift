@@ -8,24 +8,37 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
     static let workflowKey = "workflow"
 
     public func loadWorkflowState() async throws(PersistenceError) -> WorkflowState? {
+        try perform { try currentWorkflowState() }
+    }
+
+    @discardableResult
+    public func modifyWorkflowState(_ change: @Sendable (inout WorkflowState) -> Void) async throws(PersistenceError) -> WorkflowState? {
         try perform {
-            guard let entity = try workflowEntity() else { return nil }
-            guard let threshold = SimilarityThreshold(entity.threshold) else {
-                throw PersistenceError.invalidState("Stored threshold \(entity.threshold) is invalid")
-            }
-            let gate: InitialPassGate.State = entity.gateIsOpen
-                ? .open(deferredCount: entity.gateDeferredCount)
-                : .awaitingInitialPass(entity.gatePassID.map(VectorizationPassID.init))
-            return WorkflowState(
-                scope: DateRange(start: entity.scopeStart, end: entity.scopeEnd),
-                threshold: threshold,
-                pause: PauseState(isPausedByUser: entity.isPausedByUser),
-                gate: InitialPassGate(state: gate),
-                discoveryRevision: DiscoveryRevision(entity.discoveryRevision),
-                indexGeneration: IndexGeneration(entity.indexGeneration),
-                indexCompatibility: Self.indexCompatibility(of: entity)
-            )
+            guard var state = try currentWorkflowState() else { return nil }
+            change(&state)
+            try applyWorkflowState(state)
+            try save()
+            return state
         }
+    }
+
+    func currentWorkflowState() throws -> WorkflowState? {
+        guard let entity = try workflowEntity() else { return nil }
+        guard let threshold = SimilarityThreshold(entity.threshold) else {
+            throw PersistenceError.invalidState("Stored threshold \(entity.threshold) is invalid")
+        }
+        let gate: InitialPassGate.State = entity.gateIsOpen
+            ? .open(deferredCount: entity.gateDeferredCount)
+            : .awaitingInitialPass(entity.gatePassID.map(VectorizationPassID.init))
+        return WorkflowState(
+            scope: DateRange(start: entity.scopeStart, end: entity.scopeEnd),
+            threshold: threshold,
+            pause: PauseState(isPausedByUser: entity.isPausedByUser),
+            gate: InitialPassGate(state: gate),
+            discoveryRevision: DiscoveryRevision(entity.discoveryRevision),
+            indexGeneration: IndexGeneration(entity.indexGeneration),
+            indexCompatibility: Self.indexCompatibility(of: entity)
+        )
     }
 
     public func saveWorkflowState(_ state: WorkflowState) async throws(PersistenceError) {
@@ -226,19 +239,7 @@ extension SwiftDataMetadataStore: ReviewRepository {
             guard entity.state == "fresh" || entity.state == "deferred" else {
                 throw PersistenceError.invalidState("Group \(id.rawValue) is \(entity.state) and cannot change membership")
             }
-            // Update rows in place; unique member keys must not be deleted and re-inserted in one save.
-            var existing = Dictionary(
-                try memberEntities(of: id.rawValue).map { ($0.assetID, $0) },
-                uniquingKeysWith: { first, _ in first }
-            )
-            for (position, member) in members.enumerated() {
-                if let row = existing.removeValue(forKey: member.rawValue) {
-                    row.position = position
-                } else {
-                    modelContext.insert(GroupMemberEntity(groupID: id.rawValue, assetID: member.rawValue, position: position))
-                }
-            }
-            existing.values.forEach(modelContext.delete)
+            try replaceMembers(of: id.rawValue, with: members)
             entity.membershipRevision += 1
             try save()
             return ReviewGroupSnapshot(

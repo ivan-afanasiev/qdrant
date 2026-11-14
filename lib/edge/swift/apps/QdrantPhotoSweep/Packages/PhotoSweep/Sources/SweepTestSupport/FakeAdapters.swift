@@ -38,13 +38,45 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
         self.assets = assets
     }
 
+    public var scope: PhotoAccessScope = .full
+
     public func requestAuthorization() async throws(AdapterError) {
         if let authorizationError { throw authorizationError }
     }
 
+    public func setAccessScope(_ scope: PhotoAccessScope) {
+        self.scope = scope
+    }
+
+    public func accessScope() async -> PhotoAccessScope {
+        scope
+    }
+
+    public func assets(withIdentifiers identifiers: [String]) async throws(AdapterError) -> [PhotoAsset] {
+        if let authorizationError { throw authorizationError }
+        let wanted = Set(identifiers)
+        return assets.filter { wanted.contains($0.localIdentifier) }
+    }
+
+    public private(set) var fetchCount = 0
+    private var fetchWaiters: [(count: Int, continuation: CheckedContinuation<Void, Never>)] = []
+
     public func fetchAssets(in dateRange: DateRange) async throws(AdapterError) -> [PhotoAsset] {
         if let authorizationError { throw authorizationError }
+        fetchCount += 1
+        let ready = fetchWaiters.filter { $0.count <= fetchCount }
+        fetchWaiters.removeAll { $0.count <= fetchCount }
+        ready.forEach { $0.continuation.resume() }
         return assets.filter { dateRange.contains($0.creationDate) }
+    }
+
+    /// Suspends until the library has been fetched at least `count` times, so tests can
+    /// wait for an automatically triggered pass without timing.
+    public func waitForFetches(_ count: Int) async {
+        guard fetchCount < count else { return }
+        await withCheckedContinuation { continuation in
+            fetchWaiters.append((count, continuation))
+        }
     }
 
     public func countAssets(in dateRange: DateRange) async throws(AdapterError) -> Int {
@@ -61,11 +93,19 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
         return try image(for: asset)
     }
 
+    /// When true, the deletion happens but the call still reports `deletionError`.
+    public var deletesBeforeFailing = false
+
+    public func setDeletesBeforeFailing(_ value: Bool) {
+        deletesBeforeFailing = value
+    }
+
     public func deleteAssets(_ identifiers: [String]) async throws(AdapterError) {
-        if let deletionError { throw deletionError }
+        if let deletionError, !deletesBeforeFailing { throw deletionError }
         deletedIdentifiers.append(identifiers)
         let deleted = Set(identifiers)
         assets.removeAll { deleted.contains($0.localIdentifier) }
+        if let deletionError { throw deletionError }
     }
 
     public var fullResolutionRequestCount: Int {
@@ -90,6 +130,8 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
 public actor FakeVectorStore: VectorStoring {
     public private(set) var points: [String: VectorPoint] = [:]
     public private(set) var isClosed = false
+    /// Number of paged neighborhood queries, for asserting lazy (not whole-library) work.
+    public private(set) var searchPageCount = 0
     /// Thrown by the next operations until cleared.
     public var failure: AdapterError?
 
@@ -119,6 +161,37 @@ public actor FakeVectorStore: VectorStoring {
             .sorted { $0.score == $1.score ? $0.id < $1.id : $0.score > $1.score }
             .prefix(limit)
             .map { $0 }
+    }
+
+    public func searchPage(
+        vector: [Float],
+        threshold: Float,
+        filter: VectorSearchFilter?,
+        offset: Int,
+        limit: Int
+    ) async throws(AdapterError) -> [ScoredResult] {
+        try check()
+        searchPageCount += 1
+        var matches: [ScoredResult] = []
+        for point in points.values {
+            if let filter {
+                guard let created = VectorPayload.decode(point.payloadJson)?.created,
+                      filter.creationRange.contains(created) else { continue }
+            }
+            let score = Self.cosine(vector, point.vector)
+            guard score >= threshold else { continue }
+            matches.append(ScoredResult(id: point.id, score: score, payloadJson: point.payloadJson, vectorJson: nil))
+        }
+        matches.sort { lhs, rhs in
+            lhs.score == rhs.score ? lhs.id < rhs.id : lhs.score > rhs.score
+        }
+        guard offset < matches.count else { return [] }
+        return Array(matches[offset..<min(offset + limit, matches.count)])
+    }
+
+    public func vector(id: String) async throws(AdapterError) -> [Float]? {
+        try check()
+        return points[id]?.vector
     }
 
     public func scroll(offset: String?, limit: Int) async throws(AdapterError) -> ScrollPage {

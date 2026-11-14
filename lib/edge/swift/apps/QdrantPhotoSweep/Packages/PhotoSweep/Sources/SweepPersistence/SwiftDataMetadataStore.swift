@@ -125,11 +125,15 @@ extension SwiftDataMetadataStore: AssetRepository {
             for asset in assets {
                 if let entity = entities[asset.id.rawValue] {
                     entity.creationDate = asset.creationDate
+                    entity.seedDate = asset.creationDate ?? .distantPast
+                    entity.isDated = asset.creationDate != nil
                     if entity.contentRevision != asset.contentRevision.rawValue {
-                        // Edited content: the stored vector no longer describes the photo.
+                        // Edited content: the stored vector no longer describes the photo,
+                        // and the photo must be examined again by discovery.
                         entity.contentRevision = asset.contentRevision.rawValue
                         entity.state = "pending"
                         entity.deferralDetail = nil
+                        entity.examinedRevision = 0
                         Self.clearVector(entity)
                     }
                 } else {
