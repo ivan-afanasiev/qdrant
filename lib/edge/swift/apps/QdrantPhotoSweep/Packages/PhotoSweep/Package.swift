@@ -38,7 +38,8 @@ let package = Package(
         .testTarget(name: "SweepTestSupportTests", dependencies: ["SweepTestSupport", "SweepDomain"]),
         .testTarget(name: "SweepPersistenceTests", dependencies: ["SweepPersistence", "SweepDomain", "SweepUseCases", "SweepTestSupport"]),
         .testTarget(name: "SweepVectorizationTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"]),
-        .testTarget(name: "SweepDiscoveryReviewTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport", "SweepReviewFeature", "SweepFeatureState"])
+        .testTarget(name: "SweepDiscoveryReviewTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport", "SweepReviewFeature", "SweepFeatureState"]),
+        .testTarget(name: "SweepBackgroundTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"])
     ],
     swiftLanguageModes: [.v6]
 )

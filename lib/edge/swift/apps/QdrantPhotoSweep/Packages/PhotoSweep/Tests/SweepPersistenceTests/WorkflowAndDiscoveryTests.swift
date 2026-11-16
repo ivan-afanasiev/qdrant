@@ -19,6 +19,7 @@ import SweepTestSupport
         var state = try workflow(revision: 4, generation: 2, paused: true)
         state.gate = InitialPassGate(state: gate)
         state.indexCompatibility = compatibility
+        state.notifiedPassID = passID(9)
         try await file.open().saveWorkflowState(state)
         #expect(try await file.open().loadWorkflowState() == state)
     }

@@ -12,15 +12,15 @@ Qdrant and metadata have no shared transaction. Journal intent → external writ
 
 ## LIFE-03 (C) — Pause
 
-Pause checkpoints and persists suppression of foreground/background automatic vectorization until Resume or next app opening. Activation and explicit Retry clear manual pause. System interruption is distinct and resumable. No user Cancel control; internal cancellation remains for replacement/reset/expiration.
+Pause checkpoints and persists suppression of foreground/background automatic vectorization until Resume or next app opening. Activation and explicit Retry clear manual pause. System interruption is distinct and resumable. No user Cancel control; internal cancellation remains for replacement/reset/expiration. Cancel in the system's continued-processing Live Activity counts as manual pause.
 
 ## LIFE-04 (C) — Background
 
-Support continued foreground vectorization and automatic iOS-scheduled work using one executor/shard graph. Background discovery is forbidden; suspend/checkpoint its frontier on background entry. Thin adapters register/schedule/report completion and expiration; checkpoint on expiry. Activation reconnects observations and refills only when gate permits.
+Support continued foreground vectorization and automatic iOS-scheduled work using one executor/shard graph. Background discovery is forbidden; suspend/checkpoint its frontier on background entry. Thin adapters register/schedule/report completion and expiration; checkpoint on expiry. Background Vision runs on CPU only; scheduled processing does not require external power. Activation reconnects observations and refills only when gate permits.
 
 ## LIFE-05 (V) — System eligibility
 
-Verify iOS 26 API eligibility for automatic versus user-initiated continuation. An automatic pass does not qualify for every continuation API. Balance every execution opportunity with completion; duplicate handlers cannot launch competing passes. Never promise immediate/indefinite execution or execution after force-quit.
+Verify iOS 26 API eligibility for automatic versus user-initiated continuation. BGContinuedProcessingTask is submitted only for explicit user actions that start or restart vectorization (first start, Resume, Retry, Rescan) and must report progress; automatic passes use a short background grace period and BGProcessingTask. Balance every execution opportunity with completion; duplicate handlers cannot launch competing passes. Never promise immediate/indefinite execution or execution after force-quit.
 
 ## LIFE-06 (C) — Notifications
 

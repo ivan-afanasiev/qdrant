@@ -37,7 +37,8 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
             gate: InitialPassGate(state: gate),
             discoveryRevision: DiscoveryRevision(entity.discoveryRevision),
             indexGeneration: IndexGeneration(entity.indexGeneration),
-            indexCompatibility: Self.indexCompatibility(of: entity)
+            indexCompatibility: Self.indexCompatibility(of: entity),
+            notifiedPassID: entity.notifiedPassID.map(VectorizationPassID.init)
         )
     }
 
@@ -77,6 +78,7 @@ extension SwiftDataMetadataStore: WorkflowStateRepository {
         entity.indexModelRevision = state.indexCompatibility?.modelRevision
         entity.indexPreprocessing = state.indexCompatibility?.preprocessing
         entity.indexDimensions = state.indexCompatibility?.dimensions
+        entity.notifiedPassID = state.notifiedPassID?.rawValue
         switch state.gate.state {
         case .awaitingInitialPass(let pass):
             entity.gateIsOpen = false

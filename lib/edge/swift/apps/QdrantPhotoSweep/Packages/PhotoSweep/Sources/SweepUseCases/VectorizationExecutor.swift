@@ -93,6 +93,7 @@ public actor VectorizationExecutor {
     private let dependencies: Dependencies
     private let configuration: VectorizationConfiguration
     private let broadcast = StatusBroadcast<VectorizationStatus>(.idle)
+    private let completedPasses = StatusBroadcast<CompletedPass?>(nil)
     private var runTask: Task<Void, Never>?
     private var changeTask: Task<Void, Never>?
     private var stopReason: StopReason?
@@ -114,6 +115,12 @@ public actor VectorizationExecutor {
 
     public nonisolated var status: VectorizationStatus {
         broadcast.value
+    }
+
+    /// The most recently completed pass that processed photos, for readiness notifications.
+    /// Empty follow-up passes do not replace it, so they cannot hide a pass worth announcing.
+    public nonisolated var lastCompletedPass: CompletedPass? {
+        completedPasses.value
     }
 
     /// Re-runs vectorization whenever the photo library reports changes.
@@ -417,6 +424,10 @@ public actor VectorizationExecutor {
             }
         }
         progress = pass.progress
+        let completed = CompletedPass(id: pass.id, kind: pass.kind, progress: pass.progress)
+        if completed.didWork {
+            completedPasses.send(completed)
+        }
         broadcast.send(.completed(deferredCount: pass.progress.deferred))
     }
 

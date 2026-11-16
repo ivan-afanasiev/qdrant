@@ -98,6 +98,7 @@ enum PhotoSweepSchemaV1: VersionedSchema {
         var indexModelRevision: Int?
         var indexPreprocessing: String?
         var indexDimensions: Int?
+        var notifiedPassID: UUID?
 
         init(key: String) {
             self.key = key

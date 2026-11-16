@@ -107,6 +107,8 @@ public struct WorkflowState: Equatable, Sendable {
     public var indexGeneration: IndexGeneration
     /// Compatibility of vectors in `indexGeneration`; nil until the first vector is written.
     public var indexCompatibility: EmbeddingCompatibility?
+    /// Last pass announced with a readiness notification, so each pass is announced once.
+    public var notifiedPassID: VectorizationPassID?
 
     public init(
         scope: DateRange,
@@ -115,7 +117,8 @@ public struct WorkflowState: Equatable, Sendable {
         gate: InitialPassGate,
         discoveryRevision: DiscoveryRevision,
         indexGeneration: IndexGeneration,
-        indexCompatibility: EmbeddingCompatibility? = nil
+        indexCompatibility: EmbeddingCompatibility? = nil,
+        notifiedPassID: VectorizationPassID? = nil
     ) {
         self.scope = scope
         self.threshold = threshold
@@ -124,6 +127,7 @@ public struct WorkflowState: Equatable, Sendable {
         self.discoveryRevision = discoveryRevision
         self.indexGeneration = indexGeneration
         self.indexCompatibility = indexCompatibility
+        self.notifiedPassID = notifiedPassID
     }
 
     /// State after a local-data reset: preferences kept, everything else restarted
