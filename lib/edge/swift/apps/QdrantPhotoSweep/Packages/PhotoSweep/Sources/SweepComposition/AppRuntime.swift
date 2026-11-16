@@ -40,16 +40,3 @@ public struct AppRuntime: Sendable {
         await vectorization.startObservingLibraryChanges(services.libraryChanges)
     }
 }
-
-/// Vector store used during recovery before any vector was ever written; nothing to roll back.
-struct EmptyVectorStore: VectorStoring {
-    func exists(id: String) async throws(AdapterError) -> Bool { false }
-    func upsert(points: [VectorPoint]) async throws(AdapterError) {}
-    func search(vector: [Float], limit: Int, threshold: Float) async throws(AdapterError) -> [ScoredResult] { [] }
-    func searchPage(vector: [Float], threshold: Float, filter: VectorSearchFilter?, offset: Int, limit: Int) async throws(AdapterError) -> [ScoredResult] { [] }
-    func vector(id: String) async throws(AdapterError) -> [Float]? { nil }
-    func scroll(offset: String?, limit: Int) async throws(AdapterError) -> ScrollPage { ScrollPage(records: [], nextOffset: nil) }
-    func delete(ids: [String]) async throws(AdapterError) {}
-    func count() async throws(AdapterError) -> Int { 0 }
-    func close() async {}
-}

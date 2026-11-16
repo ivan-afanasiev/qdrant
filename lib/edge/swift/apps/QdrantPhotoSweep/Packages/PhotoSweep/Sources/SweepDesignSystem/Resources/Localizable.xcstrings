@@ -1789,6 +1789,26 @@
         }
       }
     },
+    "review.close" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "review.deleteAll" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete All"
+          }
+        }
+      }
+    },
     "review.deleteNPhotos %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2050,6 +2070,16 @@
         }
       }
     },
+    "review.keepAll" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep All"
+          }
+        }
+      }
+    },
     "review.libraryLooksClean" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2104,6 +2134,76 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Дубликаты не найдены"
+          }
+        }
+      }
+    },
+    "review.notice.commitFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't finish this group. Try again."
+          }
+        }
+      }
+    },
+    "review.notice.conflict" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This group changed, so it was refreshed. Nothing was deleted."
+          }
+        }
+      }
+    },
+    "review.notice.declined" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deletion was cancelled. Nothing was deleted."
+          }
+        }
+      }
+    },
+    "review.notice.emptySelection" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the photos to keep, or choose Delete All."
+          }
+        }
+      }
+    },
+    "review.notice.ok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "review.notice.skipFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't skip this group. Try again."
+          }
+        }
+      }
+    },
+    "review.preview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
           }
         }
       }
@@ -3268,6 +3368,86 @@
         }
       }
     },
+    "settings.failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That didn't work. Try again."
+          }
+        }
+      }
+    },
+    "settings.library.header" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
+          }
+        }
+      }
+    },
+    "settings.library.rescan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rescan Library"
+          }
+        }
+      }
+    },
+    "settings.library.rescanFooter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checks for new or edited photos and restarts review. Existing analysis is reused."
+          }
+        }
+      }
+    },
+    "settings.reset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Local Data"
+          }
+        }
+      }
+    },
+    "settings.reset.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset"
+          }
+        }
+      }
+    },
+    "settings.reset.confirmMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoSweep will forget its analysis, review progress and skipped groups, and start over. Your photos are not changed."
+          }
+        }
+      }
+    },
+    "settings.reset.confirmTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset local data?"
+          }
+        }
+      }
+    },
     "settings.scanPeriod.footer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3355,6 +3535,56 @@
         }
       }
     },
+    "settings.similarity.balanced" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balanced"
+          }
+        }
+      }
+    },
+    "settings.similarity.footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strict finds only nearly identical shots. Loose also groups photos of the same scene. Changes apply immediately and restart review."
+          }
+        }
+      }
+    },
+    "settings.similarity.loose" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loose"
+          }
+        }
+      }
+    },
+    "settings.similarity.strict" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strict"
+          }
+        }
+      }
+    },
+    "settings.stats.analyzed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos analyzed"
+          }
+        }
+      }
+    },
     "settings.stats.duplicatesFound" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3380,6 +3610,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Найдено дубликатов"
+          }
+        }
+      }
+    },
+    "settings.stats.estimateNote" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted photos stay in Recently Deleted for up to 30 days before space is reclaimed."
+          }
+        }
+      }
+    },
+    "settings.stats.freed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated space freed"
           }
         }
       }
@@ -3496,6 +3746,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Фото индексировано"
+          }
+        }
+      }
+    },
+    "settings.stats.reviewed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groups reviewed"
+          }
+        }
+      }
+    },
+    "settings.stats.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos unavailable"
+          }
+        }
+      }
+    },
+    "settings.stats.unknownSizes %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld deletions had an unknown size and aren't included in the estimate."
           }
         }
       }

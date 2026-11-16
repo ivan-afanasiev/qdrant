@@ -40,7 +40,8 @@ let package = Package(
         .testTarget(name: "SweepVectorizationTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"]),
         .testTarget(name: "SweepDiscoveryReviewTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport", "SweepReviewFeature", "SweepFeatureState"]),
         .testTarget(name: "SweepBackgroundTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"]),
-        .testTarget(name: "SweepOnboardingFeatureTests", dependencies: ["SweepOnboardingFeature", "SweepFeatureState", "SweepDomain"])
+        .testTarget(name: "SweepOnboardingFeatureTests", dependencies: ["SweepOnboardingFeature", "SweepFeatureState", "SweepDomain"]),
+        .testTarget(name: "SweepSettingsFeatureTests", dependencies: ["SweepSettingsFeature", "SweepFeatureState", "SweepDomain", "SweepUseCases"])
     ],
     swiftLanguageModes: [.v6]
 )

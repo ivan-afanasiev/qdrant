@@ -100,6 +100,8 @@ public struct ReviewFeature: Reducer {
         case groupLoaded(ReviewGroupSnapshot?)
         case keepToggled(AssetID)
         case commitTapped
+        /// Keeps every photo: completes the review without deleting anything.
+        case keepAllTapped
         case deleteAllTapped
         case skipTapped
         case commitFinished(OperationID, ReviewCommitOutcome)
@@ -167,6 +169,10 @@ public struct ReviewFeature: Reducer {
         case .commitTapped:
             guard let card = state.card else { return .none }
             return commit(.keep(card.keep), state: &state)
+
+        case .keepAllTapped:
+            guard let card = state.card else { return .none }
+            return commit(.keep(Set(card.snapshot.members)), state: &state)
 
         case .deleteAllTapped:
             return commit(.deleteAll, state: &state)

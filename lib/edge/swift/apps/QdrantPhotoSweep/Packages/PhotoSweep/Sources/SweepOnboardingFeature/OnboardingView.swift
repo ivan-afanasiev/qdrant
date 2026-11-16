@@ -135,7 +135,7 @@ public struct DatePresetPicker: View {
 }
 
 extension DateScopePreset {
-    public var title: LocalizedStringResource {
+    var title: LocalizedStringResource {
         switch self {
         case .lastWeek: L10n.lastWeek
         case .lastMonth: L10n.lastMonth

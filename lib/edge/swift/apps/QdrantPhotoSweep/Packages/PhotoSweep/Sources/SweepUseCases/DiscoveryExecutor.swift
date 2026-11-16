@@ -104,6 +104,11 @@ public actor DiscoveryExecutor {
         return state.discoveryRevision
     }
 
+    /// Stops any running refill at its last checkpoint, for example before a reset.
+    public func stop() async {
+        await stopRunning()
+    }
+
     public func waitUntilIdle() async {
         while let runTask {
             await runTask.value

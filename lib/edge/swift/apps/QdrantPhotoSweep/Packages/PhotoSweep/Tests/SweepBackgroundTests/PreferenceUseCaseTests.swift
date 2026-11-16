@@ -82,6 +82,35 @@ private actor Counter {
         #expect(try await device.store.loadWorkflowState()?.gate.isOpen == true)
     }
 
+    @Test func resetStartsOverButKeepsChoicesHistoryAndPhotos() async throws {
+        let embedder = FakeEmbeddingProvider()
+        let device = try Device(photoCount: 3, embedder: embedder)
+        try await CompleteOnboarding(workflow: device.store, lifecycle: device.coordinator, observeLibrary: {}, now: { now }).execute(datePreset: .allTime)
+        await device.vectorization.waitUntilIdle()
+        try await UpdateSimilarityThreshold(workflow: device.store, discovery: device.discovery).execute(.strict)
+        #expect(await embedder.embedCount == 3)
+        try await device.store.recordDeletion(OperationID(UUID()), photoCount: 1, estimatedBytes: 10, revision: DiscoveryRevision(1))
+        let before = try #require(try await device.store.loadWorkflowState())
+
+        try await ResetAppData(
+            workflow: device.store, resetting: device.store, vectorStores: device.vectorStores,
+            vectorization: device.vectorization, discovery: device.discovery, lifecycle: device.coordinator, ids: device.ids
+        ).execute()
+        await device.vectorization.waitUntilIdle()
+
+        let after = try #require(try await device.store.loadWorkflowState())
+        #expect(SimilarityPreset(threshold: after.threshold) == .strict)
+        #expect(after.isOnboardingCompleted)
+        #expect(after.indexGeneration > before.indexGeneration)
+        #expect(after.discoveryRevision > before.discoveryRevision)
+        #expect(try await device.store.statistics().deletedPhotos == 1)
+        // The old shard was cleared and the library re-analyzed in a new generation.
+        #expect(await device.vectorStores.stores[before.indexGeneration.rawValue] == nil)
+        #expect(await embedder.embedCount == 6)
+        #expect(await device.library.deletedIdentifiers.isEmpty)
+        #expect(await device.library.assets.count == 3)
+    }
+
     @Test func presetsResolveToRollingOpenEndedRanges() {
         let range = DateScopePreset.lastMonth.range(endingAt: now)
         #expect(range.end == .distantFuture)

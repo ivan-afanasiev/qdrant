@@ -203,6 +203,43 @@ public enum L10n {
         String(localized: "library.unavailable \(count)", bundle: .module)
     }
 
+    // MARK: - Review (rewrite)
+
+    public static let keepAll: LocalizedStringResource = LocalizedStringResource("review.keepAll", bundle: .atURL(Bundle.module.bundleURL))
+    public static let deleteAll: LocalizedStringResource = LocalizedStringResource("review.deleteAll", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeEmptySelection: LocalizedStringResource = LocalizedStringResource("review.notice.emptySelection", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeConflict: LocalizedStringResource = LocalizedStringResource("review.notice.conflict", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeDeclined: LocalizedStringResource = LocalizedStringResource("review.notice.declined", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeCommitFailed: LocalizedStringResource = LocalizedStringResource("review.notice.commitFailed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeSkipFailed: LocalizedStringResource = LocalizedStringResource("review.notice.skipFailed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let noticeOK: LocalizedStringResource = LocalizedStringResource("review.notice.ok", bundle: .atURL(Bundle.module.bundleURL))
+    public static let preview: LocalizedStringResource = LocalizedStringResource("review.preview", bundle: .atURL(Bundle.module.bundleURL))
+    public static let close: LocalizedStringResource = LocalizedStringResource("review.close", bundle: .atURL(Bundle.module.bundleURL))
+
+    // MARK: - Settings (rewrite)
+
+    public static let similarityStrict: LocalizedStringResource = LocalizedStringResource("settings.similarity.strict", bundle: .atURL(Bundle.module.bundleURL))
+    public static let similarityBalanced: LocalizedStringResource = LocalizedStringResource("settings.similarity.balanced", bundle: .atURL(Bundle.module.bundleURL))
+    public static let similarityLoose: LocalizedStringResource = LocalizedStringResource("settings.similarity.loose", bundle: .atURL(Bundle.module.bundleURL))
+    public static let similarityFooter: LocalizedStringResource = LocalizedStringResource("settings.similarity.footer", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryHeader: LocalizedStringResource = LocalizedStringResource("settings.library.header", bundle: .atURL(Bundle.module.bundleURL))
+    public static let rescanLibrary: LocalizedStringResource = LocalizedStringResource("settings.library.rescan", bundle: .atURL(Bundle.module.bundleURL))
+    public static let rescanFooter: LocalizedStringResource = LocalizedStringResource("settings.library.rescanFooter", bundle: .atURL(Bundle.module.bundleURL))
+    public static let resetLocalData: LocalizedStringResource = LocalizedStringResource("settings.reset", bundle: .atURL(Bundle.module.bundleURL))
+    public static let resetConfirmTitle: LocalizedStringResource = LocalizedStringResource("settings.reset.confirmTitle", bundle: .atURL(Bundle.module.bundleURL))
+    public static let resetConfirmMessage: LocalizedStringResource = LocalizedStringResource("settings.reset.confirmMessage", bundle: .atURL(Bundle.module.bundleURL))
+    public static let resetConfirm: LocalizedStringResource = LocalizedStringResource("settings.reset.confirm", bundle: .atURL(Bundle.module.bundleURL))
+    public static let settingsFailed: LocalizedStringResource = LocalizedStringResource("settings.failed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let statAnalyzed: LocalizedStringResource = LocalizedStringResource("settings.stats.analyzed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let statUnavailable: LocalizedStringResource = LocalizedStringResource("settings.stats.unavailable", bundle: .atURL(Bundle.module.bundleURL))
+    public static let statReviewed: LocalizedStringResource = LocalizedStringResource("settings.stats.reviewed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let statFreed: LocalizedStringResource = LocalizedStringResource("settings.stats.freed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let statEstimateNote: LocalizedStringResource = LocalizedStringResource("settings.stats.estimateNote", bundle: .atURL(Bundle.module.bundleURL))
+
+    public static func statUnknownSizes(_ count: Int) -> String {
+        String(localized: "settings.stats.unknownSizes \(count)", bundle: .module)
+    }
+
     // MARK: - Background and notifications
 
     public static let backgroundTitle: LocalizedStringResource = LocalizedStringResource("background.continued.title", bundle: .atURL(Bundle.module.bundleURL))

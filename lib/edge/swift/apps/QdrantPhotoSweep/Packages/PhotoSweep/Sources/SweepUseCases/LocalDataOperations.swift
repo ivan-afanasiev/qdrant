@@ -234,3 +234,72 @@ public struct RecoverPendingOperations: Sendable {
         }
     }
 }
+
+/// Vector store for when no vector was ever written (no index compatibility yet):
+/// nothing to roll back or clear.
+public struct EmptyVectorStore: VectorStoring {
+    public init() {}
+    public func exists(id: String) async throws(AdapterError) -> Bool { false }
+    public func upsert(points: [VectorPoint]) async throws(AdapterError) {}
+    public func search(vector: [Float], limit: Int, threshold: Float) async throws(AdapterError) -> [ScoredResult] { [] }
+    public func searchPage(vector: [Float], threshold: Float, filter: VectorSearchFilter?, offset: Int, limit: Int) async throws(AdapterError) -> [ScoredResult] { [] }
+    public func vector(id: String) async throws(AdapterError) -> [Float]? { nil }
+    public func scroll(offset: String?, limit: Int) async throws(AdapterError) -> ScrollPage { ScrollPage(records: [], nextOffset: nil) }
+    public func delete(ids: [String]) async throws(AdapterError) {}
+    public func count() async throws(AdapterError) -> Int { 0 }
+    public func close() async {}
+}
+
+/// ResetLocalData from Settings: stops work, clears the index and local metadata (keeping
+/// preferences, statistics and recoverable deletions), then starts a fresh initial pass.
+/// Library photos are never touched.
+public struct ResetAppData: Sendable {
+    private let workflow: any WorkflowStateRepository
+    private let resetting: any LocalDataResetting
+    private let vectorStores: any VectorStoreProviding
+    private let vectorization: VectorizationExecutor
+    private let discovery: DiscoveryExecutor
+    private let lifecycle: AppLifecycleCoordinator
+    private let ids: any IDGenerating
+
+    public init(
+        workflow: any WorkflowStateRepository,
+        resetting: any LocalDataResetting,
+        vectorStores: any VectorStoreProviding,
+        vectorization: VectorizationExecutor,
+        discovery: DiscoveryExecutor,
+        lifecycle: AppLifecycleCoordinator,
+        ids: any IDGenerating
+    ) {
+        self.workflow = workflow
+        self.resetting = resetting
+        self.vectorStores = vectorStores
+        self.vectorization = vectorization
+        self.discovery = discovery
+        self.lifecycle = lifecycle
+        self.ids = ids
+    }
+
+    public func execute() async throws(LocalDataError) {
+        // Stop mutations first; interruption is not a manual pause.
+        await vectorization.interrupt()
+        await discovery.stop()
+        let vectorStore: any VectorStoring
+        do {
+            if let state = try await workflow.loadWorkflowState(), let compatibility = state.indexCompatibility {
+                vectorStore = try await vectorStores.store(for: state.indexGeneration, dimensions: compatibility.dimensions)
+            } else {
+                vectorStore = EmptyVectorStore()
+            }
+        } catch let error as PersistenceError {
+            throw .persistence(error)
+        } catch let error as AdapterError {
+            throw .vectorStore(error)
+        } catch {
+            throw .persistence(.storeUnavailable(String(describing: error)))
+        }
+        try await ResetLocalData(resetting: resetting, workflow: workflow, vectorStore: vectorStore, ids: ids).execute()
+        await discovery.requestRefill()
+        await lifecycle.userRequestedVectorization(.userResume)
+    }
+}

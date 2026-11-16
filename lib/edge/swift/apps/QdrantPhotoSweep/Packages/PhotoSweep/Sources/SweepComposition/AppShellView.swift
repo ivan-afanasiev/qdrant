@@ -5,6 +5,8 @@ import SweepDomain
 import SweepFeatureState
 import SweepLibraryFeature
 import SweepOnboardingFeature
+import SweepReviewFeature
+import SweepSettingsFeature
 import SweepUseCases
 
 /// Onboarding until it is completed, then the main screen.
@@ -69,6 +71,16 @@ struct MainView: View {
             content
                 .navigationTitle(Text(L10n.appTitle))
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink {
+                            SettingsScreen(runtime: runtime)
+                        } label: {
+                            Image(systemName: QIcons.settings)
+                                .accessibilityLabel(Text(L10n.settings))
+                        }
+                    }
+                }
         }
         .tint(QColors.primary)
         .task {
@@ -94,12 +106,31 @@ struct MainView: View {
     }
 }
 
-/// Card review; filled in by the review slice.
-struct ReviewArea: View {
-    let runtime: AppRuntime
+/// Settings with its own store, created when the screen is shown.
+struct SettingsScreen: View {
+    @State private var store: Store<SettingsFeature>
+
+    init(runtime: AppRuntime) {
+        _store = State(initialValue: runtime.makeSettingsStore())
+    }
 
     var body: some View {
-        Spacer()
+        SettingsView(store: store)
+    }
+}
+
+/// Card review for the current discovery revision.
+struct ReviewArea: View {
+    @State private var store: Store<ReviewFeature>
+    private let images: ReviewImages
+
+    init(runtime: AppRuntime) {
+        _store = State(initialValue: runtime.makeReviewStore())
+        images = runtime.reviewImages
+    }
+
+    var body: some View {
+        ReviewView(store: store, images: images)
     }
 }
 

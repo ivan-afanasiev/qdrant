@@ -52,6 +52,12 @@ public struct LoadReviewImage: Sendable {
         self.library = library
     }
 
+    /// Accessible photos among `assets`, for card details such as the creation date.
+    public func details(_ assets: [AssetID]) async -> [AssetID: PhotoAsset] {
+        let photos = (try? await library.assets(withIdentifiers: assets.map(\.rawValue))) ?? []
+        return Dictionary(photos.map { (AssetID($0.localIdentifier), $0) }, uniquingKeysWith: { first, _ in first })
+    }
+
     public func thumbnail(_ asset: AssetID, pixels: Int) async throws(AdapterError) -> CGImage {
         try await library.loadThumbnail(for: try await photo(asset), size: CGSize(width: pixels, height: pixels))
     }

@@ -47,6 +47,15 @@ private func ids(_ names: String...) -> Set<AssetID> {
         #expect(try await world.store.statistics().reviewedGroups == 1)
     }
 
+    @Test func cardDetailsCoverOnlyAccessiblePhotos() async throws {
+        let (world, _) = try await twoPairs()
+        await world.library.setAssets(await world.library.assets.filter { $0.id != "b" })
+        let details = await LoadReviewImage(library: world.library).details([AssetID("a"), AssetID("b")])
+        #expect(details.keys.sorted() == [AssetID("a")])
+        #expect(details[AssetID("a")]?.creationDate != nil)
+        #expect(await world.library.fullResolutionRequestCount == 0)
+    }
+
     @Test func fullResolutionOnlyForPreview() async throws {
         let (world, _) = try await twoPairs()
         let images = LoadReviewImage(library: world.library)

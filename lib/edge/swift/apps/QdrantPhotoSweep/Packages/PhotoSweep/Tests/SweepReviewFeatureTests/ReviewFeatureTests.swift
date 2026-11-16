@@ -178,6 +178,14 @@ private func openFirstCard(_ store: Store<ReviewFeature>) async {
         #expect(store.state.card == nil)
     }
 
+    @Test func keepAllShortcutCompletesWithoutDeletion() async {
+        let (store, backend) = makeStore(queue: [snapshot(1)])
+        await openFirstCard(store)
+        store.send(.keepAllTapped)
+        await store.finishAllEffects()
+        #expect(await backend.commits.map(\.decision) == [.keepAll])
+    }
+
     @Test func selectionIsLockedWhileCommitIsPending() async {
         let (store, _) = makeStore(queue: [snapshot(1)])
         await openFirstCard(store)
