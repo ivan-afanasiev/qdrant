@@ -1,27 +1,16 @@
 import SafeDI
 import SweepDomain
-import SweepSystem
-import SweepUseCases
-import SweepLibraryFeature
 
+/// The app's single composition root. The host creates it once, outside SwiftUI body
+/// reconstruction; foreground UI and background launches share it.
 @MainActor
 @Instantiable(isRoot: true)
 public final class PhotoSweepComposition: Instantiable {
-    @Instantiated public let resource: any BootstrapResource
-    @Instantiated public let bootstrap: BootstrapApplication
-    @Instantiated private let libraryStore: Instantiator<LibraryStore>
+    @Instantiated public let adapters: PlatformAdapters
+    @Instantiated public let bootstrap: RewriteBootstrap
 
-    public init(resource: any BootstrapResource, bootstrap: BootstrapApplication,
-                libraryStore: Instantiator<LibraryStore>) {
-        self.resource = resource
+    public init(adapters: PlatformAdapters, bootstrap: RewriteBootstrap) {
+        self.adapters = adapters
         self.bootstrap = bootstrap
-        self.libraryStore = libraryStore
     }
-
-    public func makeLibraryStore() -> LibraryStore {
-        libraryStore.instantiate()
-    }
-
-    public var foregroundEntry: BootstrapApplication { bootstrap }
-    public var backgroundEntry: BootstrapApplication { bootstrap }
 }

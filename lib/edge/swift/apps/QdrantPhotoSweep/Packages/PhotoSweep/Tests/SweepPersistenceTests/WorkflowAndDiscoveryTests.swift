@@ -20,6 +20,8 @@ import SweepTestSupport
         state.gate = InitialPassGate(state: gate)
         state.indexCompatibility = compatibility
         state.notifiedPassID = passID(9)
+        state.datePreset = .last3Months
+        state.isOnboardingCompleted = true
         try await file.open().saveWorkflowState(state)
         #expect(try await file.open().loadWorkflowState() == state)
     }

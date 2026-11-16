@@ -10,6 +10,8 @@ public struct VectorizationConfiguration: Sendable {
     public var defaultScope: DateRange
     public var defaultThreshold: SimilarityThreshold
     public var retryPolicy: RetryPolicy
+    /// Clock used to resolve rolling date presets.
+    public var now: @Sendable () -> Date
 
     /// Batch, breaker and retry values are provisional until measured on devices.
     public init(
@@ -18,7 +20,8 @@ public struct VectorizationConfiguration: Sendable {
         maxConsecutiveDeferrals: Int = 10,
         defaultScope: DateRange = DateRange(start: .distantPast, end: .distantFuture),
         defaultThreshold: SimilarityThreshold = .standard,
-        retryPolicy: RetryPolicy = .default
+        retryPolicy: RetryPolicy = .default,
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.thumbnailPixels = thumbnailPixels
         self.batchSize = max(1, batchSize)
@@ -26,6 +29,7 @@ public struct VectorizationConfiguration: Sendable {
         self.defaultScope = defaultScope
         self.defaultThreshold = defaultThreshold
         self.retryPolicy = retryPolicy
+        self.now = now
     }
 
     /// Identifies how thumbnails are produced; part of vector compatibility.
@@ -366,7 +370,10 @@ public actor VectorizationExecutor {
             }
         }
         let compatibility = descriptor.compatibility(preprocessing: configuration.preprocessing)
+        let today = configuration.now()
         let state = try await updateWorkflow { state in
+            // Rolling date presets are resolved again for every pass.
+            state.scope = state.datePreset.range(endingAt: today)
             guard state.indexCompatibility != compatibility else { return }
             if state.indexCompatibility != nil {
                 // Recoverable generation transition: old vectors stay untouched until the new

@@ -32,6 +32,16 @@
         }
       }
     },
+    "app.bootstrapFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoSweep couldn't open its local data. Try again."
+          }
+        }
+      }
+    },
     "app.loading" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -144,6 +154,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Необходим доступ к фото"
+          }
+        }
+      }
+    },
+    "background.continued.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding similar shots in your library"
+          }
+        }
+      }
+    },
+    "background.continued.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing your photos"
           }
         }
       }
@@ -844,6 +874,146 @@
         }
       }
     },
+    "library.pause" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "library.resume" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
+    "library.status.completed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your photos are ready"
+          }
+        }
+      }
+    },
+    "library.status.failed.authorization" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo access is needed to continue."
+          }
+        }
+      }
+    },
+    "library.status.failed.other" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong. Try again."
+          }
+        }
+      }
+    },
+    "library.status.idle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting to start"
+          }
+        }
+      }
+    },
+    "library.status.interrupted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues automatically when possible"
+          }
+        }
+      }
+    },
+    "library.status.paused" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        }
+      }
+    },
+    "library.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoSweep analyzes your photos on this iPhone before it looks for similar shots."
+          }
+        }
+      }
+    },
+    "library.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing Your Photos"
+          }
+        }
+      }
+    },
+    "library.unavailable %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld photos couldn't be loaded and were skipped"
+          }
+        }
+      }
+    },
+    "notification.reviewReady.body" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PhotoSweep to review similar photos."
+          }
+        }
+      }
+    },
+    "notification.reviewReady.bodyUnavailable %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+          }
+        }
+      }
+    },
+    "notification.reviewReady.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos ready for review"
+          }
+        }
+      }
+    },
     "onboarding.back" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1105,6 +1275,46 @@
         }
       }
     },
+    "onboarding.notifications.allow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Notifications"
+          }
+        }
+      }
+    },
+    "onboarding.notifications.skip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Now"
+          }
+        }
+      }
+    },
+    "onboarding.notifications.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoSweep can keep preparing your photos after you leave the app and let you know when they're ready to review."
+          }
+        }
+      }
+    },
+    "onboarding.notifications.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Know When Photos Are Ready"
+          }
+        }
+      }
+    },
     "onboarding.permission.denied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1304,6 +1514,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выберите период сканирования"
+          }
+        }
+      }
+    },
+    "onboarding.start.failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save your choices. Try again."
           }
         }
       }
@@ -1569,35 +1789,6 @@
         }
       }
     },
-    "review.deletedPhotosNote" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gelöschte Fotos werden in Zuletzt gelöscht verschoben"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deleted photos will be moved to Recently Deleted"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las fotos eliminadas se moverán a Eliminados recientemente"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалéнные фото будут перемещены в Недавно удалéнные"
-          }
-        }
-      }
-    },
     "review.deleteNPhotos %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1623,6 +1814,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Удалить фото: %lld"
+          }
+        }
+      }
+    },
+    "review.deletedPhotosNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelöschte Fotos werden in Zuletzt gelöscht verschoben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted photos will be moved to Recently Deleted"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las fotos eliminadas se moverán a Eliminados recientemente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалéнные фото будут перемещены в Недавно удалéнные"
           }
         }
       }

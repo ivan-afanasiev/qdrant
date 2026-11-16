@@ -109,6 +109,9 @@ public struct WorkflowState: Equatable, Sendable {
     public var indexCompatibility: EmbeddingCompatibility?
     /// Last pass announced with a readiness notification, so each pass is announced once.
     public var notifiedPassID: VectorizationPassID?
+    /// The chosen date preset; `scope` is its resolved range for the current pass.
+    public var datePreset: DateScopePreset
+    public var isOnboardingCompleted: Bool
 
     public init(
         scope: DateRange,
@@ -118,7 +121,9 @@ public struct WorkflowState: Equatable, Sendable {
         discoveryRevision: DiscoveryRevision,
         indexGeneration: IndexGeneration,
         indexCompatibility: EmbeddingCompatibility? = nil,
-        notifiedPassID: VectorizationPassID? = nil
+        notifiedPassID: VectorizationPassID? = nil,
+        datePreset: DateScopePreset = .default,
+        isOnboardingCompleted: Bool = false
     ) {
         self.scope = scope
         self.threshold = threshold
@@ -128,6 +133,21 @@ public struct WorkflowState: Equatable, Sendable {
         self.indexGeneration = indexGeneration
         self.indexCompatibility = indexCompatibility
         self.notifiedPassID = notifiedPassID
+        self.datePreset = datePreset
+        self.isOnboardingCompleted = isOnboardingCompleted
+    }
+
+    /// State for a first launch.
+    public static func initial(datePreset: DateScopePreset = .default, now: Date) -> WorkflowState {
+        WorkflowState(
+            scope: datePreset.range(endingAt: now),
+            threshold: SimilarityPreset.default.threshold,
+            pause: .none,
+            gate: InitialPassGate(),
+            discoveryRevision: DiscoveryRevision(1),
+            indexGeneration: IndexGeneration(1),
+            datePreset: datePreset
+        )
     }
 
     /// State after a local-data reset: preferences kept, everything else restarted
@@ -140,7 +160,9 @@ public struct WorkflowState: Equatable, Sendable {
             gate: InitialPassGate(),
             discoveryRevision: discoveryRevision.next(),
             indexGeneration: indexGeneration.next(),
-            indexCompatibility: nil
+            indexCompatibility: nil,
+            datePreset: datePreset,
+            isOnboardingCompleted: isOnboardingCompleted
         )
     }
 }

@@ -20,16 +20,16 @@ let package = Package(
         .target(name: "SweepSettingsFeature", dependencies: ["SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"]),
         .target(name: "SweepOnboardingFeature", dependencies: ["SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"]),
         .target(name: "SweepTestSupport", dependencies: ["SweepDomain"]),
-        .target(name: "SweepSystem", dependencies: ["SweepDomain", safeDI]),
-        .target(name: "SweepUseCases", dependencies: ["SweepDomain", safeDI]),
-        .target(name: "SweepLibraryFeature", dependencies: ["SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem", safeDI]),
-        .target(name: "SweepComposition", dependencies: ["SweepDomain", "SweepSystem", "SweepUseCases", "SweepLibraryFeature", "SweepReviewFeature", "SweepSettingsFeature", "SweepOnboardingFeature", "SweepQdrant", "SweepPhotos", "SweepEmbeddings", "SweepPersistence", safeDI],
+        .target(name: "SweepSystem", dependencies: ["SweepDomain"]),
+        .target(name: "SweepUseCases", dependencies: ["SweepDomain"]),
+        .target(name: "SweepLibraryFeature", dependencies: ["SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"]),
+        .target(name: "SweepComposition", dependencies: ["SweepDomain", "SweepSystem", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem", "SweepLibraryFeature", "SweepReviewFeature", "SweepSettingsFeature", "SweepOnboardingFeature", "SweepQdrant", "SweepPhotos", "SweepEmbeddings", "SweepPersistence", safeDI],
                 plugins: [.plugin(name: "SafeDIGenerator", package: "SafeDI")]),
         .testTarget(name: "SweepPhotosTests", dependencies: ["SweepPhotos"]),
         .testTarget(name: "SweepEmbeddingsTests", dependencies: ["SweepEmbeddings"]),
         .testTarget(name: "SweepDesignSystemTests", dependencies: ["SweepDesignSystem"]),
         .testTarget(name: "SweepQdrantTests", dependencies: ["SweepQdrant", "SweepDomain"]),
-        .testTarget(name: "SweepCompositionTests", dependencies: ["SweepComposition", "SweepDomain", "SweepUseCases"]),
+        .testTarget(name: "SweepCompositionTests", dependencies: ["SweepComposition", "SweepDomain", "SweepUseCases", "SweepPersistence", "SweepTestSupport"]),
         .testTarget(name: "SweepDomainTests", dependencies: ["SweepDomain", "SweepTestSupport"]),
         .testTarget(name: "SweepUseCasesTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepTestSupport"]),
         .testTarget(name: "SweepFeatureStateTests", dependencies: ["SweepFeatureState", "SweepTestSupport"]),
@@ -39,7 +39,8 @@ let package = Package(
         .testTarget(name: "SweepPersistenceTests", dependencies: ["SweepPersistence", "SweepDomain", "SweepUseCases", "SweepTestSupport"]),
         .testTarget(name: "SweepVectorizationTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"]),
         .testTarget(name: "SweepDiscoveryReviewTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport", "SweepReviewFeature", "SweepFeatureState"]),
-        .testTarget(name: "SweepBackgroundTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"])
+        .testTarget(name: "SweepBackgroundTests", dependencies: ["SweepUseCases", "SweepDomain", "SweepPersistence", "SweepTestSupport"]),
+        .testTarget(name: "SweepOnboardingFeatureTests", dependencies: ["SweepOnboardingFeature", "SweepFeatureState", "SweepDomain"])
     ],
     swiftLanguageModes: [.v6]
 )

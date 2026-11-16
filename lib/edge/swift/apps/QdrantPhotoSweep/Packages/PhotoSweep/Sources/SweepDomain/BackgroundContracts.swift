@@ -42,6 +42,8 @@ public enum NotificationPermission: Equatable, Sendable {
 /// discovery only runs in the foreground.
 public protocol ReviewReadyNotifying: Sendable {
     func permission() async -> NotificationPermission
+    /// Shows the system permission prompt if not decided yet. Returns true if authorized.
+    func requestPermission() async -> Bool
     func postReviewReady(unavailableCount: Int) async throws
 }
 

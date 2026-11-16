@@ -99,6 +99,8 @@ enum PhotoSweepSchemaV1: VersionedSchema {
         var indexPreprocessing: String?
         var indexDimensions: Int?
         var notifiedPassID: UUID?
+        var datePreset: String = "allTime"
+        var isOnboardingCompleted: Bool = false
 
         init(key: String) {
             self.key = key

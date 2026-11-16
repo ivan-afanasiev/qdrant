@@ -14,7 +14,8 @@ allowed = {
     "SweepTestSupport": {"SweepDomain"},
     **{name: {"SweepDomain"} for name in adapters},
     **{name: {"SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"} for name in features},
-    "SweepComposition": adapters | features | {"SweepDomain", "SweepUseCases"},
+    # The app entry point: it may see everything except test support.
+    "SweepComposition": adapters | features | {"SweepDomain", "SweepUseCases", "SweepFeatureState", "SweepDesignSystem"},
 }
 safe_di_free = {"SweepDomain", "SweepDesignSystem", "SweepFeatureState", "SweepTestSupport"}
 platform_free = {"SwiftUI", "UIKit", "Photos", "SwiftData", "QdrantEdge", "Vision"}

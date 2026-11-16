@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AB0000000000000000000001 /* SweepComposition in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000002 /* SweepComposition */; };
 		26D2F8CA78784F41BC091424 /* QdrantEdge in Frameworks */ = {isa = PBXBuildFile; productRef = B26FCC80CED0434C80ACA8E8 /* QdrantEdge */; };
+		AB0000000000000000000001 /* SweepComposition in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000002 /* SweepComposition */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -141,7 +141,7 @@
 			mainGroup = 6DA7CBDCB65543BC8E8D125D;
 			packageReferences = (
 				831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */,
-				AB0000000000000000000003 /* PhotoSweep */,
+				AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */,
 			);
 			productRefGroup = 6D47939F097641369B8C2033 /* Products */;
 			projectDirPath = "";
@@ -223,6 +223,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweep;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -343,6 +344,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweep;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -387,15 +389,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AB0000000000000000000003 /* PhotoSweep */ = {isa = XCLocalSwiftPackageReference; relativePath = Packages/PhotoSweep; };
 		831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../..;
 		};
+		AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/PhotoSweep;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AB0000000000000000000002 /* SweepComposition */ = {isa = XCSwiftPackageProductDependency; package = AB0000000000000000000003 /* PhotoSweep */; productName = SweepComposition; };
+		AB0000000000000000000002 /* SweepComposition */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */;
+			productName = SweepComposition;
+		};
 		B26FCC80CED0434C80ACA8E8 /* QdrantEdge */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */;

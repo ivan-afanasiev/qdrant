@@ -156,8 +156,24 @@ public actor FakeReviewNotifier: ReviewReadyNotifying {
         currentPermission = permission
     }
 
+    public private(set) var permissionRequests = 0
+    /// Permission granted when the prompt is answered.
+    public private(set) var grantsOnRequest = true
+
+    public func setGrantsOnRequest(_ value: Bool) {
+        grantsOnRequest = value
+    }
+
     public func permission() async -> NotificationPermission {
         currentPermission
+    }
+
+    public func requestPermission() async -> Bool {
+        permissionRequests += 1
+        if currentPermission == .notDetermined {
+            currentPermission = grantsOnRequest ? .authorized : .denied
+        }
+        return currentPermission == .authorized
     }
 
     public func postReviewReady(unavailableCount: Int) async throws {

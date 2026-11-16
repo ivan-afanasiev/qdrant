@@ -1,6 +1,7 @@
 import BackgroundTasks
 import Foundation
 import UIKit
+import os
 
 @Observable
 @MainActor

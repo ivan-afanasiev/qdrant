@@ -3,6 +3,7 @@ import Foundation
 import Photos
 import SwiftData
 import UserNotifications
+import os
 
 enum BackgroundScanService {
     static let taskIdentifier = "com.qdrant.edge.PhotoSweep.backgroundScan"

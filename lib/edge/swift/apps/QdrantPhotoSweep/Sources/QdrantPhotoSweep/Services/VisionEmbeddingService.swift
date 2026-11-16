@@ -2,6 +2,7 @@ import CoreGraphics
 import CoreML
 import Vision
 import UIKit
+import os
 
 actor VisionEmbeddingService: EmbeddingProviding {
     private var _detectedDimensions: Int?

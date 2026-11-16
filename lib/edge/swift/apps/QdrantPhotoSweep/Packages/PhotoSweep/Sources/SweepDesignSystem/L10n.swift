@@ -6,6 +6,7 @@ public enum L10n {
 
     public static let appTitle: LocalizedStringResource = LocalizedStringResource("app.title", bundle: .atURL(Bundle.module.bundleURL))
     public static let loading: LocalizedStringResource = LocalizedStringResource("app.loading", bundle: .atURL(Bundle.module.bundleURL))
+    public static let bootstrapFailed: LocalizedStringResource = LocalizedStringResource("app.bootstrapFailed", bundle: .atURL(Bundle.module.bundleURL))
 
     // MARK: - Authorization
 
@@ -177,6 +178,42 @@ public enum L10n {
 
     public static let photoAccessDenied = String(localized: "error.photoAccess.denied", bundle: .module)
     public static let photoAccessRestricted = String(localized: "error.photoAccess.restricted", bundle: .module)
+    // MARK: - Onboarding (rewrite)
+
+    public static let onboardingNotificationsTitle: LocalizedStringResource = LocalizedStringResource("onboarding.notifications.title", bundle: .atURL(Bundle.module.bundleURL))
+    public static let onboardingNotificationsSubtitle: LocalizedStringResource = LocalizedStringResource("onboarding.notifications.subtitle", bundle: .atURL(Bundle.module.bundleURL))
+    public static let onboardingNotificationsAllow: LocalizedStringResource = LocalizedStringResource("onboarding.notifications.allow", bundle: .atURL(Bundle.module.bundleURL))
+    public static let onboardingNotificationsSkip: LocalizedStringResource = LocalizedStringResource("onboarding.notifications.skip", bundle: .atURL(Bundle.module.bundleURL))
+    public static let onboardingStartFailed: LocalizedStringResource = LocalizedStringResource("onboarding.start.failed", bundle: .atURL(Bundle.module.bundleURL))
+
+    // MARK: - Library progress
+
+    public static let libraryTitle: LocalizedStringResource = LocalizedStringResource("library.title", bundle: .atURL(Bundle.module.bundleURL))
+    public static let librarySubtitle: LocalizedStringResource = LocalizedStringResource("library.subtitle", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryIdle: LocalizedStringResource = LocalizedStringResource("library.status.idle", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryPaused: LocalizedStringResource = LocalizedStringResource("library.status.paused", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryInterrupted: LocalizedStringResource = LocalizedStringResource("library.status.interrupted", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryCompleted: LocalizedStringResource = LocalizedStringResource("library.status.completed", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryFailedAuthorization: LocalizedStringResource = LocalizedStringResource("library.status.failed.authorization", bundle: .atURL(Bundle.module.bundleURL))
+    public static let libraryFailedOther: LocalizedStringResource = LocalizedStringResource("library.status.failed.other", bundle: .atURL(Bundle.module.bundleURL))
+    public static let pause: LocalizedStringResource = LocalizedStringResource("library.pause", bundle: .atURL(Bundle.module.bundleURL))
+    public static let resume: LocalizedStringResource = LocalizedStringResource("library.resume", bundle: .atURL(Bundle.module.bundleURL))
+
+    public static func libraryUnavailable(_ count: Int) -> String {
+        String(localized: "library.unavailable \(count)", bundle: .module)
+    }
+
+    // MARK: - Background and notifications
+
+    public static let backgroundTitle: LocalizedStringResource = LocalizedStringResource("background.continued.title", bundle: .atURL(Bundle.module.bundleURL))
+    public static let backgroundSubtitle: LocalizedStringResource = LocalizedStringResource("background.continued.subtitle", bundle: .atURL(Bundle.module.bundleURL))
+    public static let reviewReadyTitle: LocalizedStringResource = LocalizedStringResource("notification.reviewReady.title", bundle: .atURL(Bundle.module.bundleURL))
+    public static let reviewReadyBody: LocalizedStringResource = LocalizedStringResource("notification.reviewReady.body", bundle: .atURL(Bundle.module.bundleURL))
+
+    public static func reviewReadyBodyWithUnavailable(_ count: Int) -> String {
+        String(localized: "notification.reviewReady.bodyUnavailable \(count)", bundle: .module)
+    }
+
     public static let photoAccessNotDetermined = String(localized: "error.photoAccess.notDetermined", bundle: .module)
     public static let photoAccessUnknown = String(localized: "error.photoAccess.unknown", bundle: .module)
 }

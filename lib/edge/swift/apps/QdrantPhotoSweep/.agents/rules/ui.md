@@ -16,5 +16,5 @@ Views render and dispatch; zoom/drag may remain local. Resource bundles/localiza
 
 ## UI-04 (C) — Feedback
 
-Expose vectorization progress, unavailable counts, Pause/Resume/Retry, loading/conflict/failure states and settings/stats. No Cancel or grid UI. Preserve user choices on failure and require explicit deletion action.
+Expose vectorization progress, unavailable counts, Pause/Resume/Retry, loading/conflict/failure states and settings/stats. No Cancel or grid UI. Onboarding: welcome → photo access → notification permission → date range → Start. Threshold is chosen as Strict (0.96) / Balanced (0.92, default) / Loose (0.85); date range only as presets (last week, month, 3 months, 6 months, year, all time), no custom range. Preserve user choices on failure and require explicit deletion action.
 

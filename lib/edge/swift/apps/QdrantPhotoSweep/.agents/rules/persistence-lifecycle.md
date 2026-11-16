@@ -28,7 +28,7 @@ Notify once per eligible completed background pass when authorized: photos ready
 
 ## LIFE-07 (C) — Clean start/reset
 
-No legacy migration required: versioned local namespace and idempotent bootstrap transition retire old index/metadata/preferences/history/review data, never photos. Reset stops mutations, invalidates effects and coherently clears index/compatibility/metadata/checkpoints/review state. Reconcile external deletion journals before retirement; reset is restartable.
+No legacy migration required: versioned local namespace and idempotent bootstrap transition retire old index/metadata/preferences/history/review data, never photos. Until cutover (step 10) the rewrite ignores legacy data and the transition stays unwired; a debug-only launch switch may select the legacy engine, never both engines at once. Reset stops mutations, invalidates effects and coherently clears index/compatibility/metadata/checkpoints/review state. Reconcile external deletion journals before retirement; reset is restartable.
 
 ## LIFE-08 (C) — Statistics
 

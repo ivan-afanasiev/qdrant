@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import os
 
 struct ScanOutcome: Sendable {
     enum Status: Sendable {
