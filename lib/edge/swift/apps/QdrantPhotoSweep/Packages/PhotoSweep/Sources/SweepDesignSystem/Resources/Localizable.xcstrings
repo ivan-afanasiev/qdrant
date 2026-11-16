@@ -34,10 +34,28 @@
     },
     "app.bootstrapFailed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep konnte seine lokalen Daten nicht öffnen. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "PhotoSweep couldn't open its local data. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep no pudo abrir sus datos locales. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep не удалось открыть локальные данные. Повторите попытку."
           }
         }
       }
@@ -160,20 +178,56 @@
     },
     "background.continued.subtitle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ähnliche Aufnahmen in Ihrer Fotobibliothek werden gesucht"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Finding similar shots in your library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Buscando fotos similares en tu biblioteca"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Поиск похожих снимков в вашей фотобиблиотеке"
           }
         }
       }
     },
     "background.continued.title" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ihre Fotos werden vorbereitet"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparing your photos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Preparando tus fotos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Подготовка ваших фото"
           }
         }
       }
@@ -876,140 +930,548 @@
     },
     "library.pause" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Pausieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Pausar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Приостановить"
           }
         }
       }
     },
     "library.resume" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fortsetzen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resume"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Reanudar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Продолжить"
           }
         }
       }
     },
     "library.status.completed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ihre Fotos sind bereit"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your photos are ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tus fotos están listas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ваши фото готовы"
           }
         }
       }
     },
     "library.status.failed.authorization" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zum Fortfahren ist Fotozugriff erforderlich."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photo access is needed to continue."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Se necesita acceso a las fotos para continuar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Для продолжения необходим доступ к фото."
           }
         }
       }
     },
     "library.status.failed.other" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Se produjo un error. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Что-то пошло не так. Повторите попытку."
           }
         }
       }
     },
     "library.status.idle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Wartet auf Start"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting to start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Esperando para empezar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ожидание запуска"
           }
         }
       }
     },
     "library.status.interrupted" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Wird automatisch fortgesetzt, sobald möglich"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continues automatically when possible"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Continuará automáticamente cuando sea posible"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Продолжится автоматически, когда это будет возможно"
           }
         }
       }
     },
     "library.status.paused" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Pausiert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paused"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "En pausa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Приостановлено"
           }
         }
       }
     },
     "library.subtitle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep analysiert Ihre Fotos auf diesem iPhone, bevor nach ähnlichen Aufnahmen gesucht wird."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "PhotoSweep analyzes your photos on this iPhone before it looks for similar shots."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep analiza tus fotos en este iPhone antes de buscar fotos similares."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep анализирует ваши фото на этом iPhone, прежде чем искать похожие снимки."
           }
         }
       }
     },
     "library.title" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ihre Fotos werden vorbereitet"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparing Your Photos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Preparando tus fotos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Подготовка ваших фото"
           }
         }
       }
     },
     "library.unavailable %lld" : {
       "localizations" : {
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld Foto konnte nicht geladen werden und wurde übersprungen"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld Fotos konnten nicht geladen werden und wurden übersprungen"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld Fotos konnten nicht geladen werden und wurden übersprungen"
+                }
+              }
+            }
+          }
+        },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld photos couldn't be loaded and were skipped"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld photo couldn't be loaded and was skipped"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld photos couldn't be loaded and were skipped"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld photos couldn't be loaded and were skipped"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "No se pudo cargar %lld foto y se omitió"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "No se pudieron cargar %lld fotos y se omitieron"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "No se pudieron cargar %lld fotos y se omitieron"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld фото не удалось загрузить, они пропущены"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld фото не удалось загрузить, они пропущены"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld фото не удалось загрузить, оно пропущено"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld фото не удалось загрузить, они пропущены"
+                }
+              }
+            }
           }
         }
       }
     },
     "notification.reviewReady.body" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open PhotoSweep to review similar photos."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Abre PhotoSweep para revisar fotos similares."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото."
           }
         }
       }
     },
     "notification.reviewReady.bodyUnavailable %lld" : {
       "localizations" : {
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Foto konnte nicht geladen werden und wurde übersprungen."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
+                }
+              }
+            }
+          }
+        },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Open PhotoSweep to review similar photos. %lld photo couldn't be loaded and was skipped."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudo cargar %lld foto y se omitió."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, оно пропущено."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                }
+              }
+            }
           }
         }
       }
     },
     "notification.reviewReady.title" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos bereit zur Überprüfung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photos ready for review"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos listas para revisar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Фото готовы к просмотру"
           }
         }
       }
@@ -1277,40 +1739,112 @@
     },
     "onboarding.notifications.allow" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Mitteilungen erlauben"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow Notifications"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Permitir notificaciones"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Разрешить уведомления"
           }
         }
       }
     },
     "onboarding.notifications.skip" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Nicht jetzt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not Now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ahora no"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Не сейчас"
           }
         }
       }
     },
     "onboarding.notifications.subtitle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep kann Ihre Fotos weiter vorbereiten, nachdem Sie die App verlassen haben, und Sie benachrichtigen, sobald sie zur Überprüfung bereit sind."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "PhotoSweep can keep preparing your photos after you leave the app and let you know when they're ready to review."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep puede seguir preparando tus fotos después de que salgas de la app y avisarte cuando estén listas para revisar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep может продолжать подготовку ваших фото после выхода из приложения и сообщит, когда они будут готовы к просмотру."
           }
         }
       }
     },
     "onboarding.notifications.title" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Erfahren, wann Fotos bereit sind"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Know When Photos Are Ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Entérate cuando tus fotos estén listas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Узнайте, когда фото будут готовы"
           }
         }
       }
@@ -1520,10 +2054,28 @@
     },
     "onboarding.start.failed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ihre Auswahl konnte nicht gespeichert werden. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't save your choices. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "No se pudieron guardar tus opciones. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Не удалось сохранить ваш выбор. Попробуйте снова."
           }
         }
       }
@@ -1791,49 +2343,56 @@
     },
     "review.close" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Schließen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Закрыть"
           }
         }
       }
     },
     "review.deleteAll" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Alle löschen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete All"
           }
-        }
-      }
-    },
-    "review.deleteNPhotos %lld" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld Fotos löschen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete %lld Photos"
-          }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eliminar %lld fotos"
+            "state" : "machine_translated",
+            "value" : "Eliminar todas"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалить фото: %lld"
+            "state" : "machine_translated",
+            "value" : "Удалить все"
           }
         }
       }
@@ -1863,6 +2422,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Удалéнные фото будут перемещены в Недавно удалéнные"
+          }
+        }
+      }
+    },
+    "review.deleteNPhotos %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Fotos löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld Photos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar %lld fotos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить фото: %lld"
           }
         }
       }
@@ -2072,10 +2660,28 @@
     },
     "review.keepAll" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Alle behalten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep All"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Conservar todas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Оставить все"
           }
         }
       }
@@ -2140,70 +2746,196 @@
     },
     "review.notice.commitFailed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Diese Gruppe konnte nicht abgeschlossen werden. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't finish this group. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "No se pudo completar este grupo. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Не удалось завершить обработку этой группы. Попробуйте снова."
           }
         }
       }
     },
     "review.notice.conflict" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Diese Gruppe wurde geändert und daher aktualisiert. Es wurde nichts gelöscht."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "This group changed, so it was refreshed. Nothing was deleted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Este grupo cambió, así que se actualizó. No se eliminó nada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Эта группа изменилась, поэтому она была обновлена. Ничего не удалено."
           }
         }
       }
     },
     "review.notice.declined" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Das Löschen wurde abgebrochen. Es wurde nichts gelöscht."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deletion was cancelled. Nothing was deleted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Se canceló la eliminación. No se eliminó nada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Удаление отменено. Ничего не удалено."
           }
         }
       }
     },
     "review.notice.emptySelection" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Wählen Sie die Fotos aus, die Sie behalten möchten, oder wählen Sie „Alle löschen“."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select the photos to keep, or choose Delete All."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Selecciona las fotos que quieres conservar o elige “Eliminar todas”."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Отметьте фото, которые нужно оставить, или выберите «Удалить все»."
           }
         }
       }
     },
     "review.notice.ok" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "OK"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "OK"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ОК"
           }
         }
       }
     },
     "review.notice.skipFailed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Diese Gruppe konnte nicht übersprungen werden. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't skip this group. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "No se pudo omitir este grupo. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Не удалось пропустить эту группу. Попробуйте снова."
           }
         }
       }
     },
     "review.preview" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vorschau"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preview"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vista previa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Предварительный просмотр"
           }
         }
       }
@@ -3370,80 +4102,224 @@
     },
     "settings.failed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Das hat nicht funktioniert. Versuchen Sie es erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "That didn't work. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "No funcionó. Inténtalo de nuevo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Не удалось выполнить действие. Попробуйте снова."
           }
         }
       }
     },
     "settings.library.header" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Mediathek"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Biblioteca"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Фотобиблиотека"
           }
         }
       }
     },
     "settings.library.rescan" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Mediathek erneut scannen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rescan Library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Reescanear biblioteca"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Сканировать фотобиблиотеку заново"
           }
         }
       }
     },
     "settings.library.rescanFooter" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sucht nach neuen oder bearbeiteten Fotos und startet die Überprüfung neu. Vorhandene Analysen werden wiederverwendet."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checks for new or edited photos and restarts review. Existing analysis is reused."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Busca fotos nuevas o editadas y reinicia la revisión. Se reutiliza el análisis existente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Проверяет наличие новых или отредактированных фото и перезапускает просмотр. Существующие результаты анализа используются повторно."
           }
         }
       }
     },
     "settings.reset" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lokale Daten zurücksetzen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset Local Data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Restablecer datos locales"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Сбросить локальные данные"
           }
         }
       }
     },
     "settings.reset.confirm" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zurücksetzen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Restablecer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Сбросить"
           }
         }
       }
     },
     "settings.reset.confirmMessage" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep verwirft die Analyse, den Überprüfungsfortschritt und übersprungene Gruppen und beginnt von vorn. Ihre Fotos werden nicht verändert."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "PhotoSweep will forget its analysis, review progress and skipped groups, and start over. Your photos are not changed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep olvidará su análisis, el progreso de revisión y los grupos omitidos, y empezará de nuevo. Tus fotos no se modificarán."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "PhotoSweep забудет результаты анализа, прогресс просмотра и пропущенные группы и начнет заново. Ваши фото не изменятся."
           }
         }
       }
     },
     "settings.reset.confirmTitle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lokale Daten zurücksetzen?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset local data?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "¿Restablecer datos locales?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Сбросить локальные данные?"
           }
         }
       }
@@ -3537,50 +4413,140 @@
     },
     "settings.similarity.balanced" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ausgewogen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Balanced"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Equilibrado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Средний"
           }
         }
       }
     },
     "settings.similarity.footer" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "„Streng“ findet nur nahezu identische Aufnahmen. „Großzügig“ gruppiert auch Fotos derselben Szene. Änderungen gelten sofort und starten die Überprüfung neu."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strict finds only nearly identical shots. Loose also groups photos of the same scene. Changes apply immediately and restart review."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "«Estricto» solo encuentra tomas casi idénticas. «Flexible» también agrupa fotos de la misma escena. Los cambios se aplican de inmediato y reinician la revisión."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "«Строгий» находит только почти одинаковые снимки. «Мягкий» также группирует фото одной и той же сцены. Изменения применяются сразу, и просмотр начинается заново."
           }
         }
       }
     },
     "settings.similarity.loose" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Großzügig"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Loose"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Flexible"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Мягкий"
           }
         }
       }
     },
     "settings.similarity.strict" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Streng"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strict"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Estricto"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Строгий"
           }
         }
       }
     },
     "settings.stats.analyzed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos analysiert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photos analyzed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos analizadas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Фото проанализировано"
           }
         }
       }
@@ -3616,20 +4582,56 @@
     },
     "settings.stats.estimateNote" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Gelöschte Fotos bleiben bis zu 30 Tage in Zuletzt gelöscht, bevor der Speicherplatz freigegeben wird."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deleted photos stay in Recently Deleted for up to 30 days before space is reclaimed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Las fotos eliminadas permanecen en Eliminados recientemente hasta 30 días antes de que se libere el espacio."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Удаленные фото хранятся в альбоме «Недавно удаленные» до 30 дней, после чего место освобождается."
           }
         }
       }
     },
     "settings.stats.freed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Geschätzt freigegebener Speicher"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estimated space freed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Espacio liberado estimado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Примерно освобождено"
           }
         }
       }
@@ -3752,30 +4754,168 @@
     },
     "settings.stats.reviewed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Gruppen überprüft"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Groups reviewed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Grupos revisados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Групп просмотрено"
           }
         }
       }
     },
     "settings.stats.unavailable" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos nicht verfügbar"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photos unavailable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fotos no disponibles"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Недоступные фото"
           }
         }
       }
     },
     "settings.stats.unknownSizes %lld" : {
       "localizations" : {
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Bei %lld Löschung war die Größe unbekannt. Sie ist in der Schätzung nicht enthalten."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Bei %lld Löschungen war die Größe unbekannt. Sie sind in der Schätzung nicht enthalten."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "Bei %lld Löschungen war die Größe unbekannt. Sie sind in der Schätzung nicht enthalten."
+                }
+              }
+            }
+          }
+        },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld deletions had an unknown size and aren't included in the estimate."
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld deletion had an unknown size and isn't included in the estimate."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld deletions had an unknown size and aren't included in the estimate."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld deletions had an unknown size and aren't included in the estimate."
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld eliminación tenía un tamaño desconocido y no se incluye en la estimación."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld eliminaciones tenían un tamaño desconocido y no se incluyen en la estimación."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld eliminaciones tenían un tamaño desconocido y no se incluyen en la estimación."
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld удаления с неизвестным размером не учтены в оценке."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld удалений с неизвестным размером не учтены в оценке."
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld удаление с неизвестным размером не учтено в оценке."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld удаления с неизвестным размером не учтены в оценке."
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "machine_translated",
+                  "value" : "%lld удалений с неизвестным размером не учтены в оценке."
+                }
+              }
+            }
           }
         }
       }
@@ -3810,5 +4950,5 @@
       }
     }
   },
-  "version" : "1.1"
+  "version" : "1.3"
 }
