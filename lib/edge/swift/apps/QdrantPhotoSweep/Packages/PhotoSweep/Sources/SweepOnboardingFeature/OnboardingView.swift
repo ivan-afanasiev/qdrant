@@ -89,13 +89,17 @@ public struct OnboardingView: View {
                 .font(.system(size: QSize.iconXLarge))
                 .foregroundStyle(QColors.primary)
                 .accessibilityHidden(true)
+            // Long titles (and translations) wrap instead of truncating to one line.
             Text(title)
                 .font(QTypography.titleLarge)
                 .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
             Text(subtitle)
                 .font(QTypography.bodyMedium)
                 .foregroundStyle(QColors.textSecondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
