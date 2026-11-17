@@ -63,6 +63,11 @@ public struct LoadReviewImage: Sendable {
         try await library.loadThumbnail(for: try await photo(asset), size: CGSize(width: pixels, height: pixels))
     }
 
+    /// High quality at screen size, for review cards; the original stays for the preview.
+    public func display(_ asset: AssetID, maxPixels: Int) async throws(AdapterError) -> CGImage {
+        try await library.loadDisplayImage(for: try await photo(asset), maxPixels: maxPixels)
+    }
+
     public func original(_ asset: AssetID) async throws(AdapterError) -> CGImage {
         try await library.loadFullImage(for: try await photo(asset))
     }

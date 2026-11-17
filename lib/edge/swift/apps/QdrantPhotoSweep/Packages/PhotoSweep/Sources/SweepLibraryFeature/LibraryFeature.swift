@@ -43,7 +43,7 @@ public struct LibraryFeature: Reducer {
         /// resumes automatically on activation, so it offers none.
         public var control: Control? {
             switch status {
-            case .running: .pause
+            case .preparing, .running: .pause
             case .pausedByUser: .resume
             case .failed: .retry
             case .idle, .interrupted, .completed: nil

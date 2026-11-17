@@ -39,7 +39,10 @@ public struct LibraryProgressView: View {
             }
             VStack(spacing: QSpacing.md) {
                 statusLine
-                if let progress = store.state.status.progress, progress.total > 0 {
+                if case .preparing(let done, let total) = store.state.status, total > 0 {
+                    ProgressView(value: Double(done), total: Double(total))
+                        .tint(QColors.primary)
+                } else if let progress = store.state.status.progress, progress.total > 0 {
                     let done = Double(progress.vectorized + progress.deferred)
                     ProgressView(value: done, total: Double(progress.total))
                         .tint(QColors.primary)
@@ -80,6 +83,16 @@ public struct LibraryProgressView: View {
         switch store.state.status {
         case .idle:
             Text(L10n.libraryIdle)
+        case .preparing(let done, let total):
+            Label {
+                if total > 0 {
+                    Text(L10n.libraryPreparing(done, total)).monospacedDigit()
+                } else {
+                    Text(L10n.libraryPreparingStart)
+                }
+            } icon: {
+                ProgressView()
+            }
         case .running(let progress):
             Label {
                 Text(L10n.scanProgressStatus(progress.vectorized + progress.deferred, progress.total))
@@ -145,7 +158,7 @@ extension VectorizationStatus {
         switch self {
         case .running(let progress), .pausedByUser(let progress), .interrupted(let progress), .failed(_, let progress):
             progress
-        case .idle, .completed:
+        case .idle, .preparing, .completed:
             nil
         }
     }

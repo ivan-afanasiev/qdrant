@@ -16,7 +16,7 @@ Test: empty/final batch/cache/edited asset; initial/deferred gate/incremental ar
 
 ## TEST-04 (T) — Real adapters
 
-Exercise real temporary Qdrant reopen/upsert/search/delete and SwiftData transactions/reopen, Vision smoke tests and Photos cancellation. Recording image fakes prove vectorization never loads full resolution and only review originals (presented cards/preview) do. DI checks cover graph builds/bindings/lifetimes/bootstrap retry/test isolation. No unit test may access the live library.
+Exercise real temporary Qdrant reopen/upsert/search/delete and SwiftData transactions/reopen, Vision smoke tests and Photos cancellation. Recording image fakes prove vectorization never loads full resolution, cards use screen-sized images, and only the preview loads the original. DI checks cover graph builds/bindings/lifetimes/bootstrap retry/test isolation. No unit test may access the live library.
 
 ## TEST-05 (V) — Physical validation
 

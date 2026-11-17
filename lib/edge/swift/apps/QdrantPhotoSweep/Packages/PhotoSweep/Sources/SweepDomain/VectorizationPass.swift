@@ -19,6 +19,14 @@ public struct VectorizationProgress: Equatable, Sendable {
 
     public var remaining: Int { total - vectorized - deferred }
 
+    /// Whether vectorization is working right now (preparing or analyzing).
+    public static func isWorking(_ status: VectorizationStatus) -> Bool {
+        switch status {
+        case .preparing, .running: true
+        case .idle, .pausedByUser, .interrupted, .failed, .completed: false
+        }
+    }
+
     /// Progress over the whole scope: photos whose vectors were reused count as done.
     public func includingReused(_ reused: Int) -> VectorizationProgress {
         VectorizationProgress(total: total + reused, vectorized: vectorized + reused, deferred: deferred)
@@ -29,6 +37,9 @@ public struct VectorizationProgress: Equatable, Sendable {
 /// User-visible vectorization state. There is deliberately no cancelled state.
 public enum VectorizationStatus: Equatable, Sendable {
     case idle
+    /// Checking access and reading the library before photos are analyzed. `total` is 0
+    /// until the library has been fetched; `done` counts photos registered so far.
+    case preparing(done: Int, total: Int)
     case running(VectorizationProgress)
     case pausedByUser(VectorizationProgress)
     /// Stopped by the system (expiration, termination); resumes without user action.

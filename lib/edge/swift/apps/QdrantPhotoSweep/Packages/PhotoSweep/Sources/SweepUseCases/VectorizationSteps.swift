@@ -19,7 +19,12 @@ public struct ReconcilePhotoLibrary: Sendable {
 
     static let registrationChunk = 500
 
-    public func execute(scope: DateRange) async throws(VectorizationFailure) -> Result {
+    /// - Parameter onProgress: photos registered so far and the total, after the fetch and
+    ///   after every chunk.
+    public func execute(
+        scope: DateRange,
+        onProgress: @Sendable (_ done: Int, _ total: Int) async -> Void = { _, _ in }
+    ) async throws(VectorizationFailure) -> Result {
         let photos: [PhotoAsset]
         do {
             photos = try await library.fetchAssets(in: scope)
@@ -34,9 +39,11 @@ public struct ReconcilePhotoLibrary: Sendable {
             // choices, is not held up behind one call covering the whole library.
             var records: [AssetRecord] = []
             records.reserveCapacity(discovered.count)
+            await onProgress(0, discovered.count)
             for start in stride(from: 0, to: discovered.count, by: Self.registrationChunk) {
                 let chunk = Array(discovered[start..<min(start + Self.registrationChunk, discovered.count)])
                 records += try await assets.register(chunk)
+                await onProgress(records.count, discovered.count)
             }
             let byID = Dictionary(photos.map { (AssetID($0.localIdentifier), $0) }, uniquingKeysWith: { first, _ in first })
             return Result(records: records, photos: byID)

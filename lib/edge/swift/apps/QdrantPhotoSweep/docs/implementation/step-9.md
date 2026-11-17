@@ -57,6 +57,12 @@ Review showed "All done" after 11 groups in a library with hundreds of similar p
 
 The progress screen showed about 18,000 photos for "All Time", while the legacy app showed more than 30,000. Both use the same Photos query (all images in the date range). The rewrite counted only the pass's work set, i.e. photos still needing analysis, while photos with reusable vectors from earlier runs were left out. Progress now covers the whole scope, and reused photos count as done. Pass bookkeeping (completion, deferrals, notifications) is unchanged. On the full progress screen the control button is full width and large, Pause in the regular glass style and Resume/Retry prominent, and while running the line under the bar shows the percentage instead of repeating the count.
 
+## Known issues fixed before step 10 (2026-11-17)
+
+- **Progress while preparing.** A new `VectorizationStatus.preparing(done:total:)` covers the access check, library fetch and chunked registration. The progress screen shows "Reading your library: x of y", and continued tasks report the same numbers, so the Live Activity no longer sits at zero during a long first phase. `reconcileReportsProgressAfterFetchAndEveryChunk` covers the reporting; grace windows also treat preparing as working.
+- **Memory-bounded review cards.** Cards load a high-quality image sized to the card (longest side = card width × display scale, adjusted for portrait, rounded to 256 px and capped at 4096) through `PhotoLibraryProviding.loadDisplayImage`. Only the full-screen preview decodes the original.
+- **Russian strings.** Five older strings with a Latin "é" now use Cyrillic «ё». The two new status strings are translated into de/es/ru (machine translated, pending native review).
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

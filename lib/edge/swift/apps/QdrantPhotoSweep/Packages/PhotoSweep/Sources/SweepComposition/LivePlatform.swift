@@ -48,6 +48,7 @@ private struct UnavailablePhotoLibrary: PhotoLibraryProviding {
     func countAssets(in dateRange: DateRange) async throws(AdapterError) -> Int { 0 }
     func loadThumbnail(for asset: PhotoAsset, size: CGSize) async throws(AdapterError) -> CGImage { throw .photoLibrary("Unavailable") }
     func loadFullImage(for asset: PhotoAsset) async throws(AdapterError) -> CGImage { throw .photoLibrary("Unavailable") }
+    func loadDisplayImage(for asset: PhotoAsset, maxPixels: Int) async throws(AdapterError) -> CGImage { throw .photoLibrary("Unavailable") }
     func deleteAssets(_ identifiers: [String]) async throws(AdapterError) { throw .deletion("Unavailable") }
 }
 

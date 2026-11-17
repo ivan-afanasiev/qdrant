@@ -80,7 +80,7 @@ public actor AppLifecycleCoordinator {
         presence = .background
         await dependencies.discovery.setPresence(.background)
         let hasContinuation = windows.values.contains { $0.window.kind == .continued }
-        if case .running = dependencies.vectorization.status, !hasContinuation,
+        if VectorizationProgress.isWorking(dependencies.vectorization.status), !hasContinuation,
            let grace = await dependencies.scheduler.beginGraceWindow() {
             Task { await self.run(grace) }
         }
@@ -118,8 +118,15 @@ public actor AppLifecycleCoordinator {
         let vectorization = dependencies.vectorization
         let progressTask = Task {
             for await status in vectorization.statusUpdates() {
-                if case .running(let progress) = status {
+                switch status {
+                case .running(let progress):
                     window.reportProgress(progress)
+                case .preparing(let done, let total) where total > 0:
+                    // Reading the library can take minutes; a moving Live Activity keeps
+                    // iOS from treating the task as stalled.
+                    window.reportProgress(VectorizationProgress(total: total, vectorized: done, deferred: 0))
+                default:
+                    break
                 }
             }
         }

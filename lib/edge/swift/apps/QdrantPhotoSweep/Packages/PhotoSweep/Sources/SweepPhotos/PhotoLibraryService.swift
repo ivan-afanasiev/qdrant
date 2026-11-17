@@ -74,6 +74,14 @@ public final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendab
         return try await loadOriginalCGImage(for: phAsset)
     }
 
+    public func loadDisplayImage(for asset: PhotoAsset, maxPixels: Int) async throws(AdapterError) -> CGImage {
+        guard let phAsset = phAsset(for: asset.localIdentifier) else {
+            throw .photoLibrary("Asset not found: \(asset.localIdentifier)")
+        }
+        let side = CGFloat(max(1, maxPixels))
+        return try await loadHighQualityCGImage(for: phAsset, targetSize: CGSize(width: side, height: side))
+    }
+
     public func deleteAssets(_ identifiers: [String]) async throws(AdapterError) {
         let fetchResult = PHAsset.fetchAssets(
             withLocalIdentifiers: identifiers,

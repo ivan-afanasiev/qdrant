@@ -371,8 +371,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подсчéт фото…"
+            "state" : "machine_translated",
+            "value" : "Подсчёт фото…"
           }
         }
       }
@@ -748,8 +748,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Доступ к фото отклонéн. Включите в Настройках."
+            "state" : "machine_translated",
+            "value" : "Доступ к фото отклонён. Включите в Настройках."
           }
         }
       }
@@ -1148,6 +1148,62 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "Приостановлено"
+          }
+        }
+      }
+    },
+    "library.status.preparing %lld %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Mediathek wird gelesen: %lld von %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading your library: %lld of %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Leyendo tu biblioteca: %lld de %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Чтение фотобиблиотеки: %1$lld из %2$lld"
+          }
+        }
+      }
+    },
+    "library.status.preparingStart" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ihre Fotobibliothek wird gelesen…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading your photo library…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Leyendo tu biblioteca de fotos…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Чтение фотобиблиотеки…"
           }
         }
       }
@@ -1872,8 +1928,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Доступ был отклонéн. Пожалуйста, включите доступ к фото в Настройках."
+            "state" : "machine_translated",
+            "value" : "Доступ был отклонён. Пожалуйста, включите доступ к фото в Настройках."
           }
         }
       }
@@ -2132,8 +2188,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Всé время"
+            "state" : "machine_translated",
+            "value" : "Всё время"
           }
         }
       }
@@ -2420,8 +2476,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалéнные фото будут перемещены в Недавно удалéнные"
+            "state" : "machine_translated",
+            "value" : "Удалённые фото будут перемещены в Недавно удалённые"
           }
         }
       }

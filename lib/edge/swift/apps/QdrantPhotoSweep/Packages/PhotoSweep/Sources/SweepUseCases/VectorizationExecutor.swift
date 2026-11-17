@@ -248,6 +248,7 @@ public actor VectorizationExecutor {
 
     private func performPass() async throws {
         let library = dependencies.library
+        broadcast.send(.preparing(done: 0, total: 0))
         let retry = RetryRunner(policy: configuration.retryPolicy, sleeper: dependencies.sleeper)
 
         try await stopOnFailure { () async throws(VectorizationFailure) in
@@ -266,7 +267,9 @@ public actor VectorizationExecutor {
             }
         }
         let reconciled = try await stopOnFailure { () async throws(VectorizationFailure) in
-            try await ReconcilePhotoLibrary(library: library, assets: dependencies.assets).execute(scope: state.scope)
+            try await ReconcilePhotoLibrary(library: library, assets: dependencies.assets).execute(scope: state.scope) { [broadcast] done, total in
+                broadcast.send(.preparing(done: done, total: total))
+            }
         }
         try Task.checkCancellation()
 

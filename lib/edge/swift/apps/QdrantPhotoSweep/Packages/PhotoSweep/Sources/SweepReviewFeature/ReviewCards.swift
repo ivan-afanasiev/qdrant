@@ -100,8 +100,10 @@ struct GroupComparisonView: View {
     }
 }
 
-/// One photo card. Shows a thumbnail first, then replaces it with the original once the card
-/// is on screen; a spinner in the top-left corner shows the original is still loading.
+/// One photo card. Shows a thumbnail first, then replaces it with a high-quality image sized
+/// to the card once it is on screen; a spinner in the top-left corner shows it is loading.
+/// The full original is decoded only by the full-screen preview, which keeps memory bounded
+/// for large groups.
 struct PhotoCardView: View {
     static let thumbnailPixels = 800
 
@@ -114,6 +116,8 @@ struct PhotoCardView: View {
     @State private var thumbnail: CGImage?
     @State private var original: CGImage?
     @State private var isLoadingOriginal = false
+    @State private var cardWidth: CGFloat = 0
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         Button(action: onTap) {
@@ -159,17 +163,33 @@ struct PhotoCardView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isKept ? .isSelected : [])
-        .task(id: asset) {
-            original = nil
-            thumbnail = await images.thumbnail(asset, Self.thumbnailPixels)
-            guard !Task.isCancelled else { return }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { cardWidth = $0 }
+        .task(id: DisplayRequest(asset: asset, maxPixels: displayPixels)) {
+            if thumbnail == nil {
+                thumbnail = await images.thumbnail(asset, Self.thumbnailPixels)
+            }
+            guard !Task.isCancelled, displayPixels > Self.thumbnailPixels else { return }
             isLoadingOriginal = true
-            let loaded = await images.original(asset)
+            let loaded = await images.display(asset, displayPixels)
             isLoadingOriginal = false
             // Cancelled when the card leaves the screen; keep the thumbnail in that case.
             guard !Task.isCancelled, let loaded else { return }
             original = loaded
         }
+    }
+
+    private struct DisplayRequest: Equatable {
+        let asset: AssetID
+        let maxPixels: Int
+    }
+
+    /// Longest side in pixels at the card's displayed size, rounded up to a 256 px step so
+    /// small layout changes do not reload, and capped at 4096.
+    private var displayPixels: Int {
+        guard cardWidth > 0 else { return 0 }
+        let longest = cardWidth * displayScale / min(aspectRatio, 1)
+        let rounded = Int((longest / 256).rounded(.up)) * 256
+        return min(rounded, 4096)
     }
 
     @ViewBuilder

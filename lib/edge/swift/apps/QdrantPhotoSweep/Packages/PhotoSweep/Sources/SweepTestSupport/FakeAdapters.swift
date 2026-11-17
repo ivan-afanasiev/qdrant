@@ -8,6 +8,7 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
     public enum ImageRequest: Equatable, Sendable {
         case thumbnail(assetID: String, size: CGSize)
         case fullResolution(assetID: String)
+        case display(assetID: String, maxPixels: Int)
     }
 
     public var assets: [PhotoAsset]
@@ -90,6 +91,11 @@ public actor FakePhotoLibrary: PhotoLibraryProviding {
 
     public func loadFullImage(for asset: PhotoAsset) async throws(AdapterError) -> CGImage {
         imageRequests.append(.fullResolution(assetID: asset.id))
+        return try image(for: asset)
+    }
+
+    public func loadDisplayImage(for asset: PhotoAsset, maxPixels: Int) async throws(AdapterError) -> CGImage {
+        imageRequests.append(.display(assetID: asset.id, maxPixels: maxPixels))
         return try image(for: asset)
     }
 

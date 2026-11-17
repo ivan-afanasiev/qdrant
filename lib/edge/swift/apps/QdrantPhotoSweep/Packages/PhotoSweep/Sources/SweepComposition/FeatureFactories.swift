@@ -56,6 +56,7 @@ extension AppRuntime {
         return ReviewImages(
             details: { await images.details($0) },
             thumbnail: { try? await images.thumbnail($0, pixels: $1) },
+            display: { try? await images.display($0, maxPixels: $1) },
             original: { try? await images.original($0) }
         )
     }

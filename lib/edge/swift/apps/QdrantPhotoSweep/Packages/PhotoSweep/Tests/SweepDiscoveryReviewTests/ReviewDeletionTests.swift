@@ -60,7 +60,10 @@ private func ids(_ names: String...) -> Set<AssetID> {
         let (world, _) = try await twoPairs()
         let images = LoadReviewImage(library: world.library)
         _ = try await images.thumbnail(AssetID("a"), pixels: 300)
+        // Cards use a screen-sized image, never the full original.
+        _ = try await images.display(AssetID("a"), maxPixels: 1_536)
         #expect(await world.library.fullResolutionRequestCount == 0)
+        #expect(await world.library.imageRequests.contains(.display(assetID: "a", maxPixels: 1_536)))
         _ = try await images.original(AssetID("a"))
         #expect(await world.library.fullResolutionRequestCount == 1)
     }

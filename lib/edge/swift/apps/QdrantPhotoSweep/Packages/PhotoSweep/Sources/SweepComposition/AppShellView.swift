@@ -147,7 +147,7 @@ private extension LibraryFeature.State {
     /// Statuses worth showing above the cards.
     var isActive: Bool {
         switch status {
-        case .running, .pausedByUser, .failed: true
+        case .preparing, .running, .pausedByUser, .failed: true
         case .idle, .interrupted, .completed: false
         }
     }

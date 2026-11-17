@@ -199,6 +199,12 @@ public enum L10n {
     public static let pause: LocalizedStringResource = LocalizedStringResource("library.pause", bundle: .atURL(Bundle.module.bundleURL))
     public static let resume: LocalizedStringResource = LocalizedStringResource("library.resume", bundle: .atURL(Bundle.module.bundleURL))
 
+    public static let libraryPreparingStart: LocalizedStringResource = LocalizedStringResource("library.status.preparingStart", bundle: .atURL(Bundle.module.bundleURL))
+
+    public static func libraryPreparing(_ done: Int, _ total: Int) -> String {
+        String(localized: "library.status.preparing \(done) \(total)", bundle: .module)
+    }
+
     public static func libraryUnavailable(_ count: Int) -> String {
         String(localized: "library.unavailable \(count)", bundle: .module)
     }

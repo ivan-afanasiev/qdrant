@@ -56,6 +56,9 @@ public protocol PhotoLibraryProviding: Sendable {
     func countAssets(in dateRange: DateRange) async throws(AdapterError) -> Int
     func loadThumbnail(for asset: PhotoAsset, size: CGSize) async throws(AdapterError) -> CGImage
     func loadFullImage(for asset: PhotoAsset) async throws(AdapterError) -> CGImage
+    /// A high-quality image whose longest side is at most `maxPixels`, for showing a photo
+    /// at screen size without decoding the full original.
+    func loadDisplayImage(for asset: PhotoAsset, maxPixels: Int) async throws(AdapterError) -> CGImage
     func deleteAssets(_ identifiers: [String]) async throws(AdapterError)
 }
 
