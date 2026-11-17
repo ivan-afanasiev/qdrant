@@ -46,6 +46,13 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
 - **Neural Engine, not CPU-only.** Forcing every Vision stage onto the CPU in the background (step 8 decision) failed on device with `Missing weights path SceneNet…` (`ESPRESSO_STATUS_ERROR_IO`): the CPU variant of the feature-print model was not present. Every background embedding failed, progress stalled, and iOS ended the continued task. Background requests now use the Neural Engine when available and fall back to the CPU; the GPU is still never used, which keeps the heat goal of the original decision.
 - **No progress after expiry.** Expired continued tasks no longer receive progress updates. Their Live Activity is already gone, and late updates logged `Couldn't find bgContinuedProcessing-… in the list of started activities`.
 
+## Discovery during long passes (device feedback, 2026-11-17)
+
+Review showed "All done" after 11 groups in a library with hundreds of similar photos. The discovery algorithm (newest-first seeds, connected components, suppression, paged exact search) behaved as specified; two gaps made the result look final too early:
+
+- Discovery refilled only when a vectorization pass ended, so vectors committed during a long pass (new photos, or photos deferred earlier by the background Vision failure and retried) did not reach review until the whole pass finished. The coordinator now requests a refill after every committed batch in the foreground. `discoveryUsesVectorsCommittedDuringALongPass` covers this and fails without the change.
+- "All done" was shown whenever discovery was exhausted. It is now shown only when vectorization is not running, paused or failed; otherwise the review area keeps showing "Finding duplicates…" under the progress line.
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

@@ -102,7 +102,7 @@ struct MainView: View {
         } else {
             // The progress line is a top bar, so the cards still scroll under it and the
             // navigation bar.
-            ReviewArea(runtime: runtime)
+            ReviewArea(runtime: runtime, isLibraryWorking: libraryStore.state.isActive)
                 .safeAreaBar(edge: .top) {
                     if libraryStore.state.isActive {
                         LibraryProgressView(store: libraryStore, isCompact: true)
@@ -130,14 +130,16 @@ struct SettingsScreen: View {
 struct ReviewArea: View {
     @State private var store: Store<ReviewFeature>
     private let images: ReviewImages
+    private let isLibraryWorking: Bool
 
-    init(runtime: AppRuntime) {
+    init(runtime: AppRuntime, isLibraryWorking: Bool) {
         _store = State(initialValue: runtime.makeReviewStore())
         images = runtime.reviewImages
+        self.isLibraryWorking = isLibraryWorking
     }
 
     var body: some View {
-        ReviewView(store: store, images: images)
+        ReviewView(store: store, images: images, isLibraryWorking: isLibraryWorking)
     }
 }
 

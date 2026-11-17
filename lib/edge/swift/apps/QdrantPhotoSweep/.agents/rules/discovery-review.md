@@ -12,7 +12,7 @@ Keep 2–3 unreviewed groups including current card. Review/skip triggers refill
 
 ## REV-03 (T) — Lazy algorithm
 
-Use a durable seed order, newest photos first (creation date descending), and a deduplicated component frontier. Fully expand a component against its captured eligible generation before publication; transactionally save group/membership/progress. Persist/spill frontier for large groups, resume after interruption. No eager whole-library recomputation on each refill. Route later vectors into subsequent discovery work.
+Use a durable seed order, newest photos first (creation date descending), and a deduplicated component frontier. Fully expand a component against its captured eligible generation before publication; transactionally save group/membership/progress. Persist/spill frontier for large groups, resume after interruption. No eager whole-library recomputation on each refill. Route later vectors into subsequent discovery work: foreground discovery refills after every committed vectorization batch, not only when a pass ends, and "All done" is shown only when discovery is exhausted and vectorization has nothing left to do.
 
 ## REV-04 (V) — Search completeness
 

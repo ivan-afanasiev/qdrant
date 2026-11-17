@@ -197,6 +197,45 @@ import SweepUseCases
         #expect(try await device.pause == PauseState.none)
     }
 
+    @Test(.timeLimit(.minutes(1))) func discoveryUsesVectorsCommittedDuringALongPass() async throws {
+        let embedder = GatedEmbedder(blockOnCall: 7)
+        let device = try Device(photoCount: 2, embedder: embedder)
+        #expect(await device.coordinator.userRequestedVectorization(.userResume) == .started)
+        await device.vectorization.waitUntilIdle()
+        await device.discoverySettled()
+        let revision = try #require(try await device.store.loadWorkflowState()).discoveryRevision
+        let groupID = try #require(try await device.store.reviewQueue(for: revision).fresh.first)
+        #expect(try await device.store.group(groupID)?.members.count == 2)
+
+        // Six new photos: two batches of two commit, then the seventh embedding blocks.
+        await device.library.setAssets((1...8).map { index in
+            PhotoAsset(
+                id: "p\(index)", localIdentifier: "p\(index)",
+                creationDate: Date(timeIntervalSince1970: Double(index) * 86_400),
+                pixelWidth: 10, pixelHeight: 10, fileSize: nil,
+                modificationDate: Date(timeIntervalSince1970: 0)
+            )
+        })
+        let updates = device.discovery.updates()
+        #expect(await device.coordinator.userRequestedVectorization(.userResume) == .started)
+        await embedder.gate.waitForWaiters(1)
+
+        // While the pass is still blocked, discovery merges the committed vectors.
+        var sawSearching = false
+        for await update in updates {
+            if update.status == .searching { sawSearching = true }
+            guard sawSearching, update.status == .exhausted || update.status == .bufferReady else { continue }
+            if let members = try await device.store.group(groupID)?.members, members.count > 2 { break }
+        }
+        #expect(device.vectorization.status != .completed(deferredCount: 0))
+        #expect(try await device.store.group(groupID)?.members.count == 6)
+
+        await embedder.gate.open()
+        await device.vectorization.waitUntilIdle()
+        await device.discovery.waitUntilIdle()
+        #expect(try await device.store.group(groupID)?.members.count == 8)
+    }
+
     @Test func discoveryNeverRunsInTheBackground() async throws {
         let device = try Device(photoCount: 3)
         await device.coordinator.appDidEnterBackground()

@@ -9,13 +9,17 @@ import SweepFeatureState
 public struct ReviewView: View {
     private let store: Store<ReviewFeature>
     private let images: ReviewImages
+    private let isLibraryWorking: Bool
     @State private var dragOffset: CGFloat = 0
     @State private var preview: PreviewTarget?
     @State private var details: [AssetID: PhotoAsset] = [:]
 
-    public init(store: Store<ReviewFeature>, images: ReviewImages) {
+    /// - Parameter isLibraryWorking: vectorization is still producing vectors, so an
+    ///   exhausted discovery is not "All done" yet; more groups can still appear.
+    public init(store: Store<ReviewFeature>, images: ReviewImages, isLibraryWorking: Bool = false) {
         self.store = store
         self.images = images
+        self.isLibraryWorking = isLibraryWorking
     }
 
     public var body: some View {
@@ -68,7 +72,7 @@ public struct ReviewView: View {
         VStack(spacing: QSpacing.lg) {
             Spacer()
             switch store.state.discovery?.status {
-            case .exhausted:
+            case .exhausted where !isLibraryWorking:
                 QStatusIcon(QIcons.successFill, size: QSize.iconXLarge, color: QColors.success)
                 Text(L10n.allDone)
                     .font(QTypography.titleMedium)

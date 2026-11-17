@@ -49,6 +49,8 @@ public actor AppLifecycleCoordinator {
     /// racing between the persisted check and the persisted record.
     private var announcedPasses: Set<VectorizationPassID> = []
     private var completionObserver: Task<Void, Never>?
+    /// Vectorized count of the running pass at the last mid-pass discovery refill.
+    private var lastRefillVectorizedCount = 0
 
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies
@@ -190,20 +192,39 @@ public actor AppLifecycleCoordinator {
 
     /// Newly committed vectors (including the pass that opens the initial gate) become
     /// eligible for discovery, which only refills while the app is in the foreground.
+    /// Refills happen after every committed batch, not only when a pass ends: otherwise a
+    /// long pass (new photos, retried deferrals) leaves discovery exhausted until it finishes.
     private func observeVectorizationCompletions() {
         guard completionObserver == nil else { return }
         let updates = dependencies.vectorization.statusUpdates()
         completionObserver = Task { [weak self] in
             for await status in updates {
-                if case .completed = status {
+                switch status {
+                case .completed:
                     await self?.vectorizationCompleted()
+                case .running(let progress):
+                    await self?.vectorizationCommitted(progress)
+                default:
+                    break
                 }
             }
         }
     }
 
     private func vectorizationCompleted() async {
+        lastRefillVectorizedCount = 0
         guard presence == .foreground else { return }
+        await dependencies.discovery.requestRefill()
+    }
+
+    /// Requests a refill when a batch added vectors since the last refill in this pass.
+    private func vectorizationCommitted(_ progress: VectorizationProgress) async {
+        if progress.vectorized < lastRefillVectorizedCount {
+            // A new pass started; its counts restart from zero.
+            lastRefillVectorizedCount = 0
+        }
+        guard progress.vectorized > lastRefillVectorizedCount, presence == .foreground else { return }
+        lastRefillVectorizedCount = progress.vectorized
         await dependencies.discovery.requestRefill()
     }
 
