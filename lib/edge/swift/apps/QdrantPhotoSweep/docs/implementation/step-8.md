@@ -59,7 +59,7 @@ The continued task's `expirationHandler` is the only signal for both a person's 
 
 ## Confirmed decisions (2026-11-14)
 
-Device observation after step 9; Live Activity Cancel = manual pause; continuation only for explicit user actions; CPU-only background Vision with no external-power requirement.
+Device observation after step 9; Live Activity Cancel = manual pause; continuation only for explicit user actions; CPU-only background Vision with no external-power requirement. *(Superseded 2026-11-17 by a device finding: background Vision uses the Neural Engine, falling back to the CPU, and never the GPU; see step-9.md.)*
 
 ## Further confirmed decisions
 

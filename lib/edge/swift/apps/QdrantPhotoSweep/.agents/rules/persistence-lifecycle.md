@@ -16,7 +16,7 @@ Pause checkpoints and persists suppression of foreground/background automatic ve
 
 ## LIFE-04 (C) — Background
 
-Support continued foreground vectorization and automatic iOS-scheduled work using one executor/shard graph. Background discovery is forbidden; suspend/checkpoint its frontier on background entry. Thin adapters register/schedule/report completion and expiration; checkpoint on expiry. Background Vision runs on CPU only; scheduled processing does not require external power. Activation reconnects observations and refills only when gate permits.
+Support continued foreground vectorization and automatic iOS-scheduled work using one executor/shard graph. Background discovery is forbidden; suspend/checkpoint its frontier on background entry. Thin adapters register/schedule/report completion and expiration; checkpoint on expiry. Background Vision never uses the GPU: Neural Engine when available, else CPU (the CPU-only model variant can be missing on device); scheduled processing does not require external power. Activation reconnects observations and refills only when gate permits.
 
 ## LIFE-05 (V) — System eligibility
 

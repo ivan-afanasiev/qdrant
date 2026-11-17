@@ -164,7 +164,9 @@ public actor AppLifecycleCoordinator {
     /// HandleExecutionExpiration. A continued window's expiration is treated as the person
     /// cancelling it (the system does not distinguish the two), i.e. a manual pause.
     private func expire(_ window: any ExecutionWindow) async {
-        guard windows[ObjectIdentifier(window)] != nil else { return }
+        guard let active = windows[ObjectIdentifier(window)] else { return }
+        // The window is gone; stop reporting before waiting for the safe stop below.
+        active.progressTask.cancel()
         let othersKeepRunning = windows.keys.contains { $0 != ObjectIdentifier(window) }
         if window.kind == .continued {
             await dependencies.vectorization.pause()

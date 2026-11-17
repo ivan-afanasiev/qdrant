@@ -41,6 +41,11 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
 - **No automatic work before onboarding completes** (device feedback, 2026-11-17). Activation, scheduled and grace windows are skipped until Start. Previously, returning from the Photos permission alert started an "All Time" pass whose single huge metadata call held the store, so Start never finished saving. Registration now runs in chunks of 500 photos, and point-ID uniqueness takes one query per batch instead of one per photo.
 - **Settings:** controls are disabled while an operation runs; failures show a dismissable alert; reset requires confirmation. "Storage freed" is an estimate that excludes deletions with an unknown size; those deletions are counted in a separate footer.
 
+## Device findings for background Vision (2026-11-17)
+
+- **Neural Engine, not CPU-only.** Forcing every Vision stage onto the CPU in the background (step 8 decision) failed on device with `Missing weights path SceneNet…` (`ESPRESSO_STATUS_ERROR_IO`): the CPU variant of the feature-print model was not present. Every background embedding failed, progress stalled, and iOS ended the continued task. Background requests now use the Neural Engine when available and fall back to the CPU; the GPU is still never used, which keeps the heat goal of the original decision.
+- **No progress after expiry.** Expired continued tasks no longer receive progress updates. Their Live Activity is already gone, and late updates logged `Couldn't find bgContinuedProcessing-… in the list of started activities`.
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

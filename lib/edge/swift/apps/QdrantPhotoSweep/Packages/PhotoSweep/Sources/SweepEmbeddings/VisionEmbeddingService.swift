@@ -37,6 +37,12 @@ public actor VisionEmbeddingService: EmbeddingProviding, EmbeddingModelDescribin
         return context?.makeImage()
     }
 
+    /// Neural Engine first (cool and allowed in the background), then CPU; never the GPU.
+    private static func backgroundDevice(from devices: [MLComputeDevice]) -> MLComputeDevice? {
+        devices.first { if case .neuralEngine = $0 { return true } else { return false } }
+            ?? devices.first { if case .cpu = $0 { return true } else { return false } }
+    }
+
     public var dimensions: Int {
         _detectedDimensions ?? 0
     }
@@ -49,20 +55,21 @@ public actor VisionEmbeddingService: EmbeddingProviding, EmbeddingModelDescribin
         let request = VNGenerateImageFeaturePrintRequest()
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         do {
-            // Let Vision select its normal devices while active. Background requests
-            // must avoid GPU execution without a background GPU entitlement.
+            // Let Vision select its normal devices while active. Background requests must
+            // avoid the GPU without a background GPU entitlement, so each stage uses the
+            // Neural Engine when available and the CPU otherwise. CPU-only is not enough:
+            // on device the CPU variant of the feature-print model can be missing
+            // ("Missing weights path SceneNet…", ESPRESSO_STATUS_ERROR_IO), which failed
+            // every background embedding.
             let isBackground = await MainActor.run {
                 UIApplication.shared.applicationState == .background
             }
             if isBackground {
                 for (stage, devices) in try request.supportedComputeStageDevices {
-                    guard let cpu = devices.first(where: {
-                        if case .cpu = $0 { return true }
-                        return false
-                    }) else {
-                        throw AdapterError.embedding("No CPU compute device is available for this Vision request")
+                    guard let device = Self.backgroundDevice(from: devices) else {
+                        throw AdapterError.embedding("No Neural Engine or CPU device is available for this Vision request")
                     }
-                    request.setComputeDevice(cpu, for: stage)
+                    request.setComputeDevice(device, for: stage)
                 }
             }
             try handler.perform([request])

@@ -135,6 +135,9 @@ final class SystemTaskWindow: ExecutionWindow, @unchecked Sendable {
     private let task: BGTask
     private let lock = NSLock()
     private var isFinished = false
+    /// Set once the system expires the task. Its Live Activity is gone by then, and further
+    /// progress updates only log "Couldn't find … in the list of started activities".
+    private var isExpired = false
 
     init(task: BGTask, kind: ExecutionWindowKind) {
         self.task = task
@@ -142,10 +145,14 @@ final class SystemTaskWindow: ExecutionWindow, @unchecked Sendable {
     }
 
     func onExpiration(_ handler: @escaping @Sendable () -> Void) {
-        task.expirationHandler = handler
+        task.expirationHandler = { [weak self] in
+            self?.lock.withLock { self?.isExpired = true }
+            handler()
+        }
     }
 
     func reportProgress(_ progress: VectorizationProgress) {
+        guard lock.withLock({ !isFinished && !isExpired }) else { return }
         // Continued tasks must show progress or the system ends them first under pressure.
         guard let continued = task as? BGContinuedProcessingTask else { return }
         continued.progress.totalUnitCount = Int64(progress.total)
