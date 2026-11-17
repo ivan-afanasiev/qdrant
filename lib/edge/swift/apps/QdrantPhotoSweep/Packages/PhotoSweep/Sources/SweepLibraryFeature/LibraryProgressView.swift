@@ -5,6 +5,8 @@ import SweepDomain
 import SweepFeatureState
 
 /// Vectorization progress with the single control the status offers. There is no Cancel.
+/// The owner of `store` starts and stops status observation (`.onAppear` / `.onDisappear`),
+/// so that status stays current while this view is hidden or replaced.
 public struct LibraryProgressView: View {
     private let store: Store<LibraryFeature>
     private let isCompact: Bool
@@ -23,8 +25,6 @@ public struct LibraryProgressView: View {
                 full
             }
         }
-        .task { store.send(.onAppear) }
-        .onDisappear { store.send(.onDisappear) }
     }
 
     private var full: some View {

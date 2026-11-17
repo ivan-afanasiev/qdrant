@@ -24,7 +24,7 @@ Read .agents/project-map.md to locate current code and validation entry points. 
 - iPhone/iOS 26+ target; SPM, use cases, native unidirectional state; Swift Testing for unit/integration tests.
 - Preserve Qdrant SDK integration, Photos loading, Vision/cosine and SwiftData. SafeDI requires an early validation milestone.
 - Vectorization may run foreground/background. Discovery is foreground-only and maintains 2–3 ready groups after the initial vectorization pass. Deferred assets and later arrivals have explicit exceptions: read scoped rules.
-- Thumbnails for processing/cards; full resolution only for preview. Card review only; remove grid in the rewrite.
+- Thumbnails only for processing; review cards show a thumbnail first, then the original once presented; preview loads the original. Card review only; remove grid in the rewrite.
 - Never confuse unavailable access with deleted photos, or report cross-store operations complete before durable recovery requirements are met.
 - Do not implement beyond the requested step. Keep rules synchronized when accepted requirements change.
 

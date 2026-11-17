@@ -16,7 +16,7 @@ Retry temporary failures finitely, preserving progress; inject clock and classif
 
 ## VEC-04 (C) — Photos/images
 
-Preserve Photos queries, cancellable thumbnail requests and full-image preview behavior. Vectorization and card paths use thumbnails; only explicit preview loads full resolution. Allow required iCloud downloads on Wi-Fi/cellular. Do not download originals merely to estimate bytes saved.
+Preserve Photos queries, cancellable thumbnail requests and full-image preview behavior. Vectorization uses thumbnails only. Review cards show a thumbnail first and then load the original once presented (with a loading indicator); preview loads the original. Allow required iCloud downloads on Wi-Fi/cellular. Do not download originals merely to estimate bytes saved.
 
 ## VEC-05 (T) — Compatibility/identity
 

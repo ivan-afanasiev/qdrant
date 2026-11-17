@@ -74,8 +74,7 @@ public struct OnboardingView: View {
                     }
                 case .notifications:
                     primaryButton(L10n.onboardingNotificationsAllow) { store.send(.allowNotificationsTapped) }
-                    Button(L10n.onboardingNotificationsSkip) { store.send(.skipNotificationsTapped) }
-                        .buttonStyle(.glass)
+                    secondaryButton(L10n.onboardingNotificationsSkip) { store.send(.skipNotificationsTapped) }
                 case .dateRange:
                     primaryButton(L10n.onboardingGetStarted) { store.send(.startTapped) }
                 }
@@ -102,12 +101,27 @@ public struct OnboardingView: View {
 
     private func primaryButton(_ title: LocalizedStringResource, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
-                .frame(maxWidth: .infinity)
+            buttonLabel(title)
         }
         .buttonStyle(.glassProminent)
         .tint(QColors.primary)
         .controlSize(.large)
+    }
+
+    /// Same size as the primary button, with the regular glass style.
+    private func secondaryButton(_ title: LocalizedStringResource, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            buttonLabel(title)
+        }
+        .buttonStyle(.glass)
+        .controlSize(.large)
+    }
+
+    private func buttonLabel(_ title: LocalizedStringResource) -> some View {
+        Text(title)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(maxWidth: .infinity)
     }
 }
 

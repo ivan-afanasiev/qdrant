@@ -88,6 +88,11 @@ struct MainView: View {
                 discovery = update
             }
         }
+        // Observe vectorization for the whole main screen, not only while a progress view is
+        // visible: otherwise a pass started from Settings (rescan, date range) never reaches
+        // the compact progress line above the cards.
+        .onAppear { libraryStore.send(.onAppear) }
+        .onDisappear { libraryStore.send(.onDisappear) }
     }
 
     @ViewBuilder

@@ -96,7 +96,8 @@ struct GroupComparisonView: View {
     }
 }
 
-/// One photo card. Loads a thumbnail sized for the card, never full resolution.
+/// One photo card. Shows a thumbnail first, then replaces it with the original once the card
+/// is on screen; a spinner in the top-left corner shows the original is still loading.
 struct PhotoCardView: View {
     static let thumbnailPixels = 800
 
@@ -107,6 +108,8 @@ struct PhotoCardView: View {
     let onTap: () -> Void
     let onPreview: () -> Void
     @State private var thumbnail: CGImage?
+    @State private var original: CGImage?
+    @State private var isLoadingOriginal = false
 
     var body: some View {
         Button(action: onTap) {
@@ -114,6 +117,16 @@ struct PhotoCardView: View {
                 image
                 dateLabel
                     .padding(QSpacing.xs)
+            }
+            .overlay(alignment: .topLeading) {
+                if isLoadingOriginal, thumbnail != nil {
+                    ProgressView()
+                        .controlSize(.small)
+                        .padding(QSpacing.xs)
+                        .glassEffect(.regular, in: .circle)
+                        .padding(QSpacing.xs)
+                        .accessibilityHidden(true)
+                }
             }
             .overlay(alignment: .topTrailing) {
                 if isKept {
@@ -143,14 +156,22 @@ struct PhotoCardView: View {
         .buttonStyle(.plain)
         .accessibilityAddTraits(isKept ? .isSelected : [])
         .task(id: asset) {
+            original = nil
             thumbnail = await images.thumbnail(asset, Self.thumbnailPixels)
+            guard !Task.isCancelled else { return }
+            isLoadingOriginal = true
+            let loaded = await images.original(asset)
+            isLoadingOriginal = false
+            // Cancelled when the card leaves the screen; keep the thumbnail in that case.
+            guard !Task.isCancelled, let loaded else { return }
+            original = loaded
         }
     }
 
     @ViewBuilder
     private var image: some View {
-        if let thumbnail {
-            Image(decorative: thumbnail, scale: 1)
+        if let shown = original ?? thumbnail {
+            Image(decorative: shown, scale: 1)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
         } else {
@@ -182,7 +203,7 @@ struct PhotoCardView: View {
     }
 }
 
-/// Full-resolution preview with zoom; the only place full resolution is requested.
+/// Full-resolution preview with zoom.
 struct FullscreenPhotoView: View {
     let asset: AssetID
     let images: ReviewImages
@@ -231,7 +252,7 @@ struct FullscreenPhotoView: View {
         }
         .statusBarHidden()
         .task {
-            image = await images.preview(asset)
+            image = await images.original(asset)
         }
     }
 

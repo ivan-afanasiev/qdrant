@@ -44,7 +44,8 @@ public struct LoadNextReviewGroup: Sendable {
     }
 }
 
-/// Thumbnails for cards and processing; full resolution only for an explicit preview.
+/// Review images: a thumbnail shown first, then the original for presented cards and the preview.
+/// Vectorization never uses this; it loads thumbnails only.
 public struct LoadReviewImage: Sendable {
     private let library: any PhotoLibraryProviding
 
@@ -62,7 +63,7 @@ public struct LoadReviewImage: Sendable {
         try await library.loadThumbnail(for: try await photo(asset), size: CGSize(width: pixels, height: pixels))
     }
 
-    public func preview(_ asset: AssetID) async throws(AdapterError) -> CGImage {
+    public func original(_ asset: AssetID) async throws(AdapterError) -> CGImage {
         try await library.loadFullImage(for: try await photo(asset))
     }
 

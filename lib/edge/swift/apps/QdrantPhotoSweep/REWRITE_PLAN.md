@@ -12,7 +12,7 @@ Based on ARCHITECTURE.md and inspection of the scan pipeline, Photos and Qdrant 
 - Unidirectional data flow.
 - Integrate a DI framework; SafeDI is the proposed choice, validated in an early integration milestone.
 - SwiftUI wherever practical.
-- Preserve the Qdrant SDK integration, Photos loading behavior, thumbnail-based processing, full-resolution loading only for preview, and the card-based UI/design system; remove grid mode and complete Liquid Glass adoption.
+- Preserve the Qdrant SDK integration, Photos loading behavior, thumbnail-based processing, full-resolution loading only for review (presented cards after their thumbnail, and preview), and the card-based UI/design system; remove grid mode and complete Liquid Glass adoption.
 - Target iPhone on iOS 26+, with native Swift stores/reducers, SwiftData metadata, and Apple Vision feature prints.
 
 Section 2 records the agreed product behavior. Sections 3–11 translate it into an implementation plan. Exact performance budgets, retry limits and batch sizes are engineering parameters to establish through validation, not unresolved product choices.
@@ -170,7 +170,7 @@ Manual Pause checkpoints work and blocks both automatic foreground work and back
 6. Finish the initial pass only when every included asset is vectorized or explicitly deferred. Present unavailable counts. Discovery can then start.
 7. Continue detecting additions/edits automatically. During an active review, vectorize new photos without blocking existing cards; publish newly eligible assets after their writes commit.
 
-Use the existing thumbnail and full-image loading mechanisms. Permit needed iCloud downloads over Wi-Fi and cellular. Full-resolution loading remains exclusive to explicit preview; vectorization must never require it. Reuse metadata for size estimates rather than downloading originals solely to compute savings.
+Use the existing thumbnail and full-image loading mechanisms. Permit needed iCloud downloads over Wi-Fi and cellular. Full-resolution loading is limited to review: presented cards replace their thumbnail with the original, and preview loads it directly (owner decision 2026-11-17); vectorization must never require it. Reuse metadata for size estimates rather than downloading originals solely to compute savings.
 
 Track model/revision, preprocessing and dimensions, not just dimension count. Replace silent shard deletion on mismatch with a recoverable generation transition that also handles metadata. Use stable collision-aware vector identity. Qdrant and SwiftData cannot share a transaction: test replay after each boundary and never infer successful vectorization solely from point existence.
 
@@ -281,7 +281,7 @@ Use Swift Testing exclusively for all unit and integration suites, including bus
 
 Inject clocks, IDs and controllable async dependencies. Use explicit suspension gates for race tests instead of sleep-based timing. Separate fast unit tests from model/platform-dependent integration suites and physical-device scenarios. Port relevant existing lifecycle regressions into the correct module tests.
 
-Recording image fakes must prove that vectorization/card thumbnails never load full-resolution images and that preview does. Device acceptance covers actual Photos dialogs, iCloud downloads, lock/suspension, system expiration, automatic scheduling and sustained heat. Simulator tests cannot guarantee system scheduling behavior.
+Recording image fakes must prove that vectorization never loads full-resolution images and that review originals do. Device acceptance covers actual Photos dialogs, iCloud downloads, lock/suspension, system expiration, automatic scheduling and sustained heat. Simulator tests cannot guarantee system scheduling behavior.
 
 ## 10. Delivery sequence and exit criteria
 

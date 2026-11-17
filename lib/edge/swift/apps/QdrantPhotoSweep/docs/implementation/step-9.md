@@ -36,7 +36,7 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
   - analyzes the library again
   - keeps the preferences (date range, threshold, onboarding completed) and the deletion history and statistics
   - never touches photos
-- **Cards:** swiping is Skip; the Skip button is the accessible alternative. Cards and comparison use 800 px thumbnails; full resolution loads only in the preview.
+- **Cards:** swiping is Skip; the Skip button is the accessible alternative. Cards and comparison show an 800 px thumbnail first; since device feedback on 2026-11-17 they then load the original, with a spinner in the top-left corner while it loads.
 - **Library observation** is registered only once photo access exists.
 - **Settings:** controls are disabled while an operation runs; failures show a dismissable alert; reset requires confirmation. "Storage freed" is an estimate that excludes deletions with an unknown size; those deletions are counted in a separate footer.
 

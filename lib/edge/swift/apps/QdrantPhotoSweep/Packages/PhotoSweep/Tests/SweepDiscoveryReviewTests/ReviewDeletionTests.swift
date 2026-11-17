@@ -56,12 +56,12 @@ private func ids(_ names: String...) -> Set<AssetID> {
         #expect(await world.library.fullResolutionRequestCount == 0)
     }
 
-    @Test func fullResolutionOnlyForPreview() async throws {
+    @Test func fullResolutionOnlyWhenOriginalIsRequested() async throws {
         let (world, _) = try await twoPairs()
         let images = LoadReviewImage(library: world.library)
         _ = try await images.thumbnail(AssetID("a"), pixels: 300)
         #expect(await world.library.fullResolutionRequestCount == 0)
-        _ = try await images.preview(AssetID("a"))
+        _ = try await images.original(AssetID("a"))
         #expect(await world.library.fullResolutionRequestCount == 1)
     }
 }
