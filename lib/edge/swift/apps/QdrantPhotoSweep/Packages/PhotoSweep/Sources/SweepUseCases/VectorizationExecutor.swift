@@ -271,7 +271,15 @@ public actor VectorizationExecutor {
         try Task.checkCancellation()
 
         var pass = try await selectPass(state: state, compatibility: compatibility, records: reconciled.records)
-        progress = pass.progress
+        // Progress covers the whole scope: photos outside the work set already have
+        // reusable vectors and count as done, so the total matches the library size.
+        let reused = reconciled.records.filter {
+            !pass.outcomes.keys.contains($0.id) && VectorReusePolicy.decide(
+                existing: $0.storedVector, currentRevision: $0.contentRevision,
+                compatibility: compatibility, generation: state.indexGeneration
+            ) == .reuse
+        }.count
+        progress = pass.progress.includingReused(reused)
         broadcast.send(.running(progress))
 
         let records = Dictionary(reconciled.records.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
@@ -350,14 +358,14 @@ public actor VectorizationExecutor {
                     }
                 }
             }
-            progress = pass.progress
+            progress = pass.progress.includingReused(reused)
             if let stop {
                 throw PassStopped(reason: stop)
             }
             broadcast.send(.running(progress))
         }
 
-        try await finish(pass)
+        try await finish(pass, reused: reused)
     }
 
     /// Loads workflow state and switches to a new index generation if the model changed.
@@ -421,7 +429,7 @@ public actor VectorizationExecutor {
         }
     }
 
-    private func finish(_ pass: VectorizationPass) async throws {
+    private func finish(_ pass: VectorizationPass, reused: Int) async throws {
         try await stopOnFailure { () async throws(VectorizationFailure) in
             do {
                 _ = try await updateWorkflowState { $0.gate.passFinished(pass) }
@@ -430,7 +438,7 @@ public actor VectorizationExecutor {
                 throw .systemic("Metadata store: \(error)")
             }
         }
-        progress = pass.progress
+        progress = pass.progress.includingReused(reused)
         let completed = CompletedPass(id: pass.id, kind: pass.kind, progress: pass.progress)
         if completed.didWork {
             completedPasses.send(completed)

@@ -18,6 +18,11 @@ public struct VectorizationProgress: Equatable, Sendable {
     }
 
     public var remaining: Int { total - vectorized - deferred }
+
+    /// Progress over the whole scope: photos whose vectors were reused count as done.
+    public func includingReused(_ reused: Int) -> VectorizationProgress {
+        VectorizationProgress(total: total + reused, vectorized: vectorized + reused, deferred: deferred)
+    }
     public var isComplete: Bool { remaining == 0 }
 }
 

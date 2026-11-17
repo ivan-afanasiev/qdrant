@@ -53,6 +53,10 @@ Review showed "All done" after 11 groups in a library with hundreds of similar p
 - Discovery refilled only when a vectorization pass ended, so vectors committed during a long pass (new photos, or photos deferred earlier by the background Vision failure and retried) did not reach review until the whole pass finished. The coordinator now requests a refill after every committed batch in the foreground. `discoveryUsesVectorsCommittedDuringALongPass` covers this and fails without the change.
 - "All done" was shown whenever discovery was exhausted. It is now shown only when vectorization is not running, paused or failed; otherwise the review area keeps showing "Finding duplicates…" under the progress line.
 
+## Progress over the whole scope (device feedback, 2026-11-17)
+
+The progress screen showed about 18,000 photos for "All Time", while the legacy app showed more than 30,000. Both use the same Photos query (all images in the date range). The rewrite counted only the pass's work set, i.e. photos still needing analysis, while photos with reusable vectors from earlier runs were left out. Progress now covers the whole scope, and reused photos count as done. Pass bookkeeping (completion, deferrals, notifications) is unchanged. On the full progress screen the control button is full width and large, Pause in the regular glass style and Resume/Retry prominent, and while running the line under the bar shows the percentage instead of repeating the count.
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

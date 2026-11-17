@@ -197,6 +197,30 @@ import SweepUseCases
         #expect(try await device.pause == PauseState.none)
     }
 
+    @Test func progressCountsReusedVectorsAsDone() async throws {
+        let embedder = GatedEmbedder(blockOnCall: 4)
+        let device = try Device(photoCount: 3, embedder: embedder)
+        await device.coordinator.userRequestedVectorization(.userResume)
+        await device.vectorization.waitUntilIdle()
+
+        await device.library.setAssets((1...5).map { index in
+            PhotoAsset(
+                id: "p\(index)", localIdentifier: "p\(index)",
+                creationDate: Date(timeIntervalSince1970: Double(index) * 86_400),
+                pixelWidth: 10, pixelHeight: 10, fileSize: nil,
+                modificationDate: Date(timeIntervalSince1970: 0)
+            )
+        })
+        await device.coordinator.userRequestedVectorization(.userResume)
+        await embedder.gate.waitForWaiters(1)
+        // Two new photos to analyze, three already done: the whole scope is shown.
+        #expect(device.vectorization.status == .running(VectorizationProgress(total: 5, vectorized: 3, deferred: 0)))
+
+        await embedder.gate.open()
+        await device.vectorization.waitUntilIdle()
+        #expect(try await device.vectorCount() == 5)
+    }
+
     @Test(.timeLimit(.minutes(1))) func discoveryUsesVectorsCommittedDuringALongPass() async throws {
         let embedder = GatedEmbedder(blockOnCall: 7)
         let device = try Device(photoCount: 2, embedder: embedder)

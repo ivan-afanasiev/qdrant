@@ -40,18 +40,26 @@ public struct LibraryProgressView: View {
             VStack(spacing: QSpacing.md) {
                 statusLine
                 if let progress = store.state.status.progress, progress.total > 0 {
-                    ProgressView(value: Double(progress.vectorized + progress.deferred), total: Double(progress.total))
+                    let done = Double(progress.vectorized + progress.deferred)
+                    ProgressView(value: done, total: Double(progress.total))
                         .tint(QColors.primary)
-                    Text(L10n.scanProgressStatus(progress.vectorized + progress.deferred, progress.total))
-                        .font(QTypography.numericSmall)
-                        .foregroundStyle(QColors.textSecondary)
+                    Group {
+                        // The status line already shows the count while running.
+                        if case .running = store.state.status {
+                            Text(done / Double(progress.total), format: .percent.precision(.fractionLength(0)))
+                        } else {
+                            Text(L10n.scanProgressStatus(progress.vectorized + progress.deferred, progress.total))
+                        }
+                    }
+                    .font(QTypography.numericSmall)
+                    .foregroundStyle(QColors.textSecondary)
                     if progress.deferred > 0 {
                         Text(L10n.libraryUnavailable(progress.deferred))
                             .font(QTypography.bodySmall)
                             .foregroundStyle(QColors.warning)
                     }
                 }
-                controlButton
+                controlButton(isLarge: true)
             }
             .qGlassPanel()
         }
@@ -62,7 +70,7 @@ public struct LibraryProgressView: View {
         HStack(spacing: QSpacing.sm) {
             statusLine
             Spacer()
-            controlButton
+            controlButton(isLarge: false)
         }
         .qGlassPanel(cornerRadius: QRadius.pill)
     }
@@ -103,19 +111,30 @@ public struct LibraryProgressView: View {
         }
     }
 
+    /// - Parameter isLarge: full-width large button matching onboarding and review controls;
+    ///   the compact line above the cards keeps a small one.
     @ViewBuilder
-    private var controlButton: some View {
+    private func controlButton(isLarge: Bool) -> some View {
         if let control = store.state.control {
-            Button {
+            let button = Button {
                 store.send(.controlTapped(control))
             } label: {
-                switch control {
-                case .pause: Text(L10n.pause)
-                case .resume: Text(L10n.resume)
-                case .retry: Text(L10n.retry)
+                Group {
+                    switch control {
+                    case .pause: Text(L10n.pause)
+                    case .resume: Text(L10n.resume)
+                    case .retry: Text(L10n.retry)
+                    }
                 }
+                .frame(maxWidth: isLarge ? .infinity : nil)
             }
-            .buttonStyle(.glass)
+            .controlSize(isLarge ? .large : .regular)
+            // Resume and Retry are the main action; Pause is secondary.
+            if control == .pause {
+                button.buttonStyle(.glass)
+            } else {
+                button.buttonStyle(.glassProminent).tint(QColors.primary)
+            }
         }
     }
 }
