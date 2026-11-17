@@ -100,13 +100,15 @@ struct MainView: View {
         if discovery.status == .waitingForInitialPass {
             LibraryProgressView(store: libraryStore)
         } else {
-            VStack(spacing: QSpacing.md) {
-                if libraryStore.state.isActive {
-                    LibraryProgressView(store: libraryStore, isCompact: true)
-                        .padding(.horizontal, QSpacing.md)
+            // The progress line is a top bar, so the cards still scroll under it and the
+            // navigation bar.
+            ReviewArea(runtime: runtime)
+                .safeAreaBar(edge: .top) {
+                    if libraryStore.state.isActive {
+                        LibraryProgressView(store: libraryStore, isCompact: true)
+                            .padding(.horizontal, QSpacing.md)
+                    }
                 }
-                ReviewArea(runtime: runtime)
-            }
         }
     }
 }

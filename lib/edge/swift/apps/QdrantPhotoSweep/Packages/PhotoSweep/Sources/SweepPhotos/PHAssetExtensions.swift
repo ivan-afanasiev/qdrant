@@ -67,20 +67,44 @@ final class PhotoImageRequest: @unchecked Sendable {
 }
 
 public func loadCGImage(for asset: PHAsset, targetSize: CGSize) async throws(AdapterError) -> CGImage {
-    try await requestCGImage(for: asset, targetSize: targetSize, highQuality: false)
+    try await requestCGImage(for: asset, targetSize: targetSize, quality: .fast)
 }
 
 public func loadHighQualityCGImage(for asset: PHAsset, targetSize: CGSize) async throws(AdapterError) -> CGImage {
-    try await requestCGImage(for: asset, targetSize: targetSize, highQuality: true)
+    try await requestCGImage(for: asset, targetSize: targetSize, quality: .high)
+}
+
+/// The original at full resolution. `.fastFormat` would return a single low-quality image
+/// that is not marked as degraded, so originals always use the high-quality format.
+public func loadOriginalCGImage(for asset: PHAsset) async throws(AdapterError) -> CGImage {
+    try await requestCGImage(for: asset, targetSize: PHImageManagerMaximumSize, quality: .original)
+}
+
+private enum ImageQuality {
+    case fast, high, original
 }
 
 private func requestCGImage(
-    for asset: PHAsset, targetSize: CGSize, highQuality: Bool
+    for asset: PHAsset, targetSize: CGSize, quality: ImageQuality
 ) async throws(AdapterError) -> CGImage {
     let request = PhotoImageRequest()
     let options = PHImageRequestOptions()
-    options.deliveryMode = highQuality ? .highQualityFormat : .fastFormat
-    options.resizeMode = highQuality ? .exact : .fast
+    switch quality {
+    case .fast:
+        options.deliveryMode = .fastFormat
+        options.resizeMode = .fast
+    case .high:
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .exact
+    case .original:
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .none
+    }
+    let contentMode: PHImageContentMode = switch quality {
+    case .fast: .aspectFill
+    case .high: .aspectFit
+    case .original: .default
+    }
     options.isSynchronous = false
     options.isNetworkAccessAllowed = true
     do {
@@ -90,7 +114,7 @@ private func requestCGImage(
                 guard request.install(continuation) else { return }
                 let id = PHImageManager.default().requestImage(
                     for: asset, targetSize: targetSize,
-                    contentMode: highQuality ? .aspectFit : .aspectFill, options: options
+                    contentMode: contentMode, options: options
                 ) { image, info in
                     if (info?[PHImageCancelledKey] as? Bool) == true {
                         request.finish(.failure(CancellationError()))

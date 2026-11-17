@@ -10,8 +10,10 @@ import SweepDomain
 /// Info.plist must list `processingIdentifier` and `continuedIdentifierPrefix + ".*"` in
 /// `BGTaskSchedulerPermittedIdentifiers` and include the `processing` background mode.
 public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unchecked Sendable {
-    public static let processingIdentifier = "com.qdrant.edge.PhotoSweep.vectorization"
-    public static let continuedIdentifierPrefix = "com.qdrant.edge.PhotoSweep.vectorization.continued"
+    // Continued-processing identifiers must start with the app's bundle ID
+    // (`com.qdrant.edge.QdrantPhotoSweep`), or iOS rejects the wildcard registration.
+    public static let processingIdentifier = "com.qdrant.edge.QdrantPhotoSweep.vectorization"
+    public static let continuedIdentifierPrefix = "com.qdrant.edge.QdrantPhotoSweep.vectorization.continued"
 
     private let continuedTitle: String
     private let continuedSubtitle: String

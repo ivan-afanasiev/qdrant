@@ -69,6 +69,10 @@ struct GroupComparisonView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: QSpacing.sm) {
+                Text(L10n.tapToKeepHint)
+                    .font(QTypography.bodySmall)
+                    .foregroundStyle(QColors.textSecondary)
+                    .multilineTextAlignment(.center)
                 Text(L10n.similarPhotos(snapshot.members.count))
                     .font(QTypography.bodyMedium)
                     .foregroundStyle(QColors.textTertiary)

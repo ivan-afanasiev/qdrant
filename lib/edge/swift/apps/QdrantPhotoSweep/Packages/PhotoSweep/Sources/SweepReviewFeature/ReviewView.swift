@@ -19,7 +19,7 @@ public struct ReviewView: View {
     }
 
     public var body: some View {
-        VStack(spacing: QSpacing.md) {
+        Group {
             if let card = store.state.card {
                 cardContent(card)
             } else {
@@ -40,14 +40,9 @@ public struct ReviewView: View {
         }
     }
 
-    @ViewBuilder
+    /// The photos fill the screen and scroll under the navigation bar and the controls,
+    /// which sit in a bottom bar with the system scroll edge effect.
     private func cardContent(_ card: ReviewFeature.Card) -> some View {
-        Text(L10n.tapToKeepHint)
-            .font(QTypography.bodySmall)
-            .foregroundStyle(QColors.textSecondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-
         ReviewCardStack(snapshot: card.snapshot, dragOffset: $dragOffset, onSwipedOut: { store.send(.skipTapped) }) {
             GroupComparisonView(
                 snapshot: card.snapshot,
@@ -59,12 +54,13 @@ public struct ReviewView: View {
             )
         }
         .disabled(store.state.pending != nil)
-
-        ReviewControls(card: card, isBusy: store.state.pending != nil) { action in
-            store.send(action)
+        .safeAreaBar(edge: .bottom) {
+            ReviewControls(card: card, isBusy: store.state.pending != nil) { action in
+                store.send(action)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, QSpacing.sm)
         }
-        .padding(.horizontal)
-        .padding(.bottom, QSpacing.sm)
     }
 
     @ViewBuilder

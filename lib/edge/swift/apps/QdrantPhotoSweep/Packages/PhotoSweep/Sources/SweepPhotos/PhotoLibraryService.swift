@@ -71,8 +71,7 @@ public final class PhotoLibraryService: PhotoLibraryProviding, @unchecked Sendab
         guard let phAsset = phAsset(for: asset.localIdentifier) else {
             throw .photoLibrary("Asset not found: \(asset.localIdentifier)")
         }
-        let size = CGSize(width: phAsset.pixelWidth, height: phAsset.pixelHeight)
-        return try await loadCGImage(for: phAsset, targetSize: size)
+        return try await loadOriginalCGImage(for: phAsset)
     }
 
     public func deleteAssets(_ identifiers: [String]) async throws(AdapterError) {

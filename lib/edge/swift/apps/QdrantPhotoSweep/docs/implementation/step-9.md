@@ -17,7 +17,7 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
 | Domain / use cases | `DateScopePreset`, `SimilarityPreset`; `WorkflowState.datePreset` and `isOnboardingCompleted`; `LoadPreferences`, `RequestPhotoAccess`, `RequestNotificationPermission`, `CompleteOnboarding`, `UpdateDateScope`, `UpdateSimilarityThreshold`, `RescanLibrary`, `LoadStatistics`, `ResetAppData`; `DiscoveryExecutor.stop()` |
 | Features | Onboarding reducer and view; `LibraryProgressView`; review cards, comparison, full-screen preview and Keep All; Settings reducer and view with statistics |
 | Design system | `qGlassPanel`; new `L10n` entries, translated into de/es/ru |
-| Host app | `EngineSelection` in `App.swift`; legacy root moved unchanged into `LegacyEngine.swift`; `Info.plist` lists `com.qdrant.edge.PhotoSweep.vectorization` and `…vectorization.continued.*`; member import visibility is enabled |
+| Host app | `EngineSelection` in `App.swift`; legacy root moved unchanged into `LegacyEngine.swift`; `Info.plist` lists `com.qdrant.edge.QdrantPhotoSweep.vectorization` and `…vectorization.continued.*` (continued identifiers must start with the bundle ID; the first device run rejected a `com.qdrant.edge.PhotoSweep` prefix); member import visibility is enabled |
 | Removed | Step 3 validation scaffolding (`BootstrapResource`, `BootstrapProbe`, `BootstrapApplication`, `LibraryStore`); SafeDI is now used only by `SweepComposition` |
 
 ## Interpretations

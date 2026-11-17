@@ -6,8 +6,8 @@
 	<array>
 		<string>com.qdrant.edge.PhotoSweep.backgroundScan</string>
 		<string>com.qdrant.edge.QdrantPhotoSweep.continuousScan.*</string>
-		<string>com.qdrant.edge.PhotoSweep.vectorization</string>
-		<string>com.qdrant.edge.PhotoSweep.vectorization.continued.*</string>
+		<string>com.qdrant.edge.QdrantPhotoSweep.vectorization</string>
+		<string>com.qdrant.edge.QdrantPhotoSweep.vectorization.continued.*</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
