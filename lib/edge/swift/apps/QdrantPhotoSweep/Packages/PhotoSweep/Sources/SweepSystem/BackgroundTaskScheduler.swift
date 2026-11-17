@@ -1,6 +1,7 @@
 #if os(iOS)
 import BackgroundTasks
 import Foundation
+import os
 import UIKit
 import SweepDomain
 
@@ -9,14 +10,25 @@ import SweepDomain
 ///
 /// Info.plist must list `processingIdentifier` and `continuedIdentifierPrefix + ".*"` in
 /// `BGTaskSchedulerPermittedIdentifiers` and include the `processing` background mode.
+///
+/// The `.*` entry is a pattern only: iOS rejects registering the wildcard itself ("not
+/// advertised in the application's Info.plist"). Each continued request instead registers its
+/// own concrete identifier (`prefix.<UUID>`) right before submitting it, as in Apple's
+/// "Performing long-running tasks" sample. Verified on the iOS 26.5 simulator.
 public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unchecked Sendable {
     // Continued-processing identifiers must start with the app's bundle ID
-    // (`com.qdrant.edge.QdrantPhotoSweep`), or iOS rejects the wildcard registration.
-    public static let processingIdentifier = "com.qdrant.edge.QdrantPhotoSweep.vectorization"
-    public static let continuedIdentifierPrefix = "com.qdrant.edge.QdrantPhotoSweep.vectorization.continued"
+    // (`com.qdrant.edge.QdrantPhotoSweep`), or iOS rejects them as an invalid form.
+    public static let processingIdentifier = "com.qdrant.edge.QdrantPhotoSweep.scheduledVectorization"
+    public static let continuedIdentifierPrefix = "com.qdrant.edge.QdrantPhotoSweep.continuedVectorization"
 
     private let continuedTitle: String
     private let continuedSubtitle: String
+    /// Whether iOS accepted the processing handler, and the handler for continued windows.
+    /// Submitting a request without a registered handler terminates the app, so requests are
+    /// only made after a successful registration.
+    private let isProcessingRegistered = OSAllocatedUnfairLock(initialState: false)
+    private let continuedHandler = OSAllocatedUnfairLock<(@Sendable (any ExecutionWindow) -> Void)?>(initialState: nil)
+    private let logger = Logger(subsystem: "com.qdrant.edge.QdrantPhotoSweep", category: "background")
 
     /// - Parameters: localized Live Activity texts shown for continued processing.
     public init(continuedTitle: String, continuedSubtitle: String) {
@@ -25,7 +37,8 @@ public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unch
     }
 
     /// Must run before the app finishes launching. Windows are delivered to `handler`.
-    /// Returns false if either registration was rejected (for example a missing plist entry).
+    /// Returns false if the processing registration was rejected (for example a missing plist
+    /// entry). Continued windows register per request in `requestContinuedProcessing()`.
     @MainActor
     @discardableResult
     public func registerLaunchHandlers(_ handler: @escaping @Sendable (any ExecutionWindow) -> Void) -> Bool {
@@ -36,19 +49,35 @@ public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unch
             }
             handler(SystemTaskWindow(task: task, kind: .scheduled))
         }
-        let continued = BGTaskScheduler.shared.register(forTaskWithIdentifier: Self.continuedIdentifierPrefix + ".*", using: nil) { task in
+        isProcessingRegistered.withLock { $0 = processing }
+        continuedHandler.withLock { $0 = handler }
+        if !processing {
+            logger.error("Processing task registration rejected; scheduled background work is off")
+        }
+        return processing
+    }
+
+    public func requestContinuedProcessing() async -> Bool {
+        guard let handler = continuedHandler.withLock({ $0 }) else { return false }
+        return await MainActor.run { submitContinued(handler: handler) }
+    }
+
+    @MainActor
+    private func submitContinued(handler: @escaping @Sendable (any ExecutionWindow) -> Void) -> Bool {
+        let identifier = Self.continuedIdentifierPrefix + "." + UUID().uuidString
+        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
             guard let task = task as? BGContinuedProcessingTask else {
                 task.setTaskCompleted(success: false)
                 return
             }
             handler(SystemTaskWindow(task: task, kind: .continued))
         }
-        return processing && continued
-    }
-
-    public func requestContinuedProcessing() async -> Bool {
+        guard registered else {
+            logger.error("Continued task registration rejected for \(identifier, privacy: .public)")
+            return false
+        }
         let request = BGContinuedProcessingTaskRequest(
-            identifier: Self.continuedIdentifierPrefix + "." + UUID().uuidString,
+            identifier: identifier,
             title: continuedTitle,
             subtitle: continuedSubtitle
         )
@@ -59,12 +88,14 @@ public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unch
             try BGTaskScheduler.shared.submit(request)
             return true
         } catch {
+            logger.notice("Continued processing not started: \(String(describing: error), privacy: .public)")
             return false
         }
     }
 
     @discardableResult
     public func scheduleProcessing() async -> Bool {
+        guard isProcessingRegistered.withLock({ $0 }) else { return false }
         let request = BGProcessingTaskRequest(identifier: Self.processingIdentifier)
         // iOS decides when; no external power or network requirement.
         request.requiresExternalPower = false
