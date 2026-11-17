@@ -15,19 +15,25 @@ public actor AppLifecycleCoordinator {
         public let scheduler: any BackgroundExecutionScheduling
         public let notifier: any ReviewReadyNotifying
         public let workflow: any WorkflowStateRepository
+        /// Whether automatic work (activation, scheduled and grace windows) may start. False
+        /// until onboarding is completed: before the person chooses a date range, a pass would
+        /// reconcile the whole library and hold the metadata store that onboarding saves to.
+        public let isAutomaticWorkAllowed: @Sendable () async -> Bool
 
         public init(
             vectorization: VectorizationExecutor,
             discovery: DiscoveryExecutor,
             scheduler: any BackgroundExecutionScheduling,
             notifier: any ReviewReadyNotifying,
-            workflow: any WorkflowStateRepository
+            workflow: any WorkflowStateRepository,
+            isAutomaticWorkAllowed: @escaping @Sendable () async -> Bool = { true }
         ) {
             self.vectorization = vectorization
             self.discovery = discovery
             self.scheduler = scheduler
             self.notifier = notifier
             self.workflow = workflow
+            self.isAutomaticWorkAllowed = isAutomaticWorkAllowed
         }
     }
 
@@ -60,7 +66,9 @@ public actor AppLifecycleCoordinator {
         for active in windows.values where active.window.kind == .grace {
             finish(active.window, success: true)
         }
-        await dependencies.vectorization.handle(.appActivation)
+        if await dependencies.isAutomaticWorkAllowed() {
+            await dependencies.vectorization.handle(.appActivation)
+        }
         await dependencies.discovery.setPresence(.foreground)
     }
 
@@ -100,6 +108,11 @@ public actor AppLifecycleCoordinator {
         observeVectorizationCompletions()
         let id = ObjectIdentifier(window)
         guard windows[id] == nil else { return }
+        // Continued windows only follow a person's action, which onboarding itself performs.
+        if window.kind != .continued, !(await dependencies.isAutomaticWorkAllowed()) {
+            window.finish(success: true)
+            return
+        }
         let vectorization = dependencies.vectorization
         let progressTask = Task {
             for await status in vectorization.statusUpdates() {
@@ -196,6 +209,7 @@ public actor AppLifecycleCoordinator {
 
     /// ScheduleVectorization: asks iOS for a later window unless the person paused.
     private func scheduleUnlessPaused() async {
+        guard await dependencies.isAutomaticWorkAllowed() else { return }
         let pause = (try? await dependencies.workflow.loadWorkflowState())?.pause ?? .none
         guard !pause.isPausedByUser else { return }
         await dependencies.scheduler.scheduleProcessing()

@@ -47,12 +47,19 @@ public actor SwiftDataMetadataStore: ModelActor {
         return Dictionary(entities.map { ($0.assetID, $0) }, uniquingKeysWith: { first, _ in first })
     }
 
-    func newPointID() throws -> UUID {
-        while true {
-            let candidate = ids.makeUUID()
-            let count = try modelContext.fetchCount(FetchDescriptor<AssetEntity>(predicate: #Predicate { $0.pointID == candidate }))
-            if count == 0 { return candidate }
+    /// `count` point IDs not used by any stored asset, checked with one query per round
+    /// instead of one per asset (which made registering a large library quadratic).
+    func newPointIDs(_ count: Int) throws -> [UUID] {
+        var result: [UUID] = []
+        var tried = Set<UUID>()
+        while result.count < count {
+            let candidates = (result.count..<count).map { _ in ids.makeUUID() }.filter { tried.insert($0).inserted }
+            let taken = Set(try modelContext.fetch(FetchDescriptor<AssetEntity>(
+                predicate: #Predicate { candidates.contains($0.pointID) }
+            )).map(\.pointID))
+            result += candidates.filter { !taken.contains($0) }
         }
+        return result
     }
 
     func nextJournalSequence() throws -> Int {
@@ -122,6 +129,7 @@ extension SwiftDataMetadataStore: AssetRepository {
     public func register(_ assets: [DiscoveredAsset]) async throws(PersistenceError) -> [AssetRecord] {
         try perform {
             var entities = try fetchAssetEntities(assets.map(\.id.rawValue))
+            var pointIDs = try newPointIDs(assets.count { entities[$0.id.rawValue] == nil }).makeIterator()
             for asset in assets {
                 if let entity = entities[asset.id.rawValue] {
                     entity.creationDate = asset.creationDate
@@ -141,7 +149,7 @@ extension SwiftDataMetadataStore: AssetRepository {
                         assetID: asset.id.rawValue,
                         creationDate: asset.creationDate,
                         contentRevision: asset.contentRevision.rawValue,
-                        pointID: try newPointID()
+                        pointID: pointIDs.next() ?? ids.makeUUID()
                     )
                     modelContext.insert(entity)
                     entities[asset.id.rawValue] = entity

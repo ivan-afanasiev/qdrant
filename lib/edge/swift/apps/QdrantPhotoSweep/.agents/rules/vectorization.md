@@ -4,7 +4,7 @@ Classification: C = confirmed product requirement; T = planned technical constra
 
 ## VEC-01 (C) — Triggers/cache
 
-Start automatically on launch and new/changed photos in selected scope. Reconcile identity/content revisions; reuse valid compatible vectors. Capture an initial work set or stable cursor. Commit eligible vectors before discovery can consume them.
+Start automatically on launch and new/changed photos in selected scope, but only after onboarding completes (no scope is chosen before Start). Reconcile identity/content revisions; reuse valid compatible vectors. Capture an initial work set or stable cursor. Commit eligible vectors before discovery can consume them.
 
 ## VEC-02 (C) — Initial gate
 

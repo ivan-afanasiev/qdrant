@@ -29,7 +29,8 @@ public struct AppRuntime: Sendable {
         ))
         lifecycle = AppLifecycleCoordinator(dependencies: .init(
             vectorization: vectorization, discovery: discovery, scheduler: services.scheduler,
-            notifier: services.notifier, workflow: store
+            notifier: services.notifier, workflow: store,
+            isAutomaticWorkAllowed: { (try? await store.loadWorkflowState())?.isOnboardingCompleted == true }
         ))
     }
 

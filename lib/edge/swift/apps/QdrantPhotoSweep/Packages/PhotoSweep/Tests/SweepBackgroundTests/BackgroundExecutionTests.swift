@@ -124,6 +124,28 @@ import SweepUseCases
         #expect(try await device.vectorCount() == 5)
     }
 
+    @Test func noAutomaticWorkBeforeOnboardingCompletes() async throws {
+        let device = try Device(photoCount: 3, automaticWorkAllowed: false)
+        await device.coordinator.appDidBecomeActive()
+        await device.vectorization.waitUntilIdle()
+        #expect(device.vectorization.status == .idle)
+        #expect(try await device.store.loadWorkflowState() == nil)
+
+        await device.coordinator.appDidEnterBackground()
+        #expect(await device.scheduler.processingRequests == 0)
+        let scheduled = FakeExecutionWindow(kind: .scheduled)
+        await device.coordinator.run(scheduled)
+        #expect(scheduled.finishCalls == [true])
+        #expect(try await device.vectorCount() == 0)
+
+        // The person's Start still runs, with continued processing.
+        await device.coordinator.appDidBecomeActive()
+        #expect(await device.coordinator.userRequestedVectorization(.userResume) == .started)
+        await device.vectorization.waitUntilIdle()
+        #expect(try await device.vectorCount() == 3)
+        #expect(await device.scheduler.continuedRequests == 1)
+    }
+
     @Test func rejectedContinuationStillRunsInForeground() async throws {
         let device = try Device(photoCount: 3)
         await device.scheduler.setAcceptsContinuedProcessing(false)

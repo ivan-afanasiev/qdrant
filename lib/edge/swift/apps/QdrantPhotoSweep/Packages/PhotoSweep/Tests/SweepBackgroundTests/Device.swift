@@ -55,7 +55,8 @@ final class Device: Sendable {
     init(
         photoCount: Int,
         embedder: some EmbeddingProviding & EmbeddingModelDescribing = FakeEmbeddingProvider(),
-        notificationPermission: NotificationPermission = .authorized
+        notificationPermission: NotificationPermission = .authorized,
+        automaticWorkAllowed: Bool = true
     ) throws {
         Self.removePreviousRuns
         let directory = Self.root.appending(path: UUID().uuidString, directoryHint: .isDirectory)
@@ -85,7 +86,8 @@ final class Device: Sendable {
             dependencies: .init(vectorStores: vectorStores, assets: store, discovery: store, progress: store, review: store, workflow: store, ids: ids)
         )
         coordinator = AppLifecycleCoordinator(dependencies: .init(
-            vectorization: vectorization, discovery: discovery, scheduler: scheduler, notifier: notifier, workflow: store
+            vectorization: vectorization, discovery: discovery, scheduler: scheduler, notifier: notifier, workflow: store,
+            isAutomaticWorkAllowed: { automaticWorkAllowed }
         ))
     }
 

@@ -17,6 +17,8 @@ public struct ReconcilePhotoLibrary: Sendable {
         self.assets = assets
     }
 
+    static let registrationChunk = 500
+
     public func execute(scope: DateRange) async throws(VectorizationFailure) -> Result {
         let photos: [PhotoAsset]
         do {
@@ -28,7 +30,14 @@ public struct ReconcilePhotoLibrary: Sendable {
             DiscoveredAsset(id: AssetID($0.localIdentifier), creationDate: $0.creationDate, contentRevision: $0.contentRevision)
         }
         do {
-            let records = try await assets.register(discovered)
+            // Registered in chunks so other metadata work, such as saving a person's
+            // choices, is not held up behind one call covering the whole library.
+            var records: [AssetRecord] = []
+            records.reserveCapacity(discovered.count)
+            for start in stride(from: 0, to: discovered.count, by: Self.registrationChunk) {
+                let chunk = Array(discovered[start..<min(start + Self.registrationChunk, discovered.count)])
+                records += try await assets.register(chunk)
+            }
             let byID = Dictionary(photos.map { (AssetID($0.localIdentifier), $0) }, uniquingKeysWith: { first, _ in first })
             return Result(records: records, photos: byID)
         } catch {
