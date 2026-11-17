@@ -42,19 +42,38 @@ public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unch
     @MainActor
     @discardableResult
     public func registerLaunchHandlers(_ handler: @escaping @Sendable (any ExecutionWindow) -> Void) -> Bool {
-        let processing = BGTaskScheduler.shared.register(forTaskWithIdentifier: Self.processingIdentifier, using: nil) { task in
-            guard let task = task as? BGProcessingTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-            handler(SystemTaskWindow(task: task, kind: .scheduled))
-        }
+        let processing = BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: Self.processingIdentifier, using: nil,
+            launchHandler: Self.launchHandler(kind: .scheduled, deliver: handler)
+        )
         isProcessingRegistered.withLock { $0 = processing }
         continuedHandler.withLock { $0 = handler }
         if !processing {
             logger.error("Processing task registration rejected; scheduled background work is off")
         }
         return processing
+    }
+
+    /// iOS calls launch handlers on its own background queue. A closure written inside a
+    /// `@MainActor` method is main-actor isolated in Swift 6, and running it there trips the
+    /// runtime isolation check (EXC_BREAKPOINT on the BGTask queue). Building the handler in
+    /// this nonisolated function keeps it free of any actor.
+    private nonisolated static func launchHandler(
+        kind: ExecutionWindowKind,
+        deliver: @escaping @Sendable (any ExecutionWindow) -> Void
+    ) -> @Sendable (BGTask) -> Void {
+        { task in
+            let expectedType = switch kind {
+            case .continued: task is BGContinuedProcessingTask
+            case .scheduled: task is BGProcessingTask
+            case .grace: false
+            }
+            guard expectedType else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            deliver(SystemTaskWindow(task: task, kind: kind))
+        }
     }
 
     public func requestContinuedProcessing() async -> Bool {
@@ -65,13 +84,10 @@ public final class BackgroundTaskScheduler: BackgroundExecutionScheduling, @unch
     @MainActor
     private func submitContinued(handler: @escaping @Sendable (any ExecutionWindow) -> Void) -> Bool {
         let identifier = Self.continuedIdentifierPrefix + "." + UUID().uuidString
-        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
-            guard let task = task as? BGContinuedProcessingTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-            handler(SystemTaskWindow(task: task, kind: .continued))
-        }
+        let registered = BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: identifier, using: nil,
+            launchHandler: Self.launchHandler(kind: .continued, deliver: handler)
+        )
         guard registered else {
             logger.error("Continued task registration rejected for \(identifier, privacy: .public)")
             return false
