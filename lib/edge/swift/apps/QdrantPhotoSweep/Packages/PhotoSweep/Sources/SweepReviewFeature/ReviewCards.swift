@@ -280,7 +280,9 @@ struct PhotoCardView: View {
             if thumbnail == nil {
                 thumbnail = await images.thumbnail(asset, Self.thumbnailPixels)
             }
-            guard !Task.isCancelled, displayPixels > Self.thumbnailPixels else { return }
+            // Always replace the placeholder: the 800 px thumbnail is Photos' fast, low-quality
+            // image, so even a smaller high-quality image (half-width grid cards) is sharper.
+            guard !Task.isCancelled, displayPixels > 0 else { return }
             isLoadingOriginal = true
             let loaded = await images.display(asset, displayPixels)
             isLoadingOriginal = false
