@@ -10,7 +10,6 @@ public struct ReviewView: View {
     private let store: Store<ReviewFeature>
     private let images: ReviewImages
     private let isLibraryWorking: Bool
-    @State private var dragOffset: CGFloat = 0
     @State private var preview: PreviewTarget?
     @State private var details: [AssetID: PhotoAsset] = [:]
 
@@ -47,7 +46,15 @@ public struct ReviewView: View {
     /// The photos fill the screen and scroll under the navigation bar and the controls,
     /// which sit in a bottom bar with the system scroll edge effect.
     private func cardContent(_ card: ReviewFeature.Card) -> some View {
-        ReviewCardStack(snapshot: card.snapshot, dragOffset: $dragOffset, onSwipedOut: { store.send(.skipTapped) }) {
+        ReviewCardStack(
+            snapshot: card.snapshot,
+            isBusy: store.state.pending != nil,
+            leading: SwipeAction(
+                title: Text(L10n.skip), icon: QIcons.skip, tint: QColors.accent, fliesOff: true,
+                perform: { store.send(.skipTapped) }
+            ),
+            trailing: commitSwipe(for: card)
+        ) {
             GroupComparisonView(
                 snapshot: card.snapshot,
                 keep: card.keep,
@@ -64,6 +71,28 @@ public struct ReviewView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, QSpacing.sm)
+        }
+    }
+
+    /// Swiping right does what the main button does: delete everything, delete the
+    /// unselected photos, or keep all when every photo is selected.
+    private func commitSwipe(for card: ReviewFeature.Card) -> SwipeAction {
+        let deleteCount = card.snapshot.members.count - card.keep.count
+        if card.keep.isEmpty {
+            return SwipeAction(
+                title: Text(L10n.deleteAll), icon: QIcons.trashFill, tint: QColors.destructive, fliesOff: false,
+                perform: { store.send(.deleteAllTapped) }
+            )
+        } else if deleteCount == 0 {
+            return SwipeAction(
+                title: Text(L10n.keepAll), icon: QIcons.checkmark, tint: QColors.success, fliesOff: true,
+                perform: { store.send(.commitTapped) }
+            )
+        } else {
+            return SwipeAction(
+                title: Text(L10n.deleteNPhotos(deleteCount)), icon: QIcons.trashFill, tint: QColors.destructive, fliesOff: false,
+                perform: { store.send(.commitTapped) }
+            )
         }
     }
 

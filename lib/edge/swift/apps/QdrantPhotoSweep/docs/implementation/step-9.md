@@ -36,7 +36,7 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
   - analyzes the library again
   - keeps the preferences (date range, threshold, onboarding completed) and the deletion history and statistics
   - never touches photos
-- **Cards:** swiping is Skip; the Skip button is the accessible alternative. Cards and comparison show an 800 px thumbnail first; since device feedback on 2026-11-17 they then load the original, with a spinner in the top-left corner while it loads.
+- **Cards:** swipe left is Skip and swipe right is the card's commit action (owner decision 2026-11-18, see below); the buttons and VoiceOver actions are the accessible alternative. Cards and comparison show an 800 px thumbnail first; since device feedback on 2026-11-17 they then load the original, with a spinner in the top-left corner while it loads.
 - **Library observation** is registered only once photo access exists.
 - **No automatic work before onboarding completes** (device feedback, 2026-11-17). Activation, scheduled and grace windows are skipped until Start. Previously, returning from the Photos permission alert started an "All Time" pass whose single huge metadata call held the store, so Start never finished saving. Registration now runs in chunks of 500 photos, and point-ID uniqueness takes one query per batch instead of one per photo.
 - **Settings:** controls are disabled while an operation runs; failures show a dismissable alert; reset requires confirmation. "Storage freed" is an estimate that excludes deletions with an unknown size; those deletions are counted in a separate footer.
@@ -82,6 +82,16 @@ German and Russian labels broke the review controls (three text buttons in one r
 - **Settings: option B.** The date range and similarity are inline checkmark lists, so each choice has its own row and long labels wrap. Rescan has a refresh icon.
 
 The real views now have `#Preview`s in German and Russian, including the narrow folded iPhone Duo width.
+
+## Swipe redesign (device feedback, 2026-11-18)
+
+The swipe moved the whole full-width scroll view, scroll indicator included, so it did not feel like a card, and nothing showed what releasing would do.
+
+- **Deck.** The group is on a rounded card with a shadow, and two cards peek behind it; the nearer one grows into place while dragging. Scroll indicators are hidden inside the card.
+- **Direction.** Left is Skip. Right is the card's commit action: Delete All, Delete N Photos or Keep All. Deletions spring back so the Photos confirmation appears over the card; Skip and Keep All fly off.
+- **Feedback.** A tinted badge with icon and text ("Skip", "Delete All", "Delete 2 Photos", "Keep All") fades in on the side that stays visible. The card edge takes the action color, and a haptic marks the threshold.
+- **Physics.** The card follows the finger with a slight vertical give and tilts up to 12° (none with Reduce Motion). Releasing past 28% of the width, or flinging, commits; anything less springs back.
+- **Fix.** "Delete 1 Photos" now has plural forms in all four languages.
 
 ## Localization
 
