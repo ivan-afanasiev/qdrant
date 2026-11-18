@@ -32,3 +32,49 @@ private actor ProgressLog {
         #expect(await log.entries == [[0, 1_200], [500, 1_200], [1_000, 1_200], [1_200, 1_200]])
     }
 }
+
+private actor StatusLog {
+    private(set) var statuses: [VectorizationStatus] = []
+
+    func append(_ status: VectorizationStatus) {
+        statuses.append(status)
+    }
+}
+
+@Suite struct RoutineCheckTests {
+    @Test func launchCheckAfterAFinishedScanIsQuiet() async throws {
+        let harness = try Harness(photos: [photo("a"), photo("b"), photo("c")])
+        let (first, _) = try harness.launch(embedder: FakeEmbeddingProvider())
+        await harness.run(first, .userResume)
+        #expect(first.status == .completed(deferredCount: 0))
+
+        // Relaunch: the same library is checked again without any visible phase.
+        let (relaunched, _) = try harness.launch(embedder: FakeEmbeddingProvider())
+        let log = StatusLog()
+        let updates = relaunched.statusUpdates()
+        let observer = Task {
+            for await status in updates {
+                await log.append(status)
+                if case .completed = status { return }
+            }
+        }
+        await harness.run(relaunched, .appActivation)
+        await observer.value
+        let statuses = await log.statuses
+        #expect(!statuses.contains { if case .preparing = $0 { true } else { false } })
+        #expect(!statuses.contains { if case .running = $0 { true } else { false } })
+        #expect(statuses.last == .completed(deferredCount: 0))
+    }
+
+    @Test func launchCheckWithNewPhotosStillAnalyzesThem() async throws {
+        let harness = try Harness(photos: [photo("a"), photo("b")])
+        let (first, _) = try harness.launch(embedder: FakeEmbeddingProvider())
+        await harness.run(first, .userResume)
+
+        await harness.library.setAssets([photo("a"), photo("b"), photo("c", day: 2)])
+        let (relaunched, _) = try harness.launch(embedder: FakeEmbeddingProvider())
+        await harness.run(relaunched, .appActivation)
+        #expect(relaunched.status == .completed(deferredCount: 0))
+        #expect(try await harness.vectors().count() == 3)
+    }
+}

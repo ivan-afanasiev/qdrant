@@ -132,9 +132,13 @@ extension SwiftDataMetadataStore: AssetRepository {
             var pointIDs = try newPointIDs(assets.count { entities[$0.id.rawValue] == nil }).makeIterator()
             for asset in assets {
                 if let entity = entities[asset.id.rawValue] {
-                    entity.creationDate = asset.creationDate
-                    entity.seedDate = asset.creationDate ?? .distantPast
-                    entity.isDated = asset.creationDate != nil
+                    // Only changed values are written, so a routine launch check over an
+                    // unchanged library does not rewrite every record.
+                    if entity.creationDate != asset.creationDate {
+                        entity.creationDate = asset.creationDate
+                        entity.seedDate = asset.creationDate ?? .distantPast
+                        entity.isDated = asset.creationDate != nil
+                    }
                     if entity.contentRevision != asset.contentRevision.rawValue {
                         // Edited content: the stored vector no longer describes the photo,
                         // and the photo must be examined again by discovery.
@@ -155,7 +159,9 @@ extension SwiftDataMetadataStore: AssetRepository {
                     entities[asset.id.rawValue] = entity
                 }
             }
-            try save()
+            if modelContext.hasChanges {
+                try save()
+            }
             return assets.compactMap { entities[$0.id.rawValue].map(Self.record(from:)) }
         }
     }

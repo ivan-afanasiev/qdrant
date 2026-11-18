@@ -259,6 +259,16 @@ public actor VectorizationExecutor {
 
     // MARK: - Passes
 
+    /// True when review is already open and nothing is in progress or waiting for the
+    /// person (no pause, failure or interruption): the pass only checks for changes.
+    private func isRoutineCheck() async -> Bool {
+        switch broadcast.value {
+        case .idle, .completed: break
+        case .preparing, .running, .pausedByUser, .interrupted, .failed: return false
+        }
+        return (try? await dependencies.workflow.loadWorkflowState())?.gate.isOpen == true
+    }
+
     private func runPasses() async {
         repeat {
             rerunRequested = false
@@ -284,7 +294,13 @@ public actor VectorizationExecutor {
 
     private func performPass() async throws {
         let library = dependencies.library
-        broadcast.send(.preparing(done: 0, total: 0))
+        // A routine check after a finished scan (launch, library change) stays quiet: no
+        // "Reading your library" phase. Progress appears only if there is work to analyze.
+        // First scans, rescans, date-range changes and Resume/Retry show the whole pass.
+        let isQuietCheck = await isRoutineCheck()
+        if !isQuietCheck {
+            broadcast.send(.preparing(done: 0, total: 0))
+        }
         let retry = RetryRunner(policy: configuration.retryPolicy, sleeper: dependencies.sleeper)
 
         try await stopOnFailure { () async throws(VectorizationFailure) in
@@ -304,7 +320,9 @@ public actor VectorizationExecutor {
         }
         let reconciled = try await stopOnFailure { () async throws(VectorizationFailure) in
             try await ReconcilePhotoLibrary(library: library, assets: dependencies.assets).execute(scope: state.scope) { [broadcast] done, total in
-                broadcast.send(.preparing(done: done, total: total))
+                if !isQuietCheck {
+                    broadcast.send(.preparing(done: done, total: total))
+                }
             }
         }
         try Task.checkCancellation()
@@ -319,7 +337,9 @@ public actor VectorizationExecutor {
             ) == .reuse
         }.count
         progress = pass.progress.includingReused(reused)
-        broadcast.send(.running(progress))
+        if !isQuietCheck || !pass.pendingAssets.isEmpty {
+            broadcast.send(.running(progress))
+        }
 
         let records = Dictionary(reconciled.records.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let vectorizer = VectorizePhoto(library: library, embedder: dependencies.embedder, thumbnailPixels: configuration.thumbnailPixels)
