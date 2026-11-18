@@ -71,11 +71,15 @@ The owner confirmed these five choices on 2026-11-16.
 4. **Continued requests use the `.fail` strategy**: if iOS can't start continued processing immediately, the work stays in the foreground instead of starting unexpectedly later.
 5. **A processing window is requested on every background entry and after an unfinished window**, unless the person paused; an empty scheduled run finishes quickly.
 
-## Not yet done
+## Status: complete (2026-11-18)
 
-- The host app registers no launch handlers and its `Info.plist` lists only the legacy identifiers. Registering `BackgroundTaskScheduler.processingIdentifier` and `continuedIdentifierPrefix + ".*"` happens with the step 9 wiring.
-- Notification permission is requested by the presentation layer in step 9.
-- Real-device execution, Live Activity behavior and the CPU-only Vision path in the background are unobserved until then.
+The items that stayed open here were closed with the step 9 wiring and device runs:
+
+- **Launch handlers** are registered by the app. The scheduled identifier `com.qdrant.edge.QdrantPhotoSweep.scheduledVectorization` is registered at launch. Each continued request registers its own `…continuedVectorization.<UUID>` before submitting; iOS rejects registering the `.*` pattern itself. See step-9.md.
+- **Notification permission** is an onboarding step.
+- **Device observation:** the owner checked background execution on an iPhone, covering the continued task with its Live Activity, Cancel as pause, the grace window, scheduled processing and the readiness notification. It works.
+  - Device runs replaced the CPU-only Vision decision: background Vision uses the Neural Engine, falling back to the CPU, and never the GPU (see step-9.md).
+  - The remaining issues found on the device are deferred by the owner until after step 10.
 
 ## Validation results
 

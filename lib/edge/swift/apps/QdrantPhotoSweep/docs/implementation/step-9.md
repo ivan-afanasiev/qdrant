@@ -112,12 +112,14 @@ Code review confirmed the following:
 
 None of this has been checked on screen; see below.
 
-## Not yet done
+## Status: complete (2026-11-18)
 
-- **Device observation is still open.** This covers step 8's background execution (continued task and Live Activity, scheduled processing, grace window, notifications) and the step 9 journeys on a physical iPhone.
-- **No visual pass yet.** Light/dark mode, Reduce Transparency, Dynamic Type and localized layouts have not been checked; for example, the German review controls with three buttons in one row might be truncated.
-- **No XCUIAutomation smoke-test target.** The step 9 exit criteria don't require one, so it is deferred to the step 10 device journeys.
-- **The legacy engine and its data remain** until cutover in step 10.
+- **Device check done.** The owner ran the step 8 background scenarios and the step 9 journeys on an iPhone, covering onboarding, progress, review, deletion, Settings, rescan, reset and the visual checks. Everything works. The remaining issues are deferred by the owner until after step 10 and are tracked outside this step.
+- **Localized layouts** were redesigned from device screenshots: review option C and Settings option B, both previewed in German and Russian at Duo widths.
+- **Carried into step 10:**
+  - an XCUIAutomation smoke-test target, not required by the step 9 exit criteria
+  - native-speaker review of the machine translations
+  - removing the legacy engine, its Debug switch and its data (the cutover)
 
 ## Validation results
 
