@@ -55,7 +55,7 @@ Review showed "All done" after 11 groups in a library with hundreds of similar p
 
 ## Progress over the whole scope (device feedback, 2026-11-17)
 
-The progress screen showed about 18,000 photos for "All Time", while the legacy app showed more than 30,000. Both use the same Photos query (all images in the date range). The rewrite counted only the pass's work set, i.e. photos still needing analysis, while photos with reusable vectors from earlier runs were left out. Progress now covers the whole scope, and reused photos count as done. Pass bookkeeping (completion, deferrals, notifications) is unchanged. On the full progress screen the control button is full width and large, Pause in the regular glass style and Resume/Retry prominent, and while running the line under the bar shows the percentage instead of repeating the count.
+Progress used to count only the pass's work set (photos still needing analysis), leaving out photos with reusable vectors from earlier runs. It now covers the whole scope, with reused photos counted as done; pass bookkeeping (completion, deferrals, notifications) is unchanged. This did not explain the device report of about 18,000 photos for "All Time" against more than 30,000 in the legacy app: the later "Reading your library" total showed that the scope itself contains about 18,000 images. Both apps use the same Photos query (all images in the date range), so the legacy number comes from how the legacy app counted, not from photos missing in the rewrite. On the full progress screen the control button is full width and large (Pause in the regular glass style, Resume/Retry prominent), and while running the line under the bar shows the percentage instead of repeating the count.
 
 ## Known issues fixed before step 10 (2026-11-17)
 
@@ -69,6 +69,10 @@ The progress screen showed about 18,000 photos for "All Time", while the legacy 
 - **Restart, not queue.** Rescan and date-range changes call `VectorizationExecutor.restart`, which stops the running pass at a safe boundary, abandons it and starts a fresh pass. Committed vectors are reused. Before, a rescan during a running pass only queued another pass behind it.
 - **Back to review.** A successful Rescan closes Settings, so progress and review are visible right away.
 - Covered by `repeatedRestartsKeepOneContinuedTaskAndFinishTheLibrary`, `successfulRescanClosesSettings` and `failedRescanStaysOnSettings`.
+
+## Quiet launch checks (device feedback, 2026-11-18)
+
+Every launch reconciles the library to pick up new or edited photos. Since preparation progress was added, that check showed "Reading your library" above the cards even when nothing had changed. A pass is now a quiet routine check when review is open and the last status was idle or completed: it reports neither preparing nor running unless it finds photos to analyze. First scans, rescans, date-range changes and Resume/Retry still show the whole pass. Registration also writes only changed values, so an unchanged library is not saved again on every launch. Covered by `launchCheckAfterAFinishedScanIsQuiet` (fails without the change) and `launchCheckWithNewPhotosStillAnalyzesThem`.
 
 ## Localization
 
