@@ -24,7 +24,7 @@ Distinguish transient infrastructure failure, unavailable asset, authorization, 
 
 ## ARC-06 (V) — SafeDI adoption
 
-SafeDI 2.2.0 is pinned for the early validation slice; adoption remains gated by docs/implementation/step-3.md. Validate a graph spanning contract, adapter, use case and main-actor feature store before broad adoption. Verify protocol bindings, visibility, concurrency, clean/incremental/Release builds and package tests; record build cost/generated wiring and developer/CI setup. Report blockers before reconsidering Factory; do not weaken boundaries or add both frameworks.
+SafeDI 2.2.0 is pinned for the early validation slice; adopted in SweepComposition only (see docs/implementation/README.md). Validate a graph spanning contract, adapter, use case and main-actor feature store before broad adoption. Verify protocol bindings, visibility, concurrency, clean/incremental/Release builds and package tests; record build cost/generated wiring and developer/CI setup. Report blockers before reconsidering Factory; do not weaken boundaries or add both frameworks.
 
 ## ARC-07 (T) — DI graph
 

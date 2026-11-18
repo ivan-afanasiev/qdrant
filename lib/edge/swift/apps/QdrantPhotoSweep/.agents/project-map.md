@@ -1,63 +1,47 @@
 # Project map
 
-Reference when locating work; not automatically loaded.
+Reference when locating work; not automatically loaded. Paths are project-root relative; Xcode paths prepend QdrantPhotoSweep/. Architecture: ARCHITECTURE.md. Decisions and lessons: docs/implementation/README.md.
 
-## Current implementation
+## Where things are
 
-Filesystem paths are project-root relative. Xcode paths prepend QdrantPhotoSweep/.
-
-| Area | Current entry |
+| Area | Entry |
 | --- | --- |
-| App/bootstrap | Sources/QdrantPhotoSweep/App.swift (engine switch); rewrite: Packages/PhotoSweep/Sources/SweepComposition/; legacy: LegacyEngine.swift, Core/Dependencies.swift |
-| Preserved adapters | Sources/QdrantPhotoSweep/Services/{QdrantVectorStore,PhotoLibraryService,VisionEmbeddingService}.swift |
-| Image helpers | Sources/QdrantPhotoSweep/Utilities/PHAssetExtensions.swift; Features/Review/{PhotoCardView,FullscreenPhotoView}.swift |
-| Old orchestration | Sources/QdrantPhotoSweep/Features/Scan/{ScanPipeline,ScanInteractor,ScanState}.swift |
-| Old lifecycle | Sources/QdrantPhotoSweep/Services/{ContinuousScanCoordinator,ScanExecutionController,BackgroundTaskManager,BackgroundScanService}.swift |
-| Metadata/contracts | Sources/QdrantPhotoSweep/Core/Persistence/; Core/Protocols/ |
-| Retained presentation | Sources/QdrantPhotoSweep/DesignSystem/; Features/Review/; Resources/Localizable.xcstrings |
-| Settings/grid to replace | Sources/QdrantPhotoSweep/Features/Settings/; Features/GroupGrid/ |
-| Existing tests | Tests/ScanLifecycleTests.swift (Swift Testing) |
-| Xcode project/scheme | QdrantPhotoSweep.xcodeproj; shared scheme QdrantPhotoSweep; test target QdrantPhotoSweepTests |
-| SDK | Existing QdrantEdge package (outside app directory); Xcode exposes QdrantEdge/Package.swift and generated bindings |
-
-The host deployment setting is iOS 26. Packages/PhotoSweep is the default app engine (steps 3–9, device-confirmed 2026-11-18): SweepComposition (`PhotoSweepComposition` SafeDI root, `RewriteBootstrap`, `AppRuntime`, `PlatformAdapters`, root/shell views, feature factories) wires SweepDomain policies, SweepFeatureState Store/Reducer/Effect, SweepPersistence (SwiftData schema v1, `SwiftDataMetadataStore`, unwired `LegacyDataTransition`), SweepUseCases (`VectorizationExecutor`, `DiscoveryExecutor`, `AppLifecycleCoordinator`, review/deletion and preference use cases), SweepQdrant (`QdrantStoreProvider`), SweepPhotos, SweepEmbeddings (background Vision on Neural Engine/CPU), SweepSystem (`BackgroundTaskScheduler`, `UserNotificationReviewNotifier`) and the Onboarding/Library/Review/Settings features with views. `App.swift` `EngineSelection` keeps the legacy root (`LegacyEngine.swift`) behind the Debug launch argument `-PhotoSweepLegacyEngine YES`; legacy code, data and adapter/design originals remain until the step 10 cutover. See docs/implementation/step-3.md through step-9.md for validation status. The package's macOS declaration supports host-side tests, not a Mac app.
+| App target | Sources/QdrantPhotoSweep/App.swift (engine switch), Info.plist (BGTask identifiers, background modes) |
+| Composition | Packages/PhotoSweep/Sources/SweepComposition/ (`PhotoSweepComposition`, `RewriteBootstrap`, `AppRuntime`, `FeatureFactories`, `LivePlatform`) |
+| Executors | Packages/PhotoSweep/Sources/SweepUseCases/{VectorizationExecutor,DiscoveryExecutor,AppLifecycleCoordinator}.swift |
+| Use cases | SweepUseCases/{VectorizationSteps,ReviewUseCases,PreferenceUseCases,LocalDataOperations}.swift |
+| Persistence | Packages/PhotoSweep/Sources/SweepPersistence/ (SchemaV1, `SwiftDataMetadataStore` + extensions, `LegacyDataTransition`) |
+| Adapters | SweepPhotos, SweepEmbeddings, SweepQdrant, SweepSystem (`BackgroundTaskScheduler`) |
+| Features | Sweep{Onboarding,Library,Review,Settings}Feature (reducer + view each) |
+| Strings | Packages/PhotoSweep/Sources/SweepDesignSystem/Resources/Localizable.xcstrings (en/de/es/ru); add keys with Scripts/add-strings.py |
+| Tests | Packages/PhotoSweep/Tests/ (17 targets); fakes in SweepTestSupport |
+| Test photos | Scripts/test-photos/ (fake libraries with known duplicate groups) |
+| Legacy (removed at cutover) | Sources/QdrantPhotoSweep/ except App.swift; LegacyEngine.swift; Tests/ScanLifecycleTests.swift |
+| Xcode | QdrantPhotoSweep.xcodeproj, scheme QdrantPhotoSweep; package scheme PhotoSweep |
+| SDK | QdrantEdge package outside the app directory (lib/edge/swift) |
 
 ## Package target graph
 
+Enforced by `python3 Scripts/check-module-boundaries.py`.
+
 | Target | Responsibility | Direct dependencies |
 | --- | --- | --- |
-| SweepDomain | Models, IDs/errors, contracts, policies | Foundation as needed |
-| SweepUseCases | Application/business workflows | SweepDomain |
-| SweepQdrant | SDK mapping, shard owner | SweepDomain, QdrantEdge |
-| SweepPhotos | Photo access, images, observation, deletion | SweepDomain, Photos/image frameworks |
-| SweepEmbeddings | Feature prints | SweepDomain, Vision/image frameworks |
-| SweepPersistence | Journals, metadata/preferences/schema | SweepDomain, SwiftData |
-| SweepSystem | Lifecycle/background/resource/notification adapters | SweepDomain, platform frameworks |
-| SweepDesignSystem | Tokens, Liquid Glass, localization/components | SwiftUI |
-| SweepFeatureState | Minimal native stores/effects | Foundation, Observation |
-| SweepLibraryFeature | Vectorization/progress/pause/retry | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepReviewFeature | Cards/comparison/preview | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepSettingsFeature | Scope/threshold/rescan/reset/stats | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepOnboardingFeature | Access/onboarding | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
-| SweepComposition | Generated graph, feature factories, app entry | SafeDI, feature/use-case/adapter targets |
-| SweepTestSupport | Deterministic fixtures/fakes | SweepDomain; test targets only |
+| SweepDomain | Models, IDs/errors, contracts, policies | Foundation |
+| SweepUseCases | Workflows and executors | SweepDomain |
+| SweepQdrant | SDK mapping, per-generation shards | SweepDomain, QdrantEdge |
+| SweepPhotos | Photo access, images, change monitor, deletion | SweepDomain, Photos |
+| SweepEmbeddings | Vision feature prints | SweepDomain, Vision |
+| SweepPersistence | SwiftData schema, journals, metadata | SweepDomain, SwiftData |
+| SweepSystem | BackgroundTasks, grace windows, notifications | SweepDomain, platform frameworks |
+| SweepDesignSystem | Tokens, Liquid Glass, localization | SwiftUI |
+| SweepFeatureState | Store/Reducer/Effect | Foundation, Observation |
+| Sweep*Feature | Onboarding, Library, Review, Settings | SweepDomain, SweepUseCases, SweepFeatureState, SweepDesignSystem |
+| SweepComposition | SafeDI root, runtime, factories, root views | SafeDI, all of the above |
+| SweepTestSupport | Deterministic fakes | SweepDomain; test targets only |
 
-Annotated participating targets additionally depend on SafeDI after validation; domain/policies/design system do not. Plugin placement follows the tested package-root integration.
+## Validation
 
-## Use-case inventory
-
-BootstrapApplication, RequestPhotoAccess, RecoverPendingOperations, LoadPreferences;
-ReconcilePhotoLibrary, StartOrResumeVectorization, PauseVectorization, RetryVectorization, VectorizePhotoBatch, ObserveVectorization;
-BeginDiscoveryRevision, RefillReviewBuffer, DiscoverNextComponent, ObserveReviewAvailability, SuspendDiscovery;
-LoadNextReviewGroup, ValidateKeepSelection, SkipGroup, CommitReviewDecision, DeleteSelectedPhotos;
-LoadThumbnail, LoadPreviewImage;
-UpdateDateScope, UpdateSimilarityThreshold, RescanLibrary, ResetLocalData, LoadStatistics;
-HandleAppActivation, HandleExecutionExpiration, EvaluateBackgroundEligibility, ScheduleVectorization, NotifyReviewReady, EvaluateWorkBudget.
-
-## Validation entry points
-
-- In Xcode: BuildProject for application build; discover Xcode test tools and select the QdrantPhotoSweepTests target in the shared scheme. XcodeRefreshCodeIssuesInFile is a focused diagnostic, not a full build.
-- Agent rules: `python3 .agents/validate.py` checks traceability, links, wrappers and relocatability. It does not verify app behavior or editor runtime loading.
-- Baseline evidence is in docs/baseline/README.md: simulator build/launch/UI capture succeeded and 13/13 existing Swift Testing tests passed on iPhone 17, iOS 27.0.1. This does not establish device performance or scheduling behavior.
-- CLI fallback when Xcode tools are unavailable: `xcodebuild -project QdrantPhotoSweep.xcodeproj -scheme QdrantPhotoSweep -showdestinations`, then build/test with an actual available destination ID. This fallback has not been executed in this milestone; do not invent a simulator name.
-- Package validation: `swift test --package-path Packages/PhotoSweep`; iOS-only tests additionally require an iOS destination. `python3 Scripts/check-module-boundaries.py` checks dependency direction. See docs/implementation/step-3.md through step-9.md for actual results and limitations.
+- App: BuildProject in Xcode (or `xcodebuild -project QdrantPhotoSweep.xcodeproj -scheme QdrantPhotoSweep`).
+- Package: `swift test --package-path Packages/PhotoSweep` (macOS); iOS: `xcodebuild test -scheme PhotoSweep -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5'` from Packages/PhotoSweep. Vision tests run only on devices.
+- Boundaries: `python3 Scripts/check-module-boundaries.py`. Agent rules: `python3 .agents/validate.py` (traceability and links, not app behavior).
+- Device baseline and measurement protocol: docs/baseline/.

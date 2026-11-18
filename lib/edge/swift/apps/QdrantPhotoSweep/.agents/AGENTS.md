@@ -17,7 +17,7 @@ Read only the applicable rule files from this table; cross-cutting changes requi
 | Scale, heat, resource scheduling | .agents/rules/performance.md |
 | Instructions or tool configuration | .agents/rules/maintenance.md; .agents/tooling.md |
 
-Read .agents/project-map.md to locate current code and validation entry points. SPM boundaries and an inert DI validation slice exist; the legacy app remains active. ARCHITECTURE.md describes old code, not the target behavior.
+Read .agents/project-map.md to locate current code and validation entry points. The rewrite in Packages/PhotoSweep is the default engine; the legacy app remains behind a Debug switch until the step 10 cutover. ARCHITECTURE.md describes the rewrite; docs/implementation/README.md holds decisions and lessons.
 
 ## Non-negotiable boundaries
 
