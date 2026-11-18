@@ -197,6 +197,38 @@ import SweepUseCases
         #expect(try await device.pause == PauseState.none)
     }
 
+    @Test(.timeLimit(.minutes(1))) func repeatedRestartsKeepOneContinuedTaskAndFinishTheLibrary() async throws {
+        let embedder = HoldingEmbedder()
+        let device = try Device(photoCount: 5, embedder: embedder)
+        #expect(await device.coordinator.userRequestedVectorization(.userResume) == .started)
+        await embedder.waitForHeld()
+        #expect(await device.scheduler.continuedRequests == 1)
+
+        // Rescan tapped repeatedly while the first request's window has not arrived yet.
+        for _ in 0..<3 {
+            await device.coordinator.userRequestedRestart(.userResume)
+            await embedder.waitForHeld()
+        }
+        #expect(await device.scheduler.continuedRequests == 1)
+
+        // Once the window runs, a restart keeps it: no second request, no early finish.
+        let window = FakeExecutionWindow(kind: .continued)
+        let running = Task { await device.coordinator.run(window) }
+        await window.waitUntilRegistered()
+        await device.coordinator.userRequestedRestart(.userResume)
+        await embedder.waitForHeld()
+        #expect(await device.scheduler.continuedRequests == 1)
+        #expect(window.finishCalls.isEmpty)
+        #expect(await device.coordinator.activeWindowCount == 1)
+
+        await embedder.release()
+        await running.value
+        #expect(window.finishCalls == [true])
+        #expect(try await device.vectorCount() == 5)
+        #expect(device.vectorization.status == .completed(deferredCount: 0))
+        #expect(try await device.store.activePass() == nil)
+    }
+
     @Test func progressCountsReusedVectorsAsDone() async throws {
         let embedder = GatedEmbedder(blockOnCall: 4)
         let device = try Device(photoCount: 3, embedder: embedder)

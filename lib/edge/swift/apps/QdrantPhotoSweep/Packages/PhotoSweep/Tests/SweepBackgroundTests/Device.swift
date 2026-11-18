@@ -33,6 +33,55 @@ actor GatedEmbedder: EmbeddingProviding, EmbeddingModelDescribing {
     }
 }
 
+/// Embedder that holds every call until released; a cancelled call returns at once.
+actor HoldingEmbedder: EmbeddingProviding, EmbeddingModelDescribing {
+    private var isHolding = true
+    private var held: [UUID: CheckedContinuation<Void, Never>] = [:]
+    private var waiterCountWaiters: [(Int, CheckedContinuation<Void, Never>)] = []
+
+    func embed(image: CGImage) async throws(AdapterError) -> [Float] {
+        if isHolding {
+            let id = UUID()
+            await withTaskCancellationHandler {
+                await withCheckedContinuation { continuation in
+                    held[id] = continuation
+                    notifyWaiterCount()
+                }
+            } onCancel: {
+                Task { await self.resume(id) }
+            }
+        }
+        return [1, 0, 0]
+    }
+
+    func modelDescriptor() async throws(AdapterError) -> EmbeddingModelDescriptor {
+        EmbeddingModelDescriptor(model: "fake", revision: 1, dimensions: 3)
+    }
+
+    /// Suspends until at least `count` calls are held.
+    func waitForHeld(_ count: Int = 1) async {
+        if held.count >= count { return }
+        await withCheckedContinuation { waiterCountWaiters.append((count, $0)) }
+    }
+
+    func release() {
+        isHolding = false
+        let continuations = held.values
+        held = [:]
+        continuations.forEach { $0.resume() }
+    }
+
+    private func resume(_ id: UUID) {
+        held.removeValue(forKey: id)?.resume()
+    }
+
+    private func notifyWaiterCount() {
+        let ready = waiterCountWaiters.filter { held.count >= $0.0 }
+        waiterCountWaiters.removeAll { held.count >= $0.0 }
+        ready.forEach { $0.1.resume() }
+    }
+}
+
 /// A simulated iPhone: library, store file, both executors and the lifecycle coordinator.
 /// All photos share one vector, so once vectorized they form a single review group.
 final class Device: Sendable {

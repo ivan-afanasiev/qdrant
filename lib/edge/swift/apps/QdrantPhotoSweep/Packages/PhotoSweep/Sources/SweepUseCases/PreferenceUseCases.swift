@@ -126,7 +126,7 @@ public struct UpdateDateScope: Sendable {
             state.gate = InitialPassGate()
         }
         try await discovery.beginNewRevision()
-        await lifecycle.userRequestedVectorization(.userResume)
+        await lifecycle.userRequestedRestart(.userResume)
     }
 }
 
@@ -164,7 +164,7 @@ public struct RescanLibrary: Sendable {
     public func execute() async throws(PersistenceError) {
         try await workflow.modifyWorkflowState { $0.gate = InitialPassGate() }
         try await discovery.beginNewRevision()
-        await lifecycle.userRequestedVectorization(.userResume)
+        await lifecycle.userRequestedRestart(.userResume)
     }
 }
 

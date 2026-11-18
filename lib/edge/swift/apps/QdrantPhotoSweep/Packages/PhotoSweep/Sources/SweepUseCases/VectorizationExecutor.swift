@@ -97,6 +97,8 @@ public actor VectorizationExecutor {
     private let dependencies: Dependencies
     private let configuration: VectorizationConfiguration
     private let broadcast = StatusBroadcast<VectorizationStatus>(.idle)
+    private var restartsInProgress = 0
+    private var restartWaiters: [CheckedContinuation<Void, Never>] = []
     private let completedPasses = StatusBroadcast<CompletedPass?>(nil)
     private var runTask: Task<Void, Never>?
     private var changeTask: Task<Void, Never>?
@@ -214,10 +216,44 @@ public actor VectorizationExecutor {
         await runTask.value
     }
 
-    /// Waits until no pass is running, including queued follow-up passes.
-    public func waitUntilIdle() async {
-        while let runTask {
+    /// Stops any running pass at a safe boundary, abandons it and starts a fresh pass for
+    /// the current scope (Rescan, date-range change). Committed vectors are kept and reused,
+    /// so the new pass only analyzes photos that still need it. Without this, a rescan
+    /// during a running pass only queued another pass behind it.
+    @discardableResult
+    public func restart(_ trigger: VectorizationTrigger) async -> VectorizationTriggerOutcome {
+        // Observers waiting for idle (execution windows) must not see the gap between the
+        // old pass stopping and the new one starting, or the window would end early.
+        restartsInProgress += 1
+        defer {
+            restartsInProgress -= 1
+            if restartsInProgress == 0 {
+                let waiters = restartWaiters
+                restartWaiters = []
+                waiters.forEach { $0.resume() }
+            }
+        }
+        if let runTask {
+            stopReason = .system
+            runTask.cancel()
             await runTask.value
+        }
+        if let active = try? await dependencies.passes.activePass() {
+            try? await dependencies.passes.finishPass(active.id)
+        }
+        return await handle(trigger)
+    }
+
+    /// Waits until no pass is running, including queued follow-up passes and restarts.
+    public func waitUntilIdle() async {
+        while true {
+            if let runTask {
+                await runTask.value
+            } else if restartsInProgress > 0 {
+                await withCheckedContinuation { restartWaiters.append($0) }
+            } else {
+                return
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import SweepUseCases
 
 public struct SettingsView: View {
     private let store: Store<SettingsFeature>
+    @Environment(\.dismiss) private var dismiss
 
     public init(store: Store<SettingsFeature>) {
         self.store = store
@@ -93,6 +94,9 @@ public struct SettingsView: View {
             Button(L10n.noticeOK) { store.send(.failureDismissed) }
         }
         .task { store.send(.onAppear) }
+        .onChange(of: store.state.isDismissRequested) { _, requested in
+            if requested { dismiss() }
+        }
     }
 }
 

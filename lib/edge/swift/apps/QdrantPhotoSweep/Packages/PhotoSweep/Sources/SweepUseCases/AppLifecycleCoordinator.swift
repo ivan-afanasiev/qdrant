@@ -49,6 +49,8 @@ public actor AppLifecycleCoordinator {
     /// racing between the persisted check and the persisted record.
     private var announcedPasses: Set<VectorizationPassID> = []
     private var completionObserver: Task<Void, Never>?
+    /// A continued request was accepted and its window has not arrived yet.
+    private var isContinuationPending = false
     /// Vectorized count of the running pass at the last mid-pass discovery refill.
     private var lastRefillVectorizedCount = 0
 
@@ -93,14 +95,35 @@ public actor AppLifecycleCoordinator {
     public func userRequestedVectorization(_ trigger: VectorizationTrigger) async -> VectorizationTriggerOutcome {
         observeVectorizationCompletions()
         let outcome = await dependencies.vectorization.handle(trigger)
+        await requestContinuationIfNeeded(after: outcome)
+        return outcome
+    }
+
+    /// Rescan and date-range changes: the running pass is replaced by a fresh one instead of
+    /// queuing another pass behind it. An active continued window keeps covering the new pass.
+    @discardableResult
+    public func userRequestedRestart(_ trigger: VectorizationTrigger) async -> VectorizationTriggerOutcome {
+        observeVectorizationCompletions()
+        let outcome = await dependencies.vectorization.restart(trigger)
+        await requestContinuationIfNeeded(after: outcome)
+        return outcome
+    }
+
+    /// At most one continued task (and Live Activity) at a time: repeated actions while one
+    /// is active or about to start reuse it instead of submitting another request.
+    private func requestContinuationIfNeeded(after outcome: VectorizationTriggerOutcome) async {
         switch outcome {
         case .started, .queued:
+            let hasContinuation = windows.values.contains { $0.window.kind == .continued }
+            guard !hasContinuation, !isContinuationPending else { return }
+            isContinuationPending = true
             // A rejection only means no background continuation; foreground work continues.
-            _ = await dependencies.scheduler.requestContinuedProcessing()
+            if await !dependencies.scheduler.requestContinuedProcessing() {
+                isContinuationPending = false
+            }
         case .blockedByManualPause, .failed:
             break
         }
-        return outcome
     }
 
     // MARK: - Execution windows
@@ -110,6 +133,9 @@ public actor AppLifecycleCoordinator {
         observeVectorizationCompletions()
         let id = ObjectIdentifier(window)
         guard windows[id] == nil else { return }
+        if window.kind == .continued {
+            isContinuationPending = false
+        }
         // Continued windows only follow a person's action, which onboarding itself performs.
         if window.kind != .continued, !(await dependencies.isAutomaticWorkAllowed()) {
             window.finish(success: true)
@@ -220,6 +246,7 @@ public actor AppLifecycleCoordinator {
 
     private func vectorizationCompleted() async {
         lastRefillVectorizedCount = 0
+        isContinuationPending = false
         guard presence == .foreground else { return }
         await dependencies.discovery.requestRefill()
     }

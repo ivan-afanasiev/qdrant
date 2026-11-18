@@ -35,6 +35,9 @@ public struct SettingsFeature: Reducer {
         public var isWorking = false
         public var isConfirmingReset = false
         public var didFail = false
+        /// Set after a successful rescan: the screen closes so the person sees progress and
+        /// review again.
+        public var isDismissRequested = false
 
         public init() {}
     }
@@ -49,6 +52,7 @@ public struct SettingsFeature: Reducer {
         case resetCancelled
         case resetConfirmed
         case operationFinished(Bool)
+        case rescanFinished(Bool)
         case failureDismissed
     }
 
@@ -78,7 +82,17 @@ public struct SettingsFeature: Reducer {
 
         case .rescanTapped:
             guard !state.isWorking else { return .none }
-            return run(&state) { [client] in await client.rescan() }
+            state.isWorking = true
+            state.didFail = false
+            return .run { [client] send in
+                await send(.rescanFinished(await client.rescan()))
+            }
+
+        case .rescanFinished(let succeeded):
+            state.isWorking = false
+            state.didFail = !succeeded
+            state.isDismissRequested = succeeded
+            return succeeded ? .none : load()
 
         case .resetTapped:
             guard !state.isWorking else { return .none }

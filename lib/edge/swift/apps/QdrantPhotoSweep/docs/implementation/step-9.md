@@ -63,6 +63,13 @@ The progress screen showed about 18,000 photos for "All Time", while the legacy 
 - **Memory-bounded review cards.** Cards load a high-quality image sized to the card (longest side = card width × display scale, adjusted for portrait, rounded to 256 px and capped at 4096) through `PhotoLibraryProviding.loadDisplayImage`. Only the full-screen preview decodes the original.
 - **Russian strings.** Five older strings with a Latin "é" now use Cyrillic «ё». The two new status strings are translated into de/es/ru (machine translated, pending native review).
 
+## Rescan while running (device feedback, 2026-11-18)
+
+- **One Live Activity.** Each Rescan used to submit a new continued-processing request, so repeated taps showed several Live Activities for one pass. The coordinator now requests continued processing only when no continued window is active or pending, and an active window keeps covering the restarted pass. Before this, `waitUntilIdle` saw the short gap between the old pass stopping and the new one starting, so the window ended early.
+- **Restart, not queue.** Rescan and date-range changes call `VectorizationExecutor.restart`, which stops the running pass at a safe boundary, abandons it and starts a fresh pass. Committed vectors are reused. Before, a rescan during a running pass only queued another pass behind it.
+- **Back to review.** A successful Rescan closes Settings, so progress and review are visible right away.
+- Covered by `repeatedRestartsKeepOneContinuedTaskAndFinishTheLibrary`, `successfulRescanClosesSettings` and `failedRescanStaysOnSettings`.
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

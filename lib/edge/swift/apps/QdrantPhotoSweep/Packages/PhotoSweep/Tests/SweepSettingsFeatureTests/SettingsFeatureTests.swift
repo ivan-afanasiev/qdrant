@@ -59,7 +59,9 @@ private func makeStore() -> (Store<SettingsFeature>, SettingsBackend) {
         store.send(.rescanTapped)
         await store.finishAllEffects()
         #expect(await backend.calls == ["similarity:strict", "rescan"])
-        #expect(await backend.loads >= 3)
+        // A successful rescan closes Settings instead of reloading it.
+        #expect(await backend.loads >= 2)
+        #expect(store.state.isDismissRequested)
     }
 
     @Test func selectingCurrentValuesDoesNothing() async {
@@ -83,6 +85,25 @@ private func makeStore() -> (Store<SettingsFeature>, SettingsBackend) {
         store.send(.resetConfirmed)
         await store.finishAllEffects()
         #expect(await backend.calls == ["reset"])
+    }
+
+    @Test func successfulRescanClosesSettings() async {
+        let (store, backend) = makeStore()
+        store.send(.rescanTapped)
+        #expect(store.state.isWorking)
+        await store.finishAllEffects()
+        #expect(await backend.calls == ["rescan"])
+        #expect(store.state.isDismissRequested)
+        #expect(!store.state.isWorking)
+    }
+
+    @Test func failedRescanStaysOnSettings() async {
+        let (store, backend) = makeStore()
+        await backend.setSucceeds(false)
+        store.send(.rescanTapped)
+        await store.finishAllEffects()
+        #expect(!store.state.isDismissRequested)
+        #expect(store.state.didFail)
     }
 
     @Test func failureIsShownAndDismissable() async {
