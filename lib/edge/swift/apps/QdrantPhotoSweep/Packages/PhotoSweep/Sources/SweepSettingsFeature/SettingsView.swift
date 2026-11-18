@@ -16,6 +16,8 @@ public struct SettingsView: View {
     public var body: some View {
         Form {
             if let preferences = store.state.preferences {
+                // Inline checkmark lists (design option B, chosen 2026-11-18): every choice
+                // gets its own row, so long localized labels wrap instead of truncating.
                 Section {
                     Picker(selection: Binding(
                         get: { preferences.datePreset },
@@ -25,6 +27,10 @@ public struct SettingsView: View {
                     } label: {
                         Text(L10n.settingsScanPeriodHeader)
                     }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                } header: {
+                    Text(L10n.settingsScanPeriodHeader)
                 } footer: {
                     Text(L10n.settingsScanPeriodFooter)
                 }
@@ -38,7 +44,8 @@ public struct SettingsView: View {
                     } label: {
                         Text(L10n.similarityThreshold)
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.inline)
+                    .labelsHidden()
                 } header: {
                     Text(L10n.detection)
                 } footer: {
@@ -47,7 +54,9 @@ public struct SettingsView: View {
             }
 
             Section {
-                Button(L10n.rescanLibrary) { store.send(.rescanTapped) }
+                Button { store.send(.rescanTapped) } label: {
+                    Label { Text(L10n.rescanLibrary) } icon: { Image(systemName: QIcons.refresh) }
+                }
             } header: {
                 Text(L10n.libraryHeader)
             } footer: {
@@ -153,4 +162,33 @@ extension SimilarityPreset {
         }
     }
 }
+
+#if DEBUG
+@MainActor
+private func previewSettingsStore() -> Store<SettingsFeature> {
+    let client = SettingsClient(
+        loadPreferences: { Preferences(datePreset: .last3Years, similarity: .balanced, isOnboardingCompleted: true) },
+        loadStatistics: {
+            LibraryStatistics(vectorizedPhotos: 18_215, unavailablePhotos: 3, reviewedGroups: 55, deletedPhotos: 6, estimatedBytesFreed: 42_000_000, deletionsWithUnknownSize: 1)
+        },
+        updateDateScope: { _ in true },
+        updateSimilarity: { _ in true },
+        rescan: { true },
+        reset: { true }
+    )
+    return Store(initialState: SettingsFeature.State(), reducer: SettingsFeature(client: client))
+}
+
+#Preview("Settings · Russian") {
+    NavigationStack { SettingsView(store: previewSettingsStore()) }
+        .tint(QColors.primary)
+        .environment(\.locale, Locale(identifier: "ru"))
+}
+
+#Preview("Settings · German · narrow (folded Duo)", traits: .fixedLayout(width: 320, height: 900)) {
+    NavigationStack { SettingsView(store: previewSettingsStore()) }
+        .tint(QColors.primary)
+        .environment(\.locale, Locale(identifier: "de"))
+}
+#endif
 #endif

@@ -74,6 +74,15 @@ Progress used to count only the pass's work set (photos still needing analysis),
 
 Every launch reconciles the library to pick up new or edited photos. Since preparation progress was added, that check showed "Reading your library" above the cards even when nothing had changed. A pass is now a quiet routine check when review is open and the last status was idle or completed: it reports neither preparing nor running unless it finds photos to analyze. First scans, rescans, date-range changes and Resume/Retry still show the whole pass. Registration also writes only changed values, so an unchanged library is not saved again on every launch. Covered by `launchCheckAfterAFinishedScanIsQuiet` (fails without the change) and `launchCheckWithNewPhotosStillAnalyzesThem`.
 
+## Layouts for long labels (owner choice, 2026-11-18)
+
+German and Russian labels broke the review controls (three text buttons in one row) and the Settings pickers. The owner picked from preview-only options:
+
+- **Review: option C.** Skip and Keep All are round icon buttons (forward, checkmark) with VoiceOver labels, and the one labeled action (Delete All, Delete N Photos or Keep All) takes the rest of the row.
+- **Settings: option B.** The date range and similarity are inline checkmark lists, so each choice has its own row and long labels wrap. Rescan has a refresh icon.
+
+The real views now have `#Preview`s in German and Russian, including the narrow folded iPhone Duo width.
+
 ## Localization
 
 There are 50 new keys. Sub-agents translated them into de, es and ru, and the catalog now reports 0 new strings per locale, all marked `machine_translated`.

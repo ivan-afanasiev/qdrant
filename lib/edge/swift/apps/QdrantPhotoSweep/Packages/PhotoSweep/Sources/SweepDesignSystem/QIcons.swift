@@ -37,6 +37,8 @@ public enum QIcons {
     public static let squareGrid = "square.grid.2x2"
     public static let rectangleStack = "rectangle.stack"
     public static let refresh = "arrow.clockwise"
+    public static let skip = "forward.fill"
+    public static let checkmark = "checkmark"
 }
 
 #endif
