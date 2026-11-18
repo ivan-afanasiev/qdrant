@@ -135,11 +135,10 @@ private struct StatisticsSection: View {
 extension DateScopePreset {
     var title: LocalizedStringResource {
         switch self {
-        case .lastWeek: L10n.lastWeek
-        case .lastMonth: L10n.lastMonth
         case .last3Months: L10n.last3Months
-        case .last6Months: L10n.last6Months
         case .lastYear: L10n.lastYear
+        case .last3Years: L10n.last3Years
+        case .last5Years: L10n.last5Years
         case .allTime: L10n.allTime
         }
     }

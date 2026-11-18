@@ -6,7 +6,7 @@ Step 9 of REWRITE_PLAN.md §10: immediate threshold changes, rescan, statistics,
 
 1. **Rewrite is the default engine.** A Debug-only launch argument, `-PhotoSweepLegacyEngine YES`, selects the legacy engine instead. The two engines never run together. Legacy data is left untouched until step 10.
 2. **Similarity has three presets:** Strict 0.96, Balanced 0.92 (the default) and Loose 0.85.
-3. **Date range is chosen from presets only:** last week, month, 3 months, 6 months, year, or all time.
+3. **Date range is chosen from presets only:** last 3 months, last year, last 3 years (the default), last 5 years, or all time. *(Changed by the owner on 2026-11-18 after device use; previously last week, month, 3 months, 6 months, year and all time, with all time as the default.)*
 4. **Notification permission is an onboarding step.** The order is welcome → photo access → notifications → date range → Start.
 
 ## Delivered

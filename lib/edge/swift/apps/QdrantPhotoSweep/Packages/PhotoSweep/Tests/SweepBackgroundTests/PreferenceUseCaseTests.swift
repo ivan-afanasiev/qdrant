@@ -24,11 +24,11 @@ private actor Counter {
         let device = try Device(photoCount: 3)
         let observed = Counter()
         let complete = CompleteOnboarding(workflow: device.store, lifecycle: device.coordinator, observeLibrary: { await observed.increment() }, now: { now })
-        try await complete.execute(datePreset: .lastMonth)
+        try await complete.execute(datePreset: .lastYear)
         await device.vectorization.waitUntilIdle()
 
         let preferences = try await LoadPreferences(workflow: device.store).execute()
-        #expect(preferences == Preferences(datePreset: .lastMonth, similarity: .balanced, isOnboardingCompleted: true))
+        #expect(preferences == Preferences(datePreset: .lastYear, similarity: .balanced, isOnboardingCompleted: true))
         #expect(await observed.value == 1)
         #expect(await device.scheduler.continuedRequests == 1)
         #expect(device.vectorization.status == .completed(deferredCount: 0))
@@ -41,10 +41,10 @@ private actor Counter {
         let before = try #require(try await device.store.loadWorkflowState())
         #expect(before.gate.isOpen)
 
-        try await UpdateDateScope(workflow: device.store, discovery: device.discovery, lifecycle: device.coordinator, now: { now }).execute(.lastWeek)
+        try await UpdateDateScope(workflow: device.store, discovery: device.discovery, lifecycle: device.coordinator, now: { now }).execute(.last3Months)
         await device.vectorization.waitUntilIdle()
         let after = try #require(try await device.store.loadWorkflowState())
-        #expect(after.datePreset == .lastWeek)
+        #expect(after.datePreset == .last3Months)
         #expect(after.discoveryRevision == before.discoveryRevision.next())
         // The scoped initial pass ran again and reopened review for the new range.
         #expect(after.gate.isOpen)
@@ -112,10 +112,15 @@ private actor Counter {
     }
 
     @Test func presetsResolveToRollingOpenEndedRanges() {
-        let range = DateScopePreset.lastMonth.range(endingAt: now)
+        let range = DateScopePreset.last3Months.range(endingAt: now)
         #expect(range.end == .distantFuture)
         #expect(range.start < now)
-        #expect(range.start > now.addingTimeInterval(-32 * 86_400))
+        #expect(range.start > now.addingTimeInterval(-93 * 86_400))
+        let threeYears = DateScopePreset.last3Years.range(endingAt: now)
+        #expect(threeYears.start > now.addingTimeInterval(-3 * 366 * 86_400))
+        #expect(threeYears.start < now.addingTimeInterval(-3 * 364 * 86_400))
+        #expect(DateScopePreset.default == .last3Years)
+        #expect(DateScopePreset.allCases == [.last3Months, .lastYear, .last3Years, .last5Years, .allTime])
         #expect(DateScopePreset.allTime.range(endingAt: now) == DateRange(start: .distantPast, end: .distantFuture))
         #expect(SimilarityPreset.allCases.map(\.threshold.value) == [0.96, 0.92, 0.85])
     }

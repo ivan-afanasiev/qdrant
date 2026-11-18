@@ -39,12 +39,12 @@ private func makeStore(
         #expect(store.state.step == .notifications)
         await store.send(.allowNotificationsTapped).finish()
         #expect(store.state.step == .dateRange)
-        #expect(store.state.datePreset == .allTime)
+        #expect(store.state.datePreset == .last3Years)
 
-        store.send(.datePresetSelected(.last6Months))
+        store.send(.datePresetSelected(.last5Years))
         await store.send(.startTapped).finish()
         #expect(store.state.isCompleted)
-        #expect(await log.completedWith == [.last6Months])
+        #expect(await log.completedWith == [.last5Years])
     }
 
     @Test func deniedAccessStaysOnAccessStep() async {

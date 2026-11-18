@@ -3,22 +3,20 @@ import Foundation
 /// Date-range choices. A preset is a rolling window: it is resolved again at the start of
 /// every vectorization pass, and its end is open so newly taken photos stay in scope.
 public enum DateScopePreset: String, CaseIterable, Equatable, Sendable {
-    case lastWeek
-    case lastMonth
     case last3Months
-    case last6Months
     case lastYear
+    case last3Years
+    case last5Years
     case allTime
 
-    public static let `default` = DateScopePreset.allTime
+    public static let `default` = DateScopePreset.last3Years
 
     public func range(endingAt now: Date, calendar: Calendar = .current) -> DateRange {
         let start: Date? = switch self {
-        case .lastWeek: calendar.date(byAdding: .day, value: -7, to: now)
-        case .lastMonth: calendar.date(byAdding: .month, value: -1, to: now)
         case .last3Months: calendar.date(byAdding: .month, value: -3, to: now)
-        case .last6Months: calendar.date(byAdding: .month, value: -6, to: now)
         case .lastYear: calendar.date(byAdding: .year, value: -1, to: now)
+        case .last3Years: calendar.date(byAdding: .year, value: -3, to: now)
+        case .last5Years: calendar.date(byAdding: .year, value: -5, to: now)
         case .allTime: nil
         }
         return DateRange(start: start ?? .distantPast, end: .distantFuture)

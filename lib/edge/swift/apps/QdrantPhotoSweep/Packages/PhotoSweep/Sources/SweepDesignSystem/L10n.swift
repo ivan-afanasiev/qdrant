@@ -23,11 +23,10 @@ public enum L10n {
 
     // MARK: - Presets
 
-    public static let lastWeek: LocalizedStringResource = LocalizedStringResource("preset.lastWeek", bundle: .atURL(Bundle.module.bundleURL))
-    public static let lastMonth: LocalizedStringResource = LocalizedStringResource("preset.lastMonth", bundle: .atURL(Bundle.module.bundleURL))
     public static let last3Months: LocalizedStringResource = LocalizedStringResource("preset.last3Months", bundle: .atURL(Bundle.module.bundleURL))
-    public static let last6Months: LocalizedStringResource = LocalizedStringResource("preset.last6Months", bundle: .atURL(Bundle.module.bundleURL))
     public static let lastYear: LocalizedStringResource = LocalizedStringResource("preset.lastYear", bundle: .atURL(Bundle.module.bundleURL))
+    public static let last3Years: LocalizedStringResource = LocalizedStringResource("preset.last3Years", bundle: .atURL(Bundle.module.bundleURL))
+    public static let last5Years: LocalizedStringResource = LocalizedStringResource("preset.last5Years", bundle: .atURL(Bundle.module.bundleURL))
     public static let allTime: LocalizedStringResource = LocalizedStringResource("preset.allTime", bundle: .atURL(Bundle.module.bundleURL))
 
     // MARK: - Scan

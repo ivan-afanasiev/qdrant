@@ -7,7 +7,9 @@ public struct VectorizationConfiguration: Sendable {
     /// Stops the pass when this many photos in a row are set aside, which indicates a
     /// systemic problem (for example a broken model) rather than individual bad photos.
     public var maxConsecutiveDeferrals: Int
-    public var defaultScope: DateRange
+    /// Date preset for a state created before onboarding saved one (only tests and
+    /// recovery reach this; onboarding always stores the person's choice first).
+    public var defaultDatePreset: DateScopePreset
     public var defaultThreshold: SimilarityThreshold
     public var retryPolicy: RetryPolicy
     /// Clock used to resolve rolling date presets.
@@ -18,7 +20,7 @@ public struct VectorizationConfiguration: Sendable {
         thumbnailPixels: Int = 224,
         batchSize: Int = 16,
         maxConsecutiveDeferrals: Int = 10,
-        defaultScope: DateRange = DateRange(start: .distantPast, end: .distantFuture),
+        defaultDatePreset: DateScopePreset = .allTime,
         defaultThreshold: SimilarityThreshold = .standard,
         retryPolicy: RetryPolicy = .default,
         now: @escaping @Sendable () -> Date = { Date() }
@@ -26,7 +28,7 @@ public struct VectorizationConfiguration: Sendable {
         self.thumbnailPixels = thumbnailPixels
         self.batchSize = max(1, batchSize)
         self.maxConsecutiveDeferrals = max(1, maxConsecutiveDeferrals)
-        self.defaultScope = defaultScope
+        self.defaultDatePreset = defaultDatePreset
         self.defaultThreshold = defaultThreshold
         self.retryPolicy = retryPolicy
         self.now = now
@@ -512,12 +514,13 @@ public actor VectorizationExecutor {
             return state
         }
         let state = WorkflowState(
-            scope: configuration.defaultScope,
+            scope: configuration.defaultDatePreset.range(endingAt: configuration.now()),
             threshold: configuration.defaultThreshold,
             pause: .none,
             gate: InitialPassGate(),
             discoveryRevision: DiscoveryRevision(1),
-            indexGeneration: IndexGeneration(1)
+            indexGeneration: IndexGeneration(1),
+            datePreset: configuration.defaultDatePreset
         )
         try await dependencies.workflow.saveWorkflowState(state)
         return state
