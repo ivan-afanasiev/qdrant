@@ -37,25 +37,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep konnte seine lokalen Daten nicht öffnen. Versuchen Sie es erneut."
+            "value" : "KeepFrame konnte seine lokalen Daten nicht öffnen. Versuchen Sie es erneut."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep couldn't open its local data. Try again."
+            "value" : "KeepFrame couldn't open its local data. Try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep no pudo abrir sus datos locales. Inténtalo de nuevo."
+            "value" : "KeepFrame no pudo abrir sus datos locales. Inténtalo de nuevo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep не удалось открыть локальные данные. Повторите попытку."
+            "value" : "KeepFrame не удалось открыть локальные данные. Повторите попытку."
           }
         }
       }
@@ -95,25 +95,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qdrant PhotoSweep"
+            "value" : "KeepFrame"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qdrant PhotoSweep"
+            "value" : "KeepFrame"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qdrant PhotoSweep"
+            "value" : "KeepFrame"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qdrant PhotoSweep"
+            "value" : "KeepFrame"
           }
         }
       }
@@ -1213,25 +1213,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep analysiert Ihre Fotos auf diesem iPhone, bevor nach ähnlichen Aufnahmen gesucht wird."
+            "value" : "KeepFrame analysiert Ihre Fotos auf diesem iPhone, bevor nach ähnlichen Aufnahmen gesucht wird."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep analyzes your photos on this iPhone before it looks for similar shots."
+            "value" : "KeepFrame analyzes your photos on this iPhone before it looks for similar shots."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep analiza tus fotos en este iPhone antes de buscar fotos similares."
+            "value" : "KeepFrame analiza tus fotos en este iPhone antes de buscar fotos similares."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep анализирует ваши фото на этом iPhone, прежде чем искать похожие снимки."
+            "value" : "KeepFrame анализирует ваши фото на этом iPhone, прежде чем искать похожие снимки."
           }
         }
       }
@@ -1375,25 +1375,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen."
+            "value" : "Öffnen Sie KeepFrame, um ähnliche Fotos zu überprüfen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open PhotoSweep to review similar photos."
+            "value" : "Open KeepFrame to review similar photos."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "Abre PhotoSweep para revisar fotos similares."
+            "value" : "Abre KeepFrame para revisar fotos similares."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото."
+            "value" : "Откройте KeepFrame, чтобы просмотреть похожие фото."
           }
         }
       }
@@ -1406,19 +1406,19 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Foto konnte nicht geladen werden und wurde übersprungen."
+                  "value" : "Öffnen Sie KeepFrame, um ähnliche Fotos zu überprüfen. %lld Foto konnte nicht geladen werden und wurde übersprungen."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
+                  "value" : "Öffnen Sie KeepFrame, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
                 }
               },
               "zero" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Öffnen Sie PhotoSweep, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
+                  "value" : "Öffnen Sie KeepFrame, um ähnliche Fotos zu überprüfen. %lld Fotos konnten nicht geladen werden und wurden übersprungen."
                 }
               }
             }
@@ -1430,19 +1430,19 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Open PhotoSweep to review similar photos. %lld photo couldn't be loaded and was skipped."
+                  "value" : "Open KeepFrame to review similar photos. %lld photo couldn't be loaded and was skipped."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+                  "value" : "Open KeepFrame to review similar photos. %lld photos couldn't be loaded and were skipped."
                 }
               },
               "zero" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Open PhotoSweep to review similar photos. %lld photos couldn't be loaded and were skipped."
+                  "value" : "Open KeepFrame to review similar photos. %lld photos couldn't be loaded and were skipped."
                 }
               }
             }
@@ -1454,19 +1454,19 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudo cargar %lld foto y se omitió."
+                  "value" : "Abre KeepFrame para revisar fotos similares. No se pudo cargar %lld foto y se omitió."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
+                  "value" : "Abre KeepFrame para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
                 }
               },
               "zero" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Abre PhotoSweep para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
+                  "value" : "Abre KeepFrame para revisar fotos similares. No se pudieron cargar %lld fotos y se omitieron."
                 }
               }
             }
@@ -1478,25 +1478,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                  "value" : "Откройте KeepFrame, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                  "value" : "Откройте KeepFrame, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, оно пропущено."
+                  "value" : "Откройте KeepFrame, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, оно пропущено."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "machine_translated",
-                  "value" : "Откройте PhotoSweep, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
+                  "value" : "Откройте KeepFrame, чтобы просмотреть похожие фото. %lld фото не удалось загрузить, они пропущены."
                 }
               }
             }
@@ -1854,25 +1854,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep kann Ihre Fotos weiter vorbereiten, nachdem Sie die App verlassen haben, und Sie benachrichtigen, sobald sie zur Überprüfung bereit sind."
+            "value" : "KeepFrame kann Ihre Fotos weiter vorbereiten, nachdem Sie die App verlassen haben, und Sie benachrichtigen, sobald sie zur Überprüfung bereit sind."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep can keep preparing your photos after you leave the app and let you know when they're ready to review."
+            "value" : "KeepFrame can keep preparing your photos after you leave the app and let you know when they're ready to review."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep puede seguir preparando tus fotos después de que salgas de la app y avisarte cuando estén listas para revisar."
+            "value" : "KeepFrame puede seguir preparando tus fotos después de que salgas de la app y avisarte cuando estén listas para revisar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep может продолжать подготовку ваших фото после выхода из приложения и сообщит, когда они будут готовы к просмотру."
+            "value" : "KeepFrame может продолжать подготовку ваших фото после выхода из приложения и сообщит, когда они будут готовы к просмотру."
           }
         }
       }
@@ -1917,13 +1917,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Access was denied. Please enable photo access in Settings to use PhotoSweep."
+            "value" : "Access was denied. Please enable photo access in Settings to use KeepFrame."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El acceso fue denegado. Activa el acceso a fotos en Ajustes para usar PhotoSweep."
+            "value" : "El acceso fue denegado. Activa el acceso a fotos en Ajustes para usar KeepFrame."
           }
         },
         "ru" : {
@@ -1998,25 +1998,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep benötigt Zugriff auf Ihre Fotos, um Duplikate zu finden und zu entfernen. Die gesamte Verarbeitung erfolgt auf dem Gerät."
+            "value" : "KeepFrame benötigt Zugriff auf Ihre Fotos, um Duplikate zu finden und zu entfernen. Die gesamte Verarbeitung erfolgt auf dem Gerät."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep needs access to your photos to find and remove duplicates. All processing happens on-device."
+            "value" : "KeepFrame needs access to your photos to find and remove duplicates. All processing happens on-device."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep necesita acceso a tus fotos para encontrar y eliminar duplicados. Todo el procesamiento ocurre en el dispositivo."
+            "value" : "KeepFrame necesita acceso a tus fotos para encontrar y eliminar duplicados. Todo el procesamiento ocurre en el dispositivo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep необходим доступ к вашим фото для поиска и удаления дубликатов. Вся обработка происходит на устройстве."
+            "value" : "KeepFrame необходим доступ к вашим фото для поиска и удаления дубликатов. Вся обработка происходит на устройстве."
           }
         }
       }
@@ -4445,25 +4445,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep verwirft die Analyse, den Überprüfungsfortschritt und übersprungene Gruppen und beginnt von vorn. Ihre Fotos werden nicht verändert."
+            "value" : "KeepFrame verwirft die Analyse, den Überprüfungsfortschritt und übersprungene Gruppen und beginnt von vorn. Ihre Fotos werden nicht verändert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PhotoSweep will forget its analysis, review progress and skipped groups, and start over. Your photos are not changed."
+            "value" : "KeepFrame will forget its analysis, review progress and skipped groups, and start over. Your photos are not changed."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep olvidará su análisis, el progreso de revisión y los grupos omitidos, y empezará de nuevo. Tus fotos no se modificarán."
+            "value" : "KeepFrame olvidará su análisis, el progreso de revisión y los grupos omitidos, y empezará de nuevo. Tus fotos no se modificarán."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "PhotoSweep забудет результаты анализа, прогресс просмотра и пропущенные группы и начнет заново. Ваши фото не изменятся."
+            "value" : "KeepFrame забудет результаты анализа, прогресс просмотра и пропущенные группы и начнет заново. Ваши фото не изменятся."
           }
         }
       }
