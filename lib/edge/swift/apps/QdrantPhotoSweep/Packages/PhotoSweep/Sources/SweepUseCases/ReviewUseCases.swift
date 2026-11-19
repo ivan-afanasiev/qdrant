@@ -307,3 +307,27 @@ public struct CommitReviewDecision: Sendable {
         }
     }
 }
+
+/// A bounded decorative sample from the current pass, never a similarity result.
+public struct LoadProgressThumbnails: Sendable {
+    private let passes: any VectorizationPassRepository
+    private let images: LoadReviewImage
+
+    public init(passes: any VectorizationPassRepository, library: any PhotoLibraryProviding) {
+        self.passes = passes
+        self.images = LoadReviewImage(library: library)
+    }
+
+    public func execute() async -> [CGImage] {
+        guard !Task.isCancelled, let pass = try? await passes.activePass() else { return [] }
+        let candidates = Array(pass.outcomes.keys.prefix(8))
+        var result: [CGImage] = []
+        for asset in candidates {
+            guard !Task.isCancelled else { return [] }
+            if let image = try? await images.thumbnail(asset, pixels: 160) {
+                result.append(image)
+            }
+        }
+        return Task.isCancelled ? [] : result
+    }
+}

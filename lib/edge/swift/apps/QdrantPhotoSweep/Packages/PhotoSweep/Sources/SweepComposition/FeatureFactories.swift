@@ -51,6 +51,10 @@ extension AppRuntime {
         return Store(initialState: ReviewFeature.State(discovery: discovery.current), reducer: ReviewFeature(client: client))
     }
 
+    public var progressThumbnails: LoadProgressThumbnails {
+        LoadProgressThumbnails(passes: store, library: services.library)
+    }
+
     public var reviewImages: ReviewImages {
         let images = LoadReviewImage(library: services.library)
         return ReviewImages(

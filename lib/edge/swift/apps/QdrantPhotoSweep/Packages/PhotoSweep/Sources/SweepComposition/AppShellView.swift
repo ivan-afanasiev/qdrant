@@ -98,7 +98,7 @@ struct MainView: View {
     @ViewBuilder
     private var content: some View {
         if discovery.status == .waitingForInitialPass {
-            LibraryProgressView(store: libraryStore)
+            LibraryProgressView(store: libraryStore, loadThumbnails: runtime.progressThumbnails.execute)
         } else {
             // The progress line is a top bar, so the cards still scroll under it and the
             // navigation bar.
