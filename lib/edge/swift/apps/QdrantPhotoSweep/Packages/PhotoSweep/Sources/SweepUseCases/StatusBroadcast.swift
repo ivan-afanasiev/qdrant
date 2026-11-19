@@ -4,7 +4,8 @@ import Foundation
 /// current value, then later values; a slow subscriber only sees the newest one.
 /// Ending a subscription never affects the producer.
 public final class StatusBroadcast<Value: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
+    // Termination may remove a subscriber while a continuation is being yielded.
+    private let lock = NSRecursiveLock()
     private var current: Value
     private var continuations: [UUID: AsyncStream<Value>.Continuation] = [:]
 
@@ -31,18 +32,19 @@ public final class StatusBroadcast<Value: Sendable>: @unchecked Sendable {
             self?.remove(id)
         }
         lock.lock()
+        defer { lock.unlock() }
         continuations[id] = continuation
-        let value = current
-        lock.unlock()
-        continuation.yield(value)
+        // Register and replay atomically so an older replay cannot replace a newer send.
+        continuation.yield(current)
         return stream
     }
 
     public func send(_ value: Value) {
         lock.lock()
+        defer { lock.unlock() }
         current = value
+        // Publish under the same lock as state updates to preserve concurrent send order.
         let active = Array(continuations.values)
-        lock.unlock()
         for continuation in active {
             continuation.yield(value)
         }
