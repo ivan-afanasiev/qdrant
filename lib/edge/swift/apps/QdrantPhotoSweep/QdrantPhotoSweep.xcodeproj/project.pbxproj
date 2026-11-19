@@ -7,46 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		26D2F8CA78784F41BC091424 /* QdrantEdge in Frameworks */ = {isa = PBXBuildFile; productRef = B26FCC80CED0434C80ACA8E8 /* QdrantEdge */; };
 		AB0000000000000000000001 /* SweepComposition in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000002 /* SweepComposition */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		AA0000000000000000000005 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3042E4B0EE994E2E9CF3C72F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EDCD1D55ECED461796CF09C6;
-			remoteInfo = QdrantPhotoSweep;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		3F924D6E309F313C0057D648 /* ARCHITECTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ARCHITECTURE.md; sourceTree = "<group>"; };
 		3FADD11A30A39D8E00F3ADF4 /* REWRITE_PLAN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = REWRITE_PLAN.md; sourceTree = "<group>"; };
-		AA0000000000000000000001 /* QdrantPhotoSweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = QdrantPhotoSweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B583F606A9024581BBDB2C6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QdrantPhotoSweep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		AA0000000000000000000002 /* Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Tests; sourceTree = "<group>"; };
 		EE000001000000000000EE01 /* Sources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Sources; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AA0000000000000000000004 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D78134D34030485C923B12F2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				26D2F8CA78784F41BC091424 /* QdrantEdge in Frameworks */,
 				AB0000000000000000000001 /* SweepComposition in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -58,7 +40,6 @@
 			isa = PBXGroup;
 			children = (
 				DC85130F4E434EE49DD4BE1A /* QdrantPhotoSweep.app */,
-				AA0000000000000000000001 /* QdrantPhotoSweepTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,7 +48,6 @@
 			isa = PBXGroup;
 			children = (
 				3F924D6E309F313C0057D648 /* ARCHITECTURE.md */,
-				AA0000000000000000000002 /* Tests */,
 				B583F606A9024581BBDB2C6A /* Info.plist */,
 				EE000001000000000000EE01 /* Sources */,
 				3FADD11A30A39D8E00F3ADF4 /* REWRITE_PLAN.md */,
@@ -78,26 +58,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA0000000000000000000007 /* QdrantPhotoSweepTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA0000000000000000000008 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweepTests" */;
-			buildPhases = (
-				AA0000000000000000000003 /* Sources */,
-				AA0000000000000000000004 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				AA0000000000000000000006 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				AA0000000000000000000002 /* Tests */,
-			);
-			name = QdrantPhotoSweepTests;
-			productName = QdrantPhotoSweepTests;
-			productReference = AA0000000000000000000001 /* QdrantPhotoSweepTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		EDCD1D55ECED461796CF09C6 /* QdrantPhotoSweep */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D5BA2ED47FAB4523A740DC07 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweep" */;
@@ -116,7 +76,6 @@
 			);
 			name = QdrantPhotoSweep;
 			packageProductDependencies = (
-				B26FCC80CED0434C80ACA8E8 /* QdrantEdge */,
 				AB0000000000000000000002 /* SweepComposition */,
 			);
 			productName = QdrantPhotoSweep;
@@ -140,7 +99,6 @@
 			);
 			mainGroup = 6DA7CBDCB65543BC8E8D125D;
 			packageReferences = (
-				831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */,
 				AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */,
 			);
 			productRefGroup = 6D47939F097641369B8C2033 /* Products */;
@@ -148,7 +106,6 @@
 			projectRoot = "";
 			targets = (
 				EDCD1D55ECED461796CF09C6 /* QdrantPhotoSweep */,
-				AA0000000000000000000007 /* QdrantPhotoSweepTests */,
 			);
 		};
 /* End PBXProject section */
@@ -181,13 +138,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		AA0000000000000000000003 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DAA87EF65FD44163AA369BE8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -198,11 +148,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		AA0000000000000000000006 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EDCD1D55ECED461796CF09C6 /* QdrantPhotoSweep */;
-			targetProxy = AA0000000000000000000005 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -260,36 +205,6 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
-			};
-			name = Release;
-		};
-		AA0000000000000000000009 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4X6Z72XC2U;
-				GENERATE_INFOPLIST_FILE = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweepTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QdrantPhotoSweep.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/QdrantPhotoSweep";
-			};
-			name = Debug;
-		};
-		AA000000000000000000000A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4X6Z72XC2U;
-				GENERATE_INFOPLIST_FILE = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.qdrant.edge.QdrantPhotoSweepTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QdrantPhotoSweep.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/QdrantPhotoSweep";
 			};
 			name = Release;
 		};
@@ -359,15 +274,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA0000000000000000000008 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweepTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA0000000000000000000009 /* Debug */,
-				AA000000000000000000000A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		D5BA2ED47FAB4523A740DC07 /* Build configuration list for PBXNativeTarget "QdrantPhotoSweep" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -389,10 +295,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../..;
-		};
 		AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/PhotoSweep;
@@ -404,11 +306,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AB0000000000000000000003 /* XCLocalSwiftPackageReference "Packages/PhotoSweep" */;
 			productName = SweepComposition;
-		};
-		B26FCC80CED0434C80ACA8E8 /* QdrantEdge */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 831EDF9A26B0445380104FB1 /* XCLocalSwiftPackageReference "../.." */;
-			productName = QdrantEdge;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

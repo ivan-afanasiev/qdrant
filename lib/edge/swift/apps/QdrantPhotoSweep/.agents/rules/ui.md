@@ -4,7 +4,7 @@ Classification: C = confirmed product requirement; T = planned technical constra
 
 ## UI-01 (C) — Presentation
 
-iPhone/iOS 26+, SwiftUI wherever practical. Preserve design tokens, localization, gestures, Tinder-like cards, group comparison and fullscreen preview. Card swipes: left = Skip, right = the card's commit action (Delete All / Delete N / Keep All), with a live icon+text badge; deletions still require the Photos confirmation. The rewrite review flow has no grid/toggle/routes/grid-only state/use cases/tests and no grid pagination API; legacy grid code is deleted with the legacy engine at cutover.
+iPhone/iOS 26+, SwiftUI wherever practical. Preserve design tokens, localization, gestures, Tinder-like cards, group comparison and fullscreen preview. Card swipes: left = Skip, right = the card's commit action (Delete All / Delete N / Keep All), with a live icon+text badge; deletions still require the Photos confirmation. The rewrite review flow has no grid/toggle/routes/grid-only state/use cases/tests and no grid pagination API; legacy grid code has been removed with the legacy engine.
 
 ## UI-02 (C) — Liquid Glass
 

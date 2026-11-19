@@ -4,8 +4,6 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.qdrant.edge.PhotoSweep.backgroundScan</string>
-		<string>com.qdrant.edge.QdrantPhotoSweep.continuousScan.*</string>
 		<string>com.qdrant.edge.QdrantPhotoSweep.scheduledVectorization</string>
 		<string>com.qdrant.edge.QdrantPhotoSweep.continuedVectorization.*</string>
 	</array>

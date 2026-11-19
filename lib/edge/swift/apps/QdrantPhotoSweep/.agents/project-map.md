@@ -6,7 +6,7 @@ Reference when locating work; not automatically loaded. Paths are project-root r
 
 | Area | Entry |
 | --- | --- |
-| App target | Sources/QdrantPhotoSweep/App.swift (engine switch), Info.plist (BGTask identifiers, background modes) |
+| App target | Sources/QdrantPhotoSweep/App.swift (composition root), Info.plist (BGTask identifiers, background modes) |
 | Composition | Packages/PhotoSweep/Sources/SweepComposition/ (`PhotoSweepComposition`, `RewriteBootstrap`, `AppRuntime`, `FeatureFactories`, `LivePlatform`) |
 | Executors | Packages/PhotoSweep/Sources/SweepUseCases/{VectorizationExecutor,DiscoveryExecutor,AppLifecycleCoordinator}.swift |
 | Use cases | SweepUseCases/{VectorizationSteps,ReviewUseCases,PreferenceUseCases,LocalDataOperations}.swift |
@@ -16,7 +16,7 @@ Reference when locating work; not automatically loaded. Paths are project-root r
 | Strings | Packages/PhotoSweep/Sources/SweepDesignSystem/Resources/Localizable.xcstrings (en/de/es/ru); add keys with Scripts/add-strings.py |
 | Tests | Packages/PhotoSweep/Tests/ (17 targets); fakes in SweepTestSupport |
 | Test photos | Scripts/test-photos/ (fake libraries with known duplicate groups) |
-| Legacy (removed at cutover) | Sources/QdrantPhotoSweep/ except App.swift; LegacyEngine.swift; Tests/ScanLifecycleTests.swift |
+| Host resources | Sources/QdrantPhotoSweep/Assets.xcassets and LaunchScreen.storyboard; legacy sources and host test target removed |
 | Xcode | QdrantPhotoSweep.xcodeproj, scheme QdrantPhotoSweep; package scheme PhotoSweep |
 | SDK | QdrantEdge package outside the app directory (lib/edge/swift) |
 

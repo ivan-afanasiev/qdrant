@@ -2,7 +2,7 @@
 
 PhotoSweep finds similar photos on an iPhone (iOS 26+) and lets the person review them as cards. Everything runs on device: Apple Vision computes a feature print per photo, Qdrant Edge stores and searches the vectors, and SwiftData keeps the metadata.
 
-The app target only selects an engine. The rewrite in `Packages/PhotoSweep` is the default; the legacy app in `Sources/QdrantPhotoSweep` stays behind the Debug launch argument `-PhotoSweepLegacyEngine YES` until the step 10 cutover. Its old description is in git history.
+The app target creates the `PhotoSweepComposition` in `Packages/PhotoSweep`, registers background handlers, and presents `PhotoSweepRootView`. The legacy engine and its Debug switch have been removed. The host retains only the entry point and app resources; tests live in the PhotoSweep package.
 
 ## Modules
 
