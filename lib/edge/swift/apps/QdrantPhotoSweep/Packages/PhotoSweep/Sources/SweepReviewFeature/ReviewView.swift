@@ -36,7 +36,7 @@ public struct ReviewView: View {
             details = await images.details(snapshot.members)
         }
         .fullScreenCover(item: $preview) { target in
-            FullscreenPhotoView(asset: target.id, images: images) { preview = nil }
+            FullscreenPhotoView(assets: target.members, selected: target.id, images: images) { preview = nil }
         }
         .alert(noticeTitle, isPresented: noticeBinding) {
             Button(L10n.noticeOK) { store.send(.noticeDismissed) }
@@ -61,7 +61,7 @@ public struct ReviewView: View {
                 details: details,
                 images: images,
                 onToggleKeep: { store.send(.keepToggled($0)) },
-                onPreview: { preview = PreviewTarget(id: $0) }
+                onPreview: { preview = PreviewTarget(id: $0, members: card.snapshot.members) }
             )
         }
         .disabled(store.state.pending != nil)
@@ -147,6 +147,7 @@ public struct ReviewView: View {
 
 struct PreviewTarget: Identifiable {
     let id: AssetID
+    let members: [AssetID]
 }
 
 /// Commit actions for the current selection. An empty selection never deletes by itself.
